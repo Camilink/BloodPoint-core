@@ -1,2 +1,2 @@
 release: python manage.py migrate
-web: gunicorn bloodpoint.wsgi
+web: gunicorn bloodpointprj.wsgi
