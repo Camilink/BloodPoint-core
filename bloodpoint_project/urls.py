@@ -7,10 +7,8 @@ urlpatterns = [
     # Admin at standard /admin/ path
     path('admin/', admin.site.urls),
     
-    # API endpoints under /api/ prefix
     path('donantes/', views.donantes_listado),
     path('donantes/<int:id>/', views.donante_detail, name='donante-detail'),
-    
     
     # Frontend routes (optional)
     path('', include('bloodpoint_app.urls')),
