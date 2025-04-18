@@ -4,30 +4,90 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .models import donante
-from .serializers import donanteSerializer
+from .serializers import donanteSerializer, userDonanteSerializer
 from django.shortcuts import redirect
 from django.http import HttpResponse
-
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.hashers import make_password
 
 logger = logging.getLogger(__name__)
 
 def home_view(request):
-    return HttpResponse("Welcome to Bloodpoint")
+    return HttpResponse("Welcome to Bloodpoint API")
 
+from django.contrib.auth import authenticate
 
+@api_view(['POST'])
+def login(request):
+    serializer = userDonanteSerializer(data=request.data)
+    if serializer.is_valid():
+        email = serializer.validated_data['email']
+        contrasena = serializer.validated_data['contrasena']
+        user = authenticate(email=email, password=contrasena)
+
+        if user:
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({
+                "status": "success",
+                "token": token.key,
+                "user": {
+                    "email": user.email,
+                    "id": user.id_donante
+                }
+            })
+        else:
+            return Response({
+                "status": "error",
+                "message": "Credenciales inválidas"
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+    return Response({
+        "status": "error",
+        "errors": serializer.errors
+    }, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def register(request):
+    serializer = donanteSerializer(data=request.data)
+    if serializer.is_valid():
+        # Crear el usuario con la contraseña hasheada
+        donante_data = serializer.validated_data
+        donante_data['contrasena'] = make_password(donante_data['contrasena'])
+        
+        donante_obj = donante.objects.create(**donante_data)
+        
+        # Crear el token para el nuevo usuario
+        token, _ = Token.objects.get_or_create(user=donante_obj)
+        
+        return Response({
+            "status": "created",
+            "data": serializer.data,
+            "token": token.key,
+            "user": donante_obj.email
+        }, status=status.HTTP_201_CREATED)
     
+    return Response({
+        "status": "error",
+        "errors": serializer.errors
+    }, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+@api_view(['POST'])
+def profile(request):
+
+    return Response({})
+
+
 @api_view(['GET', 'POST'])
 def donantes_listado(request):
 
     if request.method == 'GET':
-        print("DEBUG: Entering donantes_listado view")  # Debug line
         
         donantes = donante.objects.all()
-        print("DEBUG: Queryset:", donantes)  # Debug queryset
-        print("DEBUG: SQL Query:", str(donantes.query))  # Show raw SQL
         
         serializer = donanteSerializer(donantes, many=True)
-        print("DEBUG: Serialized data:", serializer.data)  # Debug serialization
         
         return Response({
             "status": "success",

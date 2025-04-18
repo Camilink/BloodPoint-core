@@ -22,7 +22,7 @@ class donante(models.Model):
     fecha_nacimiento = models.DateField()
     nacionalidad = models.CharField()
     tipo_sangre = models.CharField(max_length=3, choices=TIPO_SANGRE_CHOICES)
-    dispo_dia_donacion= models.DateField()
+    dispo_dia_donacion= models.CharField()
     nuevo_donante = models.BooleanField(default=False) 
     noti_emergencia = models.BooleanField(default=True)
 
@@ -56,6 +56,9 @@ class campana(models.Model):
     apertura = models.TimeField()
     cierre = models.TimeField()
     meta = models.CharField()
+    latitud = models.CharField()
+    longitud = models.CharField()
+    id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE)
 
 class adminbp(models.Model):
     id_admin = models.AutoField(primary_key=True)
@@ -71,6 +74,8 @@ class solicitud_campana_repo(models.Model):
     descripcion_solicitud = models.CharField()
     direccion_solicitud = models.CharField()
     comuna_solicitud = models.CharField()
+    latitud = models.CharField()
+    longitud = models.CharField()
     id_donante = models.ForeignKey(donante, on_delete=models.CASCADE)
 
 class logro(models.Model):

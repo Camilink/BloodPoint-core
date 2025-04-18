@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'bloodpoint_app.apps.BloodpointConfig',
     'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
