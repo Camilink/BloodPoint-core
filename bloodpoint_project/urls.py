@@ -9,7 +9,7 @@ urlpatterns = [
     
     path('donantes_listado/', views.donantes_listado, name='donantes-listado'),
     path('donantes/<int:id>/', views.donante_detail, name='donante-detail'),
-    path('login/', views.login, name='login'),
+    path('ingresar/', views.ingresar, name='ingresar'),
     path('register/', views.register, name='register'),
     path('profile/', views.profile, name='profile'),
 

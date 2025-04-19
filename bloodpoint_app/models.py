@@ -1,4 +1,38 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+
+from django.contrib.auth.models import BaseUserManager
+
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('El email es obligatorio')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('El superusuario debe tener is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('El superusuario debe tener is_superuser=True.')
+
+        return self.create_user(email, password, **extra_fields)
+
+class CustomUser(AbstractUser):
+    username = None  # Eliminamos el campo username predeterminado
+    email = models.EmailField()  # Puedes mantener email como opcional o requerido, sin unique=True
+    rut = models.CharField(unique=True)
+    USERNAME_FIELD = 'rut'  # Define rut como el identificador único
+    REQUIRED_FIELDS = ['email']  # Email sigue siendo requerido (pero puedes ajustar esto)
+
+    objects = CustomUserManager()  # Usa el manager personalizado
+
 TIPO_SANGRE_CHOICES = [
     ('O+', 'O+'),
     ('O-', 'O-'),
@@ -9,23 +43,25 @@ TIPO_SANGRE_CHOICES = [
     ('AB+', 'AB+'),
     ('AB-', 'AB-'),
 ]
-# Create your models here.
 class donante(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, blank=True)  # Vinculación correcta
     id_donante = models.AutoField(primary_key=True)
-    rut = models.CharField(unique=True)    
-    nombre_completo = models.CharField()
-    email = models.EmailField()
-    contrasena = models.CharField()    
-    direccion = models.CharField()
-    comuna = models.CharField()
-    fono = models.CharField()
+    rut = models.CharField(unique=True)
+    nombre_completo = models.CharField(max_length=100)
+    direccion = models.CharField(max_length=255)
+    comuna = models.CharField(max_length=100)
+    fono = models.CharField(max_length=20)
     fecha_nacimiento = models.DateField()
-    nacionalidad = models.CharField()
+    nacionalidad = models.CharField(max_length=50)
     tipo_sangre = models.CharField(max_length=3, choices=TIPO_SANGRE_CHOICES)
-    dispo_dia_donacion= models.CharField()
-    nuevo_donante = models.BooleanField(default=False) 
+    dispo_dia_donacion = models.CharField(max_length=50)
+    nuevo_donante = models.BooleanField(default=False)
     noti_emergencia = models.BooleanField(default=True)
 
+    def __str__(self):
+        return self.nombre_completo
+    def __str__(self):
+        return self.nombre_completo
 class representante_org(models.Model):
     id_representante = models.AutoField(primary_key=True)
     rol = models.CharField()

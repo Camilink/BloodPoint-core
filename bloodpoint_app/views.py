@@ -3,82 +3,134 @@ import logging
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .models import donante
-from .serializers import donanteSerializer, userDonanteSerializer
-from django.shortcuts import redirect
+from .serializers import donanteSerializer
 from django.http import HttpResponse
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth import authenticate, login
+from bloodpoint_app.models import CustomUser, donante
+from rest_framework.permissions import IsAuthenticated
+from .models import CustomUser
+from .serializers import CustomUserSerializer
+
 
 logger = logging.getLogger(__name__)
 
 def home_view(request):
     return HttpResponse("Welcome to Bloodpoint API")
 
-from django.contrib.auth import authenticate
+
+from django.contrib.auth import authenticate, login
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 @api_view(['POST'])
-def login(request):
-    serializer = userDonanteSerializer(data=request.data)
-    if serializer.is_valid():
-        email = serializer.validated_data['email']
-        contrasena = serializer.validated_data['contrasena']
-        user = authenticate(email=email, password=contrasena)
+def ingresar(request):
+    rut = request.data.get("rut")
+    password = request.data.get("password")
 
-        if user:
-            token, _ = Token.objects.get_or_create(user=user)
-            return Response({
-                "status": "success",
-                "token": token.key,
-                "user": {
-                    "email": user.email,
-                    "id": user.id_donante
-                }
-            })
-        else:
-            return Response({
-                "status": "error",
-                "message": "Credenciales inválidas"
-            }, status=status.HTTP_401_UNAUTHORIZED)
+    # Autentica al usuario
+    user = authenticate(rut=rut, password=password)
 
-    return Response({
-        "status": "error",
-        "errors": serializer.errors
-    }, status=status.HTTP_400_BAD_REQUEST)
+    if user is not None:
+        # Inicia sesión
+        login(request, user)
+        return Response({
+            "status": "success",
+            "message": "Inicio de sesión exitoso.",
+            "user_id": user.id
+        }, status=200)
+    else:
+        return Response({
+            "status": "error",
+            "message": "Rut o contraseña incorrectos."
+        }, status=400)
 
 @api_view(['POST'])
 def register(request):
-    serializer = donanteSerializer(data=request.data)
-    if serializer.is_valid():
-        # Crear el usuario con la contraseña hasheada
-        donante_data = serializer.validated_data
-        donante_data['contrasena'] = make_password(donante_data['contrasena'])
-        
-        donante_obj = donante.objects.create(**donante_data)
-        
-        # Crear el token para el nuevo usuario
-        token, _ = Token.objects.get_or_create(user=donante_obj)
-        
+    # Obtener datos enviados por el usuario
+    rut = request.data.get("rut")
+    email = request.data.get("email")
+    password = request.data.get("contrasena")
+
+    # Validar si el rut está vacío
+    if not rut or rut.strip() == '':
         return Response({
-            "status": "created",
-            "data": serializer.data,
-            "token": token.key,
-            "user": donante_obj.email
-        }, status=status.HTTP_201_CREATED)
-    
+            "status": "error",
+            "message": "El campo rut no puede estar vacío."
+        }, status=400)
+
+    # Validar si el rut ya existe
+    if CustomUser.objects.filter(rut=rut).exists():
+        return Response({
+            "status": "error",
+            "message": "El rut ya está registrado."
+        }, status=400)
+
+    # Crear usuario en CustomUser
+    user = CustomUser.objects.create_user(rut=rut, email=email, password=password)
+
+    # Resto de los datos para crear el objeto donante
+    donante_data = {
+        "rut": rut,
+        "nombre_completo": request.data.get("nombre_completo"),
+        "direccion": request.data.get("direccion"),
+        "comuna": request.data.get("comuna"),
+        "fono": request.data.get("fono"),
+        "fecha_nacimiento": request.data.get("fecha_nacimiento"),
+        "nacionalidad": request.data.get("nacionalidad"),
+        "tipo_sangre": request.data.get("tipo_sangre"),
+        "dispo_dia_donacion": request.data.get("dispo_dia_donacion"),
+        "nuevo_donante": request.data.get("nuevo_donante"),
+        "noti_emergencia": request.data.get("noti_emergencia"),
+        "user": user  # Vincula el usuario creado
+    }
+
+    donante_obj = donante.objects.create(**donante_data)
+
     return Response({
-        "status": "error",
-        "errors": serializer.errors
-    }, status=status.HTTP_400_BAD_REQUEST)
+        "status": "created",
+        "user_id": user.id,
+        "donante_id": donante_obj.id_donante,
+    }, status=201)
 
 
 
-
-@api_view(['POST'])
+@api_view(['GET', 'PUT'])
 def profile(request):
+    # Verifica que el usuario esté autenticado
+    if not request.user.is_authenticated:
+        return Response({
+            "status": "error",
+            "message": "Usuario no autenticado."
+        }, status=403)
 
-    return Response({})
+    # Solicitud GET: Obtener perfil
+    if request.method == 'GET':
+        user = request.user  # Usuario autenticado
+        serializer = CustomUserSerializer(user)
+        return Response({
+            "status": "success",
+            "data": serializer.data
+        }, status=200)
 
+    # Solicitud PUT: Actualizar perfil
+    elif request.method == 'PUT':
+        user = request.user
+        serializer = CustomUserSerializer(user, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "status": "success",
+                "message": "Perfil actualizado exitosamente.",
+                "data": serializer.data
+            }, status=200)
+        else:
+            return Response({
+                "status": "error",
+                "errors": serializer.errors
+            }, status=400)
 
 @api_view(['GET', 'POST'])
 def donantes_listado(request):

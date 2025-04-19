@@ -86,7 +86,7 @@ WSGI_APPLICATION = 'bloodpoint_project.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+AUTH_USER_MODEL = 'bloodpoint_app.CustomUser'
 
 DATABASES = {
     "default": dj_database_url.config(default="postgres://admin:admin@localhost:5432/bloodpointbd")
