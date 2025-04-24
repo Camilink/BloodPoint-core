@@ -26,25 +26,23 @@ from rest_framework.response import Response
 
 @api_view(['POST'])
 def ingresar(request):
-    rut = request.data.get("rut")
-    password = request.data.get("password")
+    rut = request.data.get('rut')
+    password = request.data.get('password')
 
-    # Autentica al usuario
-    user = authenticate(rut=rut, password=password)
+    user = authenticate(request, rut=rut, password=password)
 
     if user is not None:
-        # Inicia sesión
-        login(request, user)
+        token, _ = Token.objects.get_or_create(user=user)
         return Response({
-            "status": "success",
-            "message": "Inicio de sesión exitoso.",
-            "user_id": user.id
-        }, status=200)
+            'status': 'success',
+            'token': token.key,
+            'user_id': user.id
+        })
     else:
         return Response({
-            "status": "error",
-            "message": "Rut o contraseña incorrectos."
-        }, status=400)
+            'status': 'error',
+            'message': 'Rut o contraseña incorrectos.'
+        }, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
 def register(request):
