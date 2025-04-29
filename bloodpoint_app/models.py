@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -26,12 +27,19 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractUser):
     username = None  # Eliminamos el campo username predeterminado
-    email = models.EmailField()  # Puedes mantener email como opcional o requerido, sin unique=True
+    email = models.EmailField(unique=False, blank=True, null=True)  # Puedes mantener email como opcional o requerido, sin unique=True
     rut = models.CharField(unique=True)
+    tipo_usuario = models.CharField(max_length=20, choices=[  # Agrega esto
+        ('donante', 'Donante'),
+        ('representante', 'Representante'),
+        ('admin', 'Administrador'),
+    ])
     USERNAME_FIELD = 'rut'  # Define rut como el identificador único
-    REQUIRED_FIELDS = ['email']  # Email sigue siendo requerido (pero puedes ajustar esto)
+    REQUIRED_FIELDS = ['email']  # Email sigue siendo requerido
 
     objects = CustomUserManager()  # Usa el manager personalizado
+    def __str__(self):
+        return f'{self.rut} - {self.tipo_usuario}'
 
 TIPO_SANGRE_CHOICES = [
     ('O+', 'O+'),
@@ -48,6 +56,7 @@ class donante(models.Model):
     id_donante = models.AutoField(primary_key=True)
     rut = models.CharField(unique=True)
     nombre_completo = models.CharField(max_length=100)
+    sexo = models.CharField(max_length=1)
     direccion = models.CharField(max_length=255)
     comuna = models.CharField(max_length=100)
     fono = models.CharField(max_length=20)
@@ -57,17 +66,20 @@ class donante(models.Model):
     dispo_dia_donacion = models.CharField(max_length=50)
     nuevo_donante = models.BooleanField(default=False)
     noti_emergencia = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.nombre_completo
-    def __str__(self):
-        return self.nombre_completo
+
 class representante_org(models.Model):
     id_representante = models.AutoField(primary_key=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     rol = models.CharField()
     nombre = models.CharField()
-    email = models.EmailField()
-    contrasena = models.CharField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.nombre
 
 class centro_donacion(models.Model):
     id_centro = models.AutoField(primary_key=True)
@@ -77,6 +89,7 @@ class centro_donacion(models.Model):
     telefono = models.CharField()
     fecha_creacion = models.DateField()
     id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class donacion(models.Model):
     id_donacion = models.AutoField(primary_key=True)
@@ -84,6 +97,7 @@ class donacion(models.Model):
     fecha_donacion = models.DateField()
     cantidad_donacion = models.IntegerField()
     centro_id = models.ForeignKey(centro_donacion, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class campana(models.Model):
     id_campana = models.AutoField(primary_key=True)
@@ -95,12 +109,14 @@ class campana(models.Model):
     latitud = models.CharField()
     longitud = models.CharField()
     id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class adminbp(models.Model):
     id_admin = models.AutoField(primary_key=True)
     nombre = models.CharField()
     email = models.EmailField()
     contrasena = models.CharField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class solicitud_campana_repo(models.Model):
     id_solicitud = models.AutoField(primary_key=True)
@@ -113,9 +129,11 @@ class solicitud_campana_repo(models.Model):
     latitud = models.CharField()
     longitud = models.CharField()
     id_donante = models.ForeignKey(donante, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class logro(models.Model):
     id_logro = models.AutoField(primary_key=True)
     descripcion_logro = models.CharField()
     id_donante = models.ForeignKey(donante, on_delete=models.CASCADE)
     fecha_logro = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)

@@ -1,8 +1,14 @@
 from rest_framework import serializers
-from .models import donante
+from .models import donante, representante_org
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from .models import CustomUser
+
+class RepresentanteOrgSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = representante_org
+        fields = '__all__'
+
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:

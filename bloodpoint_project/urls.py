@@ -12,8 +12,8 @@ urlpatterns = [
     path('ingresar/', views.ingresar, name='ingresar'),
     path('register/', views.register, name='register'),
     path('profile/', views.profile, name='profile'),
-
-
+    path('representantes/', views.listar_representantes, name='listar-representantes'), # Para listar representantes de org
+    path('representantes/register/', views.register_representante, name='register-representante'),  # Para registrar
 
 
     # Frontend routes (optional)

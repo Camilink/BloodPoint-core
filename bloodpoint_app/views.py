@@ -10,8 +10,10 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate, login
 from bloodpoint_app.models import CustomUser, donante
 from rest_framework.permissions import IsAuthenticated
-from .models import CustomUser
-from .serializers import CustomUserSerializer
+from .models import CustomUser, representante_org, donante
+from .serializers import CustomUserSerializer, RepresentanteOrgSerializer
+from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth import get_user_model
 
 
 logger = logging.getLogger(__name__)
@@ -19,10 +21,51 @@ logger = logging.getLogger(__name__)
 def home_view(request):
     return HttpResponse("Welcome to Bloodpoint API")
 
+@api_view(['GET'])
+def list_representantes(request):
+    representantes = representante_org.objects.all()
+    serializer = RepresentanteOrgSerializer(representantes, many=True)
+    return Response(serializer.data)
 
-from django.contrib.auth import authenticate, login
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+
+@api_view(['POST'])
+def register_representante(request):
+    email = request.data.get("email")
+    password = request.data.get("contrasena")
+
+    if not email or email.strip() == '':
+        return Response({
+            "status": "error",
+            "message": "El campo email no puede estar vacío."
+        }, status=400)
+
+    if CustomUser.objects.filter(email=email).exists():
+        return Response({
+            "status": "error",
+            "message": "El email ya está registrado."
+        }, status=400)
+
+    # Crear usuario en CustomUser
+    user = CustomUser.objects.create_user(
+        rut=None,
+        email=email,
+        password=password,
+        tipo_usuario='representante'
+    )
+
+    # Crear representante ligado al usuario
+    representante = representante_org.objects.create(
+        user=user,
+        rol=request.data.get("rol"),
+        nombre=request.data.get("nombre"),
+    )
+
+    return Response({
+        "status": "created",
+        "user_id": user.id,
+        "representante_id": representante.id_representante,
+    }, status=201)
+
 
 @api_view(['POST'])
 def ingresar(request):
@@ -65,9 +108,6 @@ def register(request):
             "message": "El rut ya está registrado."
         }, status=400)
 
-    # Crear usuario en CustomUser
-    user = CustomUser.objects.create_user(rut=rut, email=email, password=password)
-
     # Resto de los datos para crear el objeto donante
     donante_data = {
         "rut": rut,
@@ -75,6 +115,7 @@ def register(request):
         "direccion": request.data.get("direccion"),
         "comuna": request.data.get("comuna"),
         "fono": request.data.get("fono"),
+        "sexo": request.data.get("sexo"),
         "fecha_nacimiento": request.data.get("fecha_nacimiento"),
         "nacionalidad": request.data.get("nacionalidad"),
         "tipo_sangre": request.data.get("tipo_sangre"),
@@ -83,6 +124,14 @@ def register(request):
         "noti_emergencia": request.data.get("noti_emergencia"),
         "user": user  # Vincula el usuario creado
     }
+
+    # Crear usuario en CustomUser con tipo_usuario = "donante"
+    user = CustomUser.objects.create_user(
+        rut=rut,
+        email=email,
+        password=password,
+        tipo_usuario='donante'
+    )
 
     donante_obj = donante.objects.create(**donante_data)
 
