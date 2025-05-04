@@ -108,6 +108,14 @@ def register(request):
             "message": "El rut ya está registrado."
         }, status=400)
 
+    # Crear usuario en CustomUser con tipo_usuario = "donante"
+    user = CustomUser.objects.create_user(
+        rut=rut,
+        email=email,
+        password=password,
+        tipo_usuario='donante'
+    )
+
     # Resto de los datos para crear el objeto donante
     donante_data = {
         "rut": rut,
@@ -124,14 +132,6 @@ def register(request):
         "noti_emergencia": request.data.get("noti_emergencia"),
         "user": user  # Vincula el usuario creado
     }
-
-    # Crear usuario en CustomUser con tipo_usuario = "donante"
-    user = CustomUser.objects.create_user(
-        rut=rut,
-        email=email,
-        password=password,
-        tipo_usuario='donante'
-    )
 
     donante_obj = donante.objects.create(**donante_data)
 
