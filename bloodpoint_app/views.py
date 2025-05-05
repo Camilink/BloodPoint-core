@@ -169,16 +169,9 @@ def profile(request):
         }, status=200)
 
     elif request.method == 'PUT':
-        # Se usa el mismo serializer para actualizar datos tanto de Donante como de CustomUser
         serializer = DonantePerfilSerializer(donante_obj, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-
-            # Se actualiza el email del usuario si viene en los datos (está en user.email)
-            if 'user' in serializer.validated_data:
-                request.user.email = serializer.validated_data['user'].get('email', request.user.email)
-                request.user.save()
-
             return Response({
                 "status": "success",
                 "message": "Perfil actualizado exitosamente.",
@@ -189,6 +182,7 @@ def profile(request):
                 "status": "error",
                 "errors": serializer.errors
             }, status=400)
+
 
 @api_view(['GET', 'POST'])
 def donantes_listado(request):

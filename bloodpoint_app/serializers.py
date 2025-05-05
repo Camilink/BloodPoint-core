@@ -59,3 +59,23 @@ class DonantePerfilSerializer(serializers.ModelSerializer):
             'tipo_sangre',
             'noti_emergencia',
         ]
+
+    def update(self, instance, validated_data):
+        # Extraer los datos del usuario (CustomUser)
+        user_data = validated_data.pop('user', {})
+
+        # Actualizar datos del usuario
+        user = instance.user
+        if 'email' in user_data:
+            user.email = user_data['email']
+        if 'rut' in user_data:
+            user.rut = user_data['rut']
+        user.save()
+
+        # Actualizar campos del modelo Donante
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        return instance
+
