@@ -11,7 +11,7 @@ from django.contrib.auth import authenticate, login
 from bloodpoint_app.models import CustomUser, donante
 from rest_framework.permissions import IsAuthenticated
 from .models import CustomUser, representante_org, donante
-from .serializers import CustomUserSerializer, RepresentanteOrgSerializer
+from .serializers import CustomUserSerializer, RepresentanteOrgSerializer, DonantePerfilSerializer
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 
@@ -145,29 +145,40 @@ def register(request):
 
 @api_view(['GET', 'PUT'])
 def profile(request):
-    # Verifica que el usuario esté autenticado
     if not request.user.is_authenticated:
         return Response({
             "status": "error",
             "message": "Usuario no autenticado."
         }, status=403)
 
-    # Solicitud GET: Obtener perfil
+    # obtenemos el objeto donante relacionado con el usuario
+    try:
+        donante_obj = donante.objects.get(user=request.user)
+    except donante.DoesNotExist:
+        return Response({
+            "status": "error",
+            "message": "Perfil de donante no encontrado."
+        }, status=404)
+
     if request.method == 'GET':
-        user = request.user  # Usuario autenticado
-        serializer = CustomUserSerializer(user)
+        # Usamos el nuevo serializer combinado
+        serializer = DonantePerfilSerializer(donante_obj)
         return Response({
             "status": "success",
             "data": serializer.data
         }, status=200)
 
-    # Solicitud PUT: Actualizar perfil
     elif request.method == 'PUT':
-        user = request.user
-        serializer = CustomUserSerializer(user, data=request.data, partial=True)
-
+        # Se usa el mismo serializer para actualizar datos tanto de Donante como de CustomUser
+        serializer = DonantePerfilSerializer(donante_obj, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
+
+            # Se actualiza el email del usuario si viene en los datos (está en user.email)
+            if 'user' in serializer.validated_data:
+                request.user.email = serializer.validated_data['user'].get('email', request.user.email)
+                request.user.save()
+
             return Response({
                 "status": "success",
                 "message": "Perfil actualizado exitosamente.",

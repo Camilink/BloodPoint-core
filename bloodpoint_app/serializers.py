@@ -39,3 +39,23 @@ class userDonanteSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['id'] = instance.id_donante
         return representation
+
+class DonantePerfilSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source='user.email')
+    rut = serializers.CharField(source='user.rut')
+
+    class Meta:
+        model = donante
+        fields = [
+            'rut',
+            'email',
+            'nombre_completo',
+            'sexo',
+            'direccion',
+            'comuna',
+            'fono',
+            'fecha_nacimiento',
+            'nacionalidad',
+            'tipo_sangre',
+            'noti_emergencia',
+        ]
