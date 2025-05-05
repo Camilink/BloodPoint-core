@@ -151,3 +151,7 @@ CORS_ALLOW_HEADERS = list(corsheaders.defaults.default_headers) + [
     'authorization',
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'bloodpoint_app.backends.RutAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]

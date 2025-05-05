@@ -70,22 +70,37 @@ def register_representante(request):
 @api_view(['POST'])
 def ingresar(request):
     rut = request.data.get('rut')
+    email = request.data.get('email')
     password = request.data.get('password')
 
-    user = authenticate(request, rut=rut, password=password)
+    user = None
+
+    if rut:
+        # Login para donantes
+        user = authenticate(request, rut=rut, password=password)
+    elif email:
+        # Login para representantes
+        try:
+            user = CustomUser.objects.get(email=email, tipo_usuario='representante')
+            if not user.check_password(password):
+                user = None
+        except CustomUser.DoesNotExist:
+            user = None
 
     if user is not None:
         token, _ = Token.objects.get_or_create(user=user)
         return Response({
             'status': 'success',
             'token': token.key,
-            'user_id': user.id
+            'user_id': user.id,
+            'tipo_usuario': user.tipo_usuario,
         })
     else:
         return Response({
             'status': 'error',
-            'message': 'Rut o contraseña incorrectos.'
+            'message': 'Credenciales incorrectas.'
         }, status=status.HTTP_401_UNAUTHORIZED)
+
 
 @api_view(['POST'])
 def register(request):
