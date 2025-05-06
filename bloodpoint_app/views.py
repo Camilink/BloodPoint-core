@@ -14,6 +14,7 @@ from .models import CustomUser, representante_org, donante
 from .serializers import CustomUserSerializer, RepresentanteOrgSerializer, DonantePerfilSerializer
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
+import uuid
 
 
 logger = logging.getLogger(__name__)
@@ -45,9 +46,11 @@ def register_representante(request):
             "message": "El email ya está registrado."
         }, status=400)
 
-    # Crear usuario en CustomUser
+    # Generar un rut tipo REP-<uuid>
+    rut_generado = f"REP-{uuid.uuid4().hex[:10]}"
+
     user = CustomUser.objects.create_user(
-        rut=None,
+        rut=rut_generado,
         email=email,
         password=password,
         tipo_usuario='representante'
