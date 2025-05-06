@@ -1,25 +1,38 @@
 from datetime import date
 import logging
+from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import donanteSerializer
 from django.http import HttpResponse
 from rest_framework.authtoken.models import Token
-from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate, login
 from bloodpoint_app.models import CustomUser, donante
-from rest_framework.permissions import IsAuthenticated
 from .models import CustomUser, representante_org, donante
 from .serializers import CustomUserSerializer, RepresentanteOrgSerializer, DonantePerfilSerializer
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
+from bloodpoint_app import views
+
 
 
 logger = logging.getLogger(__name__)
 
-def home_view(request):
-    return HttpResponse("Welcome to Bloodpoint API")
+#def home_view(request):
+#    return HttpResponse("Welcome to Bloodpoint API")
+
+# NAVEGADOR 
+def HomePage(request):
+    return render(request, 'home.html')
+
+def LoginPage(request):
+    return render(request, 'login.html')
+
+def SignupPage(request):
+    return render(request, 'signup.html')
+
+
 
 @api_view(['GET'])
 def list_representantes(request):
@@ -259,3 +272,4 @@ def donante_detail(request, id):
     elif request.method == 'DELETE':
         donante_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
