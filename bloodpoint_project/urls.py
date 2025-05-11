@@ -14,6 +14,8 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('representantes/', views.list_representantes, name='listar-representantes'), # Para listar representantes de org
     path('representantes/register/', views.register_representante, name='register-representante'),  # Para registrar
+    path('centros/', views.centros_listado, name='centros-listado'),  # Para listar centros
+    path('centros/<int:id>/', views.centro_detail, name='centro-detail'),  # Para obtener un centro (y hacer get,put,delete, etc)
 
 
     # Frontend routes (optional)

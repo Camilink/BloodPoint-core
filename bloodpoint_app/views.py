@@ -4,12 +4,12 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import donanteSerializer
+from .serializers import donanteSerializer, CentroDonacionSerializer
 from django.http import HttpResponse
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login
 from bloodpoint_app.models import CustomUser, donante
-from .models import CustomUser, representante_org, donante
+from .models import CustomUser, representante_org, donante, centro_donacion
 from .serializers import CustomUserSerializer, RepresentanteOrgSerializer, DonantePerfilSerializer
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
@@ -33,7 +33,56 @@ def LoginPage(request):
 def SignupPage(request):
     return render(request, 'signup.html')
 
+@api_view(['GET', 'POST'])
+def centros_listado(request):
+    if request.method == 'GET':
+        centros = centro_donacion.objects.all()
+        serializer = CentroDonacionSerializer(centros, many=True)
+        return Response({
+            "status": "success",
+            "count": centros.count(),
+            "data": serializer.data
+        })
 
+    elif request.method == 'POST':
+        serializer = CentroDonacionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "status": "success",
+                "data": serializer.data
+            }, status=status.HTTP_201_CREATED)
+
+        return Response({
+            "status": "error",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def centro_detail(request, id):
+    try:
+        centro = centro_donacion.objects.get(id_centro=id)
+    except centro_donacion.DoesNotExist:
+        return Response({
+            "status": "error",
+            "message": "Centro no encontrado."
+        }, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = CentroDonacionSerializer(centro)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = CentroDonacionSerializer(centro, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        centro.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
 def list_representantes(request):
