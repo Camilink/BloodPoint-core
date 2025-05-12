@@ -105,12 +105,9 @@
     </nav>
     <div class="main-content">
         <h2>Bienvenido a BLOODPOINT</h1>
-        <iframe
-        src="https://bloodpoint-core.onrender.com/superset/dashboard/p/NygnDv8lZGa/"
-        width="100%"
-        height="600px"
-        frameborder="0"
-        ></iframe>
+            <iframe width="600" height="400" seamless frameBorder="0" scrolling="no"
+                src="https://bloodpoint-core.onrender.com/superset/explore/p/EeYPxOBMbj6/?standalone=1&height=400">
+            </iframe>
     </div>
 
 
@@ -125,27 +122,35 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.min.js"
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
+    <!-- SDK de Superset -->
     <script src="https://unpkg.com/@superset-ui/embedded-sdk"></script>
+
     <script>
-        supersetEmbeddedSdk.embedDashboard({
-            id: "65cd1009-7a19-4392-a138-a1f27e500973", // given by the Superset embedding UI
-            supersetDomain: "https://bloodpoint-core.onrender.com",
-            mountPoint: document.getElementById("my-superset-container"), // any html element that can contain an iframe
-            fetchGuestToken: () => fetchGuestTokenFromBackend(),
-            dashboardUiConfig: { // dashboard UI config: hideTitle, hideTab, hideChartControls, filters.visible, filters.expanded (optional), urlParams (optional)
-                hideTitle: true,
-                filters: {
-                    expanded: true,
-                },
-                urlParams: {
-                    foo: 'value1',
-                    bar: 'value2',
-                    // ...
-                }
-            },
-            // optional additional iframe sandbox attributes
-            iframeSandboxExtras: ['allow-top-navigation', 'allow-popups-to-escape-sandbox']
-        });
+        // 1. Configuración inicial
+        const SUPERSET_URL = "https://bloodpoint-core.onrender.com";
+        const CHART_ID = "EeYPxOBMbj6"; // Usa tu chart ID real
+
+        // 2. Obtener el token JWT
+        fetch('/api/superset-token/' + CHART_ID + '/')
+            .then(response => response.json())
+            .then(data => {
+
+                // 3. Configurar el SDK
+                supersetEmbeddedSdk.embedChart({
+                    id: CHART_ID,
+                    supersetDomain: SUPERSET_URL,
+                    mountPoint: document.getElementById("superset-container"),
+                    fetchGuestToken: () => data.token, // Token obtenido de tu backend
+                    dashboardUiConfig: {
+                        hideTitle: true,
+                        filters: {
+                            expanded: false,
+                        }
+                    }
+                });
+
+            })
+            .catch(error => console.error("Error loading chart:", error));
     </script>
 
 </body>

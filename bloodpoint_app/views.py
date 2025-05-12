@@ -325,3 +325,31 @@ def donante_detail(request, id):
         donante_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+#APACHE SUPERSET
+from django.http import JsonResponse
+import jwt
+from datetime import datetime, timedelta
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+
+# @csrf_exempt  # Solo si es una API pública (ajusta según tu seguridad)
+# def generate_superset_token(request, chart_id):
+#     secret_key = getattr(settings, 'Okiqzq/LVgWIDvxZ5nCU4bzNxA4Hyi37VD0dIQUeeB8qjaTv39XfJw1v', 'django-insecure-08&ko%+7k8l=v1-@1y@1g-(7ht_uc816k#_&nt@uncpc^ki$jp')
+    
+#     payload = {
+#         "resource": {"explore": chart_id},
+#         "exp": datetime.utcnow() + timedelta(hours=1)
+#     }
+    
+#     token = jwt.encode(payload, secret_key, algorithm="HS256")
+#     return JsonResponse({"token": token})
+
+
+@csrf_exempt
+def generate_chart_token(request, chart_id):
+    payload = {
+        "resource": {"explore": str(chart_id)},  # 👈 "explore" para gráficos
+        "exp": datetime.utcnow() + timedelta(hours=1)
+    }
+    token = jwt.encode(payload, settings.SUPERSET_SECRET_KEY, algorithm="HS256")
+    return JsonResponse({"token": token})

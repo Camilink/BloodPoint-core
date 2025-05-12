@@ -3,6 +3,9 @@ from django.urls import path, include, re_path
 from bloodpoint_app import views
 from rest_framework.urlpatterns import format_suffix_patterns
 
+
+
+
 urlpatterns = [
     # Admin at standard /admin/ path
     path('admin/', admin.site.urls),
@@ -16,7 +19,8 @@ urlpatterns = [
     path('representantes/register/', views.register_representante, name='register-representante'),  # Para registrar
     path('centros/', views.centros_listado, name='centros-listado'),  # Para listar centros
     path('centros/<int:id>/', views.centro_detail, name='centro-detail'),  # Para obtener un centro (y hacer get,put,delete, etc)
-
+    #super set
+    path('api/superset-token/<str:chart_id>/', views.generate_chart_token, name='chart-token'),
 
     # Frontend routes (optional)
     path('', include('bloodpoint_app.urls')),
