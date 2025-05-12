@@ -1,0 +1,22 @@
+databases:
+  - name: bloodpointbd
+    plan: free
+    databaseName: bloodpointbd
+    user: bloodpointbd
+
+services:
+  - type: web
+    plan: free
+    name: bloodpoint-core
+    runtime: python
+    buildCommand: './build.sh'
+    startCommand: 'python -m gunicorn bloodpoint_project.asgi:application -k uvicorn.workers.UvicornWorker' 
+    envVars:
+      - key: 'postgres://u5mh9fi08iuct0:pb0d6bd9f0e847a780e5403a376a825847485c97a50a2dd1459a86dc144440ced@ca932070ke6bv1.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d50aqolcf988ab'
+        fromDatabase:
+          name: bloodpointbd
+          property: connectionString
+      - key: 'Okiqzq/LVgWIDvxZ5nCU4bzNxA4Hyi37VD0dIQUeeB8qjaTv39XfJw1v'
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 4
