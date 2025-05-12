@@ -32,7 +32,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['bloodpoint-core-qa.herokuapp.com','bloodpoint-core-qa-35c4ecec4a30.herokuapp.com',
     'localhost',
-    '127.0.0.1']
+    '127.0.0.1', 'bloodpoint-core.onrender.com']
 
 
 # Application definition

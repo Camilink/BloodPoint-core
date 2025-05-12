@@ -2,11 +2,30 @@
 # Exit on error
 set -o errexit
 
-# Modify this line as needed for your package manager (pip, poetry, etc.)
+# --- Instalar dependencias ---
+# Django y tus dependencias (como antes)
 pip install -r requirements.txt
 
-# Convert static asset files
-python manage.py collectstatic --no-input
+# Instalar Apache Superset y driver de PostgreSQL (si no están en requirements.txt)
+pip install apache-superset psycopg2-binary
 
-# Apply any outstanding database migrations
+# --- Configuración de Django (mantén esto si lo necesitas) ---
+python manage.py collectstatic --no-input
 python manage.py migrate
+
+# --- Configuración de Superset ---
+# 1. Migrar la base de datos de Superset
+superset db upgrade
+
+# 2. Crear usuario admin (opcional, o hazlo manual después del despliegue)
+# ¡Cambia las credenciales!
+export FLASK_APP=superset
+superset fab create-admin \
+    --username admin \
+    --firstname Admin \
+    --lastname User \
+    --email admin@example.com \
+    --password admin123  # ¡Usa una contraseña segura!
+
+# 3. Inicializar Superset (roles y permisos básicos)
+superset init
