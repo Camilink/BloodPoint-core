@@ -11,3 +11,22 @@ FEATURE_FLAGS = {"EMBEDDED_SUPERSET": True, "EMBEDDABLE_CHARTS": True}
 
 TALISMAN_ENABLED = False
 WTF_CSRF_ENABLED = False
+
+
+# CORS Enabling 
+ENABLE_CORS = True 
+CORS_OPTIONS = { 
+    "supports_credentials": True, 
+    "allow_headers": "*", 
+    "expose_headers": "*", 
+    "resources": "*", 
+    "origins": ["http://localhost:3000","https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com/"]  
+    }
+        
+
+# Dashboard embedding 
+GUEST_ROLE_NAME = "Gamma" 
+GUEST_TOKEN_JWT_SECRET = "PASTE_GENERATED_SECRET_HERE" 
+GUEST_TOKEN_JWT_ALGO = "HS256" 
+GUEST_TOKEN_HEADER_NAME = "X-GuestToken" 
+GUEST_TOKEN_JWT_EXP_SECONDS = 300 # 5 minutes
