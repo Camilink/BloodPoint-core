@@ -51,7 +51,6 @@ Flask-SQLAlchemy==2.5.1
 flask-talisman==1.1.0
 Flask-WTF==1.2.2
 flask_cors==5.0.1
-PyJWT==2.3.0
 func_timeout==4.3.5
 geographiclib==2.0
 geopy==2.4.1
