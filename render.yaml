@@ -12,11 +12,11 @@ services:
     buildCommand: './build.sh'
     startCommand: 'python -m gunicorn bloodpoint_project.asgi:application -k uvicorn.workers.UvicornWorker' 
     envVars:
-      - key: DATABASE_URL
+      - key: postgresql://admin:MyRta8PfOdy6I11iQ0YBR01CyiGatqzA@dpg-d0gmc82dbo4c73bhc5jg-a/bloodpointbd
         fromDatabase:
           name: bloodpointdb
           property: connectionString
-      - key: SECRET_KEY
+      - key: Okiqzq/LVgWIDvxZ5nCU4bzNxA4Hyi37VD0dIQUeeB8qjaTv39XfJw1v
         generateValue: true
       - key: WEB_CONCURRENCY
         value: 4
