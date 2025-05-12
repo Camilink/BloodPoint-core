@@ -24,3 +24,5 @@ services:
         value: "superset.app:create_app()"
       - key: SUPERSET_ENV
         value: production
+      - key: SUPERSET_CONFIG_PATH
+        value: /opt/render/project/src/config/superset_config.py
