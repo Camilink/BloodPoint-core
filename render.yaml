@@ -10,7 +10,7 @@ services:
     name: bloodpoint-core
     runtime: python
     buildCommand: './build.sh'
-    startCommand: 'python -m gunicorn bloodpoint_project.asgi:application -k uvicorn.workers.UvicornWorker' 
+    startCommand: 'superset run -h 0.0.0.0 -p 8088' 
     envVars:
       - key: DATABASE_URL
         fromDatabase:
