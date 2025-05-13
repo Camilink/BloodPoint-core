@@ -26,3 +26,11 @@ services:
         value: production
       - key: SUPERSET_CONFIG_PATH
         value: /opt/render/project/src/config/superset_config.py
+      - key: SUPERSET_FEATURE_EMBEDDED_SUPERSET
+        value: True
+      - key: SUPERSET_FEATURE_EMBEDDABLE_CHARTS
+        value: True
+      - key: SUPERSET_PUBLIC_ROLE_LIKE
+        value: Embedded
+      - key: SUPERSET_GUEST_ROLE_NAME
+        value: Embedded
