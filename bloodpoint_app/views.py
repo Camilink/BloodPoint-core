@@ -345,11 +345,31 @@ from django.views.decorators.csrf import csrf_exempt
 #     return JsonResponse({"token": token})
 
 
-@csrf_exempt
-def generate_chart_token(request, chart_id):
+# views.py
+
+def generate_guest_token(request, chart_id):
     payload = {
-        "resource": {"explore": str(chart_id)},  # 👈 "explore" para gráficos
-        "exp": datetime.utcnow() + timedelta(hours=1)
+        "user": {
+            "username": "guest_embed",
+            "first_name": "Guest",
+            "last_name": "User"
+        },
+        "resources": [{
+            "type": "explore",
+            "id": str(chart_id)
+        }],
+        "rls": [],  # Row Level Security (vacío para acceso completo)
+        "aud": settings.SUPERSET_JWT_AUDIENCE,
+        "exp": datetime.utcnow() + timedelta(seconds=settings.SUPERSET_JWT_EXP_SECONDS)
     }
-    token = jwt.encode(payload, settings.SUPERSET_SECRET_KEY, algorithm="HS256")
-    return JsonResponse({"token": token})
+    
+    token = jwt.encode(
+        payload,
+        settings.SUPERSET_JWT_SECRET,
+        algorithm=settings.SUPERSET_JWT_ALGO
+    )
+    
+    return JsonResponse({
+        "token": token,
+        "exp": payload["exp"].isoformat()
+    })

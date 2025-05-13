@@ -30,3 +30,11 @@ GUEST_TOKEN_JWT_SECRET = "PASTE_GENERATED_SECRET_HERE"
 GUEST_TOKEN_JWT_ALGO = "HS256" 
 GUEST_TOKEN_HEADER_NAME = "X-GuestToken" 
 GUEST_TOKEN_JWT_EXP_SECONDS = 300 # 5 minutes
+PUBLIC_ROLE_LIKE = "Gamma"  # Permite acceso público con permisos controlados
+GUEST_TOKEN_JWT_SECRET = "django-insecure-08&ko%+7k8l=v1-@1y@1g-(7ht_uc816k#_&nt@uncpc^ki$jp"  # Debe coincidir con tu Django
+GUEST_TOKEN_JWT_ALGO = "HS256"
+GUEST_TOKEN_JWT_EXP_SECONDS = 3600  # 1 hora
+
+# Permisos para recursos embebidos
+GUEST_ROLE_NAME = "Embedded"
+GUEST_TOKEN_JWT_AUDIENCE = "superset_embedded"
