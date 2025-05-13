@@ -131,6 +131,19 @@ def register_representante(request):
         "representante_id": representante.id_representante,
     }, status=201)
 
+@api_view(['GET'])
+def representante_detail(request, id):
+    try:
+        representante = representante_org.objects.get(id_representante=id)
+        return Response({
+            "id_representante": representante.id_representante,
+            "nombre": representante.nombre,
+            "rol": representante.rol,
+            "user_id": representante.user.id,
+            "is_representante": True
+        })
+    except representante_org.DoesNotExist:
+        return Response({"is_representante": False}, status=200)
 
 @api_view(['POST'])
 def ingresar(request):
