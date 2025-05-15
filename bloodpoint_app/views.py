@@ -134,7 +134,7 @@ def register_representante(request):
 @api_view(['GET'])
 def representante_detail(request, id):
     try:
-        representante = representante_org.objects.get(id_representante=id)
+        representante = representante_org.objects.get(user__id=id)
         return Response({
             "id_representante": representante.id_representante,
             "nombre": representante.nombre,
