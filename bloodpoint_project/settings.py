@@ -119,6 +119,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Superset Integration Settings
+SUPERSET_JWT_SECRET = "Okiqzq/LVgWIDvxZ5nCU4bzNxA4Hyi37VD0dIQUeeB8qjaTv39XfJw1v"  # Should match Superset's config
+SUPERSET_JWT_AUDIENCE = "https://bloodpoint-core.onrender.com"  # Render Superset URL
+SUPERSET_JWT_ISSUER = "bloodpoint-core-qa"  # Your Heroku app name (or custom ID)
+SUPERSET_BASE_URL = "https://bloodpoint-core.onrender.com"  # Render Superset URL
+SUPERSET_JWT_ALGO = "HS256"  # Algorithm (must match Superset)
+SUPERSET_JWT_EXP_SECONDS = 3600  # 1 hour expiry
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

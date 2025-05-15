@@ -8,7 +8,10 @@ SUPERSET_WEBSERVER_PORT = 8088
 FEATURE_FLAGS = {"EMBEDDED_SUPERSET": True, "EMBEDDABLE_CHARTS": True,
     "DASHBOARD_RBAC": True}
 
-
+# Superset JWT Config (Render)
+JWT_SECRET = "Okiqzq/LVgWIDvxZ5nCU4bzNxA4Hyi37VD0dIQUeeB8qjaTv39XfJw1v"  # Must match Django's SUPERSET_JWT_SECRET
+JWT_ISSUER = "bloodpoint-core-qa"  # Must match Django's SUPERSET_JWT_ISSUER
+JWT_AUDIENCE = "https://bloodpoint-core.onrender.com"  # Must match Django's SUPERSET_JWT_AUDIENCE
 
 TALISMAN_ENABLED = False
 WTF_CSRF_ENABLED = False

@@ -345,44 +345,59 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 
-# @csrf_exempt  # Solo si es una API pública (ajusta según tu seguridad)
-# def generate_superset_token(request, chart_id):
-#     secret_key = getattr(settings, 'Okiqzq/LVgWIDvxZ5nCU4bzNxA4Hyi37VD0dIQUeeB8qjaTv39XfJw1v', 'django-insecure-08&ko%+7k8l=v1-@1y@1g-(7ht_uc816k#_&nt@uncpc^ki$jp')
-    
-#     payload = {
-#         "resource": {"explore": chart_id},
-#         "exp": datetime.utcnow() + timedelta(hours=1)
-#     }
-    
-#     token = jwt.encode(payload, secret_key, algorithm="HS256")
-#     return JsonResponse({"token": token})
+import jwt
+from datetime import datetime, timedelta
+from django.conf import settings
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.views.decorators.http import require_GET
 
-
-# views.py
-
+@require_GET
 def generate_guest_token(request, chart_id):
-    payload = {
-        "user": {
-            "username": "guest_embed",
-            "first_name": "Guest",
-            "last_name": "User"
-        },
-        "resources": [{
-            "type": "explore",
-            "id": str(chart_id)
-        }],
-        "rls": [],  # Row Level Security (vacío para acceso completo)
-        "aud": settings.SUPERSET_JWT_AUDIENCE,
-        "exp": datetime.utcnow() + timedelta(seconds=settings.SUPERSET_JWT_EXP_SECONDS)
-    }
-    
-    token = jwt.encode(
-        payload,
-        settings.SUPERSET_JWT_SECRET,
-        algorithm=settings.SUPERSET_JWT_ALGO
-    )
-    
-    return JsonResponse({
-        "token": token,
-        "exp": payload["exp"].isoformat()
-    })
+    """
+    Generates a JWT token for Superset embedded charts.
+    Args:
+        chart_id: ID of the Superset chart/dashboard to embed
+    Returns:
+        JsonResponse: { "token": "jwt.token.here", "exp": "iso-timestamp" }
+        or error if validation fails.
+    """
+    try:
+        # Validate chart_id exists (adjust based on your Superset API)
+        if not chart_id:
+            return HttpResponseBadRequest("Chart ID is required")
+
+        # Prepare payload
+        payload = {
+            "user": {
+                "username": "guest_embed",
+                "first_name": "Guest",
+                "last_name": "User",
+                "roles": ["Gamma"]  # Required by Superset
+            },
+            "resources": [{
+                "type": "explore",  # Use "dashboard" for dashboards
+                "id": str(chart_id)  # Ensure string format
+            }],
+            "rls": [],  # Row Level Security rules (empty for full access)
+            "aud": settings.SUPERSET_JWT_AUDIENCE,  # Must match Superset's config
+            "iss": settings.SUPERSET_JWT_ISSUER,    # Your Heroku app identifier
+            "exp": datetime.utcnow() + timedelta(seconds=settings.SUPERSET_JWT_EXP_SECONDS)
+        }
+
+        # Generate token
+        token = jwt.encode(
+            payload,
+            settings.SUPERSET_JWT_SECRET,
+            algorithm=settings.SUPERSET_JWT_ALGO
+        )
+
+        return JsonResponse({
+            "token": token,
+            "exp": payload["exp"].isoformat()
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "error": str(e),
+            "details": "Token generation failed"
+        }, status=500)
