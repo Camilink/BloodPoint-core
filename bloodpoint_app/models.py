@@ -73,9 +73,11 @@ class donante(models.Model):
 
 class representante_org(models.Model):
     id_representante = models.AutoField(primary_key=True)
+    rut = models.CharField(max_length=10)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     rol = models.CharField()
     nombre = models.CharField()
+    credencial = models.ImageField(upload_to='credenciales', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

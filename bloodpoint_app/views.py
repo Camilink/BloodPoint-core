@@ -24,14 +24,42 @@ logger = logging.getLogger(__name__)
 #    return HttpResponse("Welcome to Bloodpoint API")
 
 # NAVEGADOR 
-def HomePage(request):
+def home(request):
     return render(request, 'home.html')
 
-def LoginPage(request):
+def login(request):
     return render(request, 'login.html')
 
-def SignupPage(request):
+def signup(request):
+
+    if request.method == 'POST':
+        rut = request.POST.get('rut')
+        email = request.POST.get('email')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        rol = request.POST.get('rol')
+        credencial = request.FILES.get('credencial')
+        
+        if password1 != password2:
+            return render(request, 'signup.html', {'error': 'Las contraseñas no coinciden'})
+        myuser = CustomUser.objects.create_user(email, password=password1)
+        myuser.save()
+        
+        representante = representante_org.objects.create(
+            user=myuser,
+            rol=rol,
+            nombre=request.POST.get('nombre'),
+            rut=rut,
+        )
+        representante.save()
+        return redirect('login.html')        
+    else:
+        return render(request, 'signup.html')
     return render(request, 'signup.html')
+
+def logout(request):
+    pass
+    return redirect('login.html')
 
 @api_view(['GET', 'POST'])
 def centros_listado(request):

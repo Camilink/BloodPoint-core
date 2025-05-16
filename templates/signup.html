@@ -266,7 +266,7 @@
             </div> -->
         </div>
     </header>
-    <form action="" method="post">
+    <form action="/signup" method="post">
         {% csrf_token %} 
         <h3>Crear cuenta</h3>
 
@@ -284,6 +284,9 @@
 
         <label for="password1">Rol</label>
         <input type="text" placeholder="Rol en organización" id="rol" name="rol">
+
+        <label for="credencial">Foto de credencial</label>
+        <input type="file" placeholder="Foto de credencial" id="credencial" name="credencial" accept="image/jpg, image/jpeg, image/png">
 
         <button type="submit">Crear cuenta</button>
         
