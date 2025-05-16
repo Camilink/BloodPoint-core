@@ -33,7 +33,7 @@ def login(request):
 def signup(request):
 
     if request.method == 'POST':
-        rut_representante=request.POST.get('rut'), 
+        rut = request.POST.get('rut_representante')
         email = request.POST.get('email')
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
@@ -49,7 +49,7 @@ def signup(request):
             user=myuser,
             rol=rol,
             nombre=request.POST.get('nombre'),
-            rut=rut,
+            rut_representante=rut,
         )
         representante.save()
         return redirect('login.html')        
