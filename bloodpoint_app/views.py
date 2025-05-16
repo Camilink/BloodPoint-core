@@ -30,33 +30,39 @@ def home(request):
 def login(request):
     return render(request, 'login.html')
 
-
 def signup_representante(request):
     if request.method == 'POST':
+        # Extraer datos del formulario
         rut = request.POST.get('rut_representante', '').strip()
-        email = request.POST.get('email')
+        nombre = request.POST.get('nombre', '').strip()
+        email = request.POST.get('email', '').strip()
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
-        rol = request.POST.get('rol')
-        nombre = request.POST.get('nombre')
+        rol = request.POST.get('rol', '').strip()
         credencial = request.FILES.get('credencial')
         
         # Validaciones básicas
         if not rut:
             return render(request, 'signup.html', {'error': 'El RUT es obligatorio'})
         
+        if not nombre:
+            return render(request, 'signup.html', {'error': 'El nombre es obligatorio'})
+            
         if not email:
             return render(request, 'signup.html', {'error': 'El correo electrónico es obligatorio'})
             
         if password1 != password2:
             return render(request, 'signup.html', {'error': 'Las contraseñas no coinciden'})
         
+        if len(password1) < 8:
+            return render(request, 'signup.html', {'error': 'La contraseña debe tener al menos 8 caracteres'})
+            
+        # Limpiar formato del RUT (si es necesario)
+        rut = rut.replace('.', '').replace(' ', '')
+        
         # Verificar si el usuario ya existe
         if CustomUser.objects.filter(rut=rut).exists():
             return render(request, 'signup.html', {'error': 'Este RUT ya está registrado'})
-        
-        if email and CustomUser.objects.filter(email=email).exists():
-            return render(request, 'signup.html', {'error': 'Este correo ya está registrado'})
         
         try:
             # Usamos transaction.atomic para asegurarnos de que ambas operaciones se ejecuten o fallen juntas
