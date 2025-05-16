@@ -1,6 +1,6 @@
 from datetime import date
 import logging
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -16,6 +16,7 @@ from django.contrib.auth import get_user_model
 import uuid
 from bloodpoint_app import views
 from django.db import IntegrityError, transaction
+
 
 
 logger = logging.getLogger(__name__)
