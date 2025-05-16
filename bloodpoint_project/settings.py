@@ -176,3 +176,10 @@ AUTHENTICATION_BACKENDS = [
     'bloodpoint_app.backends.RutAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com',
+]
+
+SESSION_COOKIE_SECURE = True   # Send session cookie only over HTTPS
+CSRF_COOKIE_SECURE = True      # Send CSRF cookie only over HTTPS
