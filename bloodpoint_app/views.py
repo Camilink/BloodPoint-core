@@ -33,7 +33,7 @@ def login(request):
 def signup(request):
 
     if request.method == 'POST':
-        rut = request.POST.get('rut')
+        rut_representante=request.POST.get('rut'), 
         email = request.POST.get('email')
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
