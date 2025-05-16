@@ -15,7 +15,7 @@ from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 import uuid
 from bloodpoint_app import views
-
+from django.db import IntegrityError, transaction
 
 
 logger = logging.getLogger(__name__)
