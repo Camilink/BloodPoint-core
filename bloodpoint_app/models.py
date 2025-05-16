@@ -72,13 +72,14 @@ class donante(models.Model):
         return self.nombre_completo
 
 class representante_org(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, blank=True)  # Añadido este campo
     id_representante = models.AutoField(primary_key=True)
-    rut_representante = models.CharField(max_length=12, unique=True)  # rut del representante
-    rol = models.CharField()
-    nombre = models.CharField()
+    rut_representante = models.CharField(max_length=12, unique=True)
+    rol = models.CharField(max_length=100)  # Añadido max_length
+    nombre = models.CharField(max_length=100)  # Añadido max_length
     credencial = models.ImageField(upload_to='credenciales', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    
     def __str__(self):
         return self.nombre
 

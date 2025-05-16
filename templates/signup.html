@@ -290,98 +290,99 @@
             </div> -->
         </div>
     </header>
-    <form action="{% url 'signup' %}" method="post" onsubmit="return validarFormulario()">
-        {% csrf_token %}
-        <h3>Crear cuenta</h3>
+<form action="{% url 'signup_representante' %}" method="post" enctype="multipart/form-data" onsubmit="return validarFormulario()">
+    {% csrf_token %}
+    
+    {% if error %}
+    <div class="error-message">
+        {{ error }}
+    </div>
+    {% endif %}
+    
+    <h3>Crear cuenta de Representante</h3>
+    
+    <label for="rut_representante">Rut</label>
+    <input type="text" placeholder="Ej: 12.345.678-K" onblur="formatearCampoRUT(this)" name="rut_representante" id="rut_representante" required>
+    
+    <label for="nombre">Nombre</label>
+    <input type="text" placeholder="Nombre completo" name="nombre" id="nombre" required>
+    
+    <label for="email">Email</label>
+    <input type="email" placeholder="Email" name="email" id="email" required>
+    
+    <label for="password1">Contraseña</label>
+    <input type="password" placeholder="Contraseña" id="password1" name="password1" required>
+    
+    <label for="password2">Confirme su Contraseña</label>
+    <input type="password" placeholder="Repetir contraseña" id="password2" name="password2" required>
+    
+    <label for="rol">Rol</label>
+    <input type="text" placeholder="Rol en organización" id="rol" name="rol" required>
+    
+    <label for="credencial">Foto de credencial</label>
+    <input type="file" placeholder="Foto de credencial" id="credencial" name="credencial"
+        accept="image/jpg, image/jpeg, image/png">
+    
+    <button type="submit">Crear cuenta</button>
+    <a href="{% url 'login' %}" style="text-align: center;">Ya tengo una cuenta</a>
+</form>
 
-        <label for="rut">Rut</label>
-        <input type="text" placeholder="Ej: 12.345.678-K" onblur="formatearCampoRUT(this)" name="rut_representante" id="rut_representante" required>
+<script>
+// Función para formatear el RUT mientras se escribe
+function formatearCampoRUT(input) {
+    // Obtener valor actual sin puntos ni guiones
+    let rut = input.value.replace(/\./g, '').replace(/-/g, '');
+    
+    // Si está vacío, no hacer nada
+    if (rut.length === 0) return;
+    
+    // Separar número y dígito verificador
+    let dv = rut.slice(-1);
+    let numero = rut.slice(0, -1);
+    
+    // Formatear con puntos
+    numero = numero.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    
+    // Asignar valor formateado
+    input.value = numero + "-" + dv;
+}
 
-        <label for="email">Email</label>
-        <input type="email" placeholder="Email" name="email" id="email">
-
-        <label for="password1">Contraseña</label>
-        <input type="password" placeholder="Contraseña" id="password1" name="password1">
-
-        <label for="password2">Confirme su Contraseña</label>
-        <input type="password" placeholder="Repetir contraseña" id="password2" name="password2">
-
-        <label for="password1">Rol</label>
-        <input type="text" placeholder="Rol en organización" id="rol" name="rol">
-
-        <label for="credencial">Foto de credencial</label>
-        <input type="file" placeholder="Foto de credencial" id="credencial" name="credencial"
-            accept="image/jpg, image/jpeg, image/png">
-
-        <button type="submit">Crear cuenta</button>
-
-        <a href="{% url 'login' %}" style="text-align: center;">Ya tengo una cuenta</a>
-    </form>
-
-    <script>
-        function validarFormulario() {
-            const rutInput = document.getElementById("rut");
-            const mensajeError = document.getElementById("mensaje-error");
-            const rut = rutInput.value;
-
-            if (!validarRUT(rut)) {
-                mensajeError.textContent = "RUT inválido. Verifica el número y el dígito verificador.";
-                return false;
-            }
-
-            mensajeError.textContent = "";
-            alert("RUT válido. Formulario enviado.");
-            return true;
-        }
-
-        function validarRUT(rutCompleto) {
-            rutCompleto = rutCompleto.replace(/\./g, '').replace('-', '').toUpperCase();
-
-            if (!/^\d{7,8}[0-9K]$/.test(rutCompleto)) return false;
-
-            const cuerpo = rutCompleto.slice(0, -1);
-            const dvIngresado = rutCompleto.slice(-1);
-
-            let suma = 0;
-            let multiplo = 2;
-
-            for (let i = cuerpo.length - 1; i >= 0; i--) {
-                suma += parseInt(cuerpo.charAt(i)) * multiplo;
-                multiplo = multiplo < 7 ? multiplo + 1 : 2;
-            }
-
-            const dvEsperado = 11 - (suma % 11);
-            const dvFinal = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();
-
-            return dvFinal === dvIngresado;
-        }
-
-        function formatearRUT(rut) {
-            rut = rut.replace(/\./g, '').replace('-', '').toUpperCase();
-
-            if (rut.length < 2) return rut;
-
-            const cuerpo = rut.slice(0, -1);
-            const dv = rut.slice(-1);
-
-            let cuerpoFormateado = '';
-            let i = 0;
-
-            for (let j = cuerpo.length - 1; j >= 0; j--) {
-                cuerpoFormateado = cuerpo[j] + cuerpoFormateado;
-                i++;
-                if (i % 3 === 0 && j !== 0) {
-                    cuerpoFormateado = '.' + cuerpoFormateado;
-                }
-            }
-
-            return `${cuerpoFormateado}-${dv}`;
-        }
-
-        function formatearCampoRUT(input) {
-            input.value = formatearRUT(input.value);
-        }
-    </script>
+// Función para validar el formulario antes de enviar
+function validarFormulario() {
+    const password1 = document.getElementById('password1').value;
+    const password2 = document.getElementById('password2').value;
+    const rut = document.getElementById('rut_representante').value;
+    const email = document.getElementById('email').value;
+    
+    // Validar que las contraseñas coincidan
+    if (password1 !== password2) {
+        alert('Las contraseñas no coinciden');
+        return false;
+    }
+    
+    // Validar que la contraseña tenga al menos 8 caracteres
+    if (password1.length < 8) {
+        alert('La contraseña debe tener al menos 8 caracteres');
+        return false;
+    }
+    
+    // Validar formato de RUT chileno básico (puedes mejorar esta validación)
+    const rutRegex = /^[0-9]{1,2}.[0-9]{3}.[0-9]{3}-[0-9kK]{1}$/;
+    if (!rutRegex.test(rut)) {
+        alert('Formato de RUT inválido. Use formato: 12.345.678-K');
+        return false;
+    }
+    
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('Formato de email inválido');
+        return false;
+    }
+    
+    return true;
+}
+</script>
 </body>
 
 </html>
