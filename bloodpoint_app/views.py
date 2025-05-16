@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 import logging
 from django.shortcuts import render, redirect
 from rest_framework.decorators import api_view
@@ -9,8 +9,8 @@ from django.http import HttpResponse
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login
 from bloodpoint_app.models import CustomUser, donante
-from .models import CustomUser, representante_org, donante, centro_donacion
-from .serializers import CustomUserSerializer, RepresentanteOrgSerializer, DonantePerfilSerializer
+from .models import CustomUser, representante_org, donante, centro_donacion, donacion
+from .serializers import CustomUserSerializer, RepresentanteOrgSerializer, DonantePerfilSerializer, DonacionSerializer
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 import uuid
@@ -413,6 +413,68 @@ def donante_detail(request, id):
     elif request.method == 'DELETE':
         donante_obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['POST'])
+def registrar_donacion(request):
+    if not request.user.is_authenticated:
+        return Response({
+            "status": "error",
+            "message": "Usuario no autenticado."
+        }, status=403)
+
+    try:
+        donante_obj = donante.objects.get(user=request.user)
+    except donante.DoesNotExist:
+        return Response({
+            "status": "error",
+            "message": "Donante no encontrado."
+        }, status=404)
+
+    centro_id = request.data.get("centro_id")
+    fecha_str = request.data.get("fecha_donacion")
+
+    if not centro_id or not fecha_str:
+        return Response({
+            "status": "error",
+            "message": "Los campos 'centro_id' y 'fecha_donacion' son obligatorios."
+        }, status=400)
+
+    try:
+        centro = centro_donacion.objects.get(id_centro=centro_id)
+    except centro_donacion.DoesNotExist:
+        return Response({
+            "status": "error",
+            "message": "Centro de donación no encontrado."
+        }, status=404)
+
+    try:
+        fecha_donacion = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+    except ValueError:
+        return Response({
+            "status": "error",
+            "message": "Formato de fecha inválido. Use 'YYYY-MM-DD'."
+        }, status=400)
+
+    if fecha_donacion < date.today():
+        return Response({
+            "status": "error",
+            "message": "La fecha de donación no puede ser anterior a hoy."
+        }, status=400)
+
+    nueva_donacion = donacion.objects.create(
+        id_donante=donante_obj,
+        centro_id=centro,
+        fecha_donacion=fecha_donacion,
+        cantidad_donacion=1
+    )
+
+    return Response({
+        "status": "success",
+        "message": "Donación registrada exitosamente.",
+        "donacion_id": nueva_donacion.id_donacion,
+        "fecha_donacion": nueva_donacion.fecha_donacion.isoformat(),
+        "centro": centro.nombre_centro
+    }, status=201)
 
 #APACHE SUPERSET
 from django.http import JsonResponse

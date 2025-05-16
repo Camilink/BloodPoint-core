@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import donante, representante_org, centro_donacion
+from .models import donante, representante_org, centro_donacion,donacion
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from .models import CustomUser
@@ -85,3 +85,7 @@ class DonantePerfilSerializer(serializers.ModelSerializer):
 
         return instance
 
+class DonacionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = donacion
+        fields = '__all__'
