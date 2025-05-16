@@ -266,7 +266,7 @@
             </div> -->
         </div>
     </header>
-    <form action="/signup" method="post">
+    <form action="{% url 'signup' %}" method="post">
         {% csrf_token %} 
         <h3>Crear cuenta</h3>
 
