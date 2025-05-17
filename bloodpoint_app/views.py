@@ -475,6 +475,30 @@ def registrar_donacion(request):
         "fecha_donacion": nueva_donacion.fecha_donacion.isoformat(),
         "centro": centro.nombre_centro
     }, status=201)
+    
+@api_view(['GET'])
+def historial_donaciones(request, donante_id):
+    try:
+        # Obtener el objeto donante usando su ID real
+        donante_obj = donante.objects.get(id_donante=donante_id)
+    except donante.DoesNotExist:
+        return Response({
+            "status": "error",
+            "message": "Donante no encontrado."
+        }, status=status.HTTP_404_NOT_FOUND)
+
+    # Filtrar donaciones por ese objeto donante
+    donaciones = donacion.objects.filter(id_donante=donante_obj).order_by('-fecha_donacion')
+
+    if not donaciones.exists():
+        return Response({
+            "status": "error",
+            "message": "No se encontraron donaciones para este donante."
+        }, status=status.HTTP_404_NOT_FOUND)
+
+    # Serializar y devolver el historial
+    serializer = DonacionSerializer(donaciones, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 #APACHE SUPERSET
 from django.http import JsonResponse

@@ -21,6 +21,7 @@ urlpatterns = [
     path('centros/', views.centros_listado, name='centros-listado'),  # Para listar centros
     path('centros/<int:id>/', views.centro_detail, name='centro-detail'),  # Para obtener un centro (y hacer get,put,delete, etc)
     path('donaciones/registrar/', views.registrar_donacion, name='registrar-donacion'),
+    path('donaciones/<int:donante_id>/', views.historial_donaciones, name='historial-donaciones'),
     #super set
     path('api/superset-token/<str:chart_id>/', views.generate_guest_token, name='chart-token'),
 
