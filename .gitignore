@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Entornos virtuales
+venv/
+.env
+.env.*
+
+# Archivos de migraciones no deseados (si los generás automáticamente y no querés rastrearlos)
+# **Usar con cuidado**:
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# SQLite (si usás en dev)
+*.sqlite3
+
+# Logs
+*.log
+
+# Archivos temporales
+*.tmp
+*.swp
+*.bak
+.DS_Store
+Thumbs.db
+
+# Node.js
+node_modules/
+package-lock.json
+package.json
+
+# VS Code settings
+.vscode/
+
+# PyCharm
+.idea/
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+
+# Django static files (si usás collectstatic en prod)
+staticfiles/
+static/
+
+# Media (si subís archivos durante pruebas)
+media/

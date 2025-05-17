@@ -79,6 +79,7 @@ class representante_org(models.Model):
     nombre = models.CharField(max_length=100)  # Añadido max_length
     credencial = models.ImageField(upload_to='credenciales', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    verificado = models.BooleanField(default=False)
     
     def __str__(self):
         return self.nombre
