@@ -57,8 +57,7 @@ class donante(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, blank=True)  # Vinculación correcta
     id_donante = models.AutoField(primary_key=True)
     rut = models.CharField(unique=True, max_length=12)
-    nombre = models.CharField(max_length=100)
-    apellido = models.CharField(max_length=100)
+    nombre_completo = models.CharField(max_length=100)
     sexo = models.CharField(max_length=1)
     direccion = models.CharField(max_length=255)
     comuna = models.CharField(max_length=100)
@@ -80,6 +79,7 @@ class representante_org(models.Model):
     rut_representante = models.CharField(max_length=12, unique=True)
     rol = models.CharField(max_length=100)  # Añadido max_length
     nombre = models.CharField(max_length=100)  # Añadido max_length
+    apellido = models.CharField(max_length=100)
     credencial = models.ImageField(upload_to='credenciales', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     verificado = models.BooleanField(default=False)
