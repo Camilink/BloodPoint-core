@@ -122,6 +122,7 @@ class adminbp(models.Model):
     email = models.EmailField()
     contrasena = models.CharField()
     created_at = models.DateTimeField(auto_now_add=True)
+    rol= models.CharField()
 
 class solicitud_campana_repo(models.Model):
     id_solicitud = models.AutoField(primary_key=True)

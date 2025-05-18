@@ -101,7 +101,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 AUTH_USER_MODEL = 'bloodpoint_app.CustomUser'
 
 DATABASES = {
-    "default": dj_database_url.config(default="postgres://admin:admin@localhost:5432/bloodpointbd")
+    "default": dj_database_url.config(
+        default=os.getenv("DATABASE_URL")
+    )
 }
 
 
