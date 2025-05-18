@@ -43,9 +43,6 @@ htmlcov/
 .coverage
 .coverage.*
 
-# Django static files (si usás collectstatic en prod)
-staticfiles/
-static/
 
 # Media (si subís archivos durante pruebas)
 media/
