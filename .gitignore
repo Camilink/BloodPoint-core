@@ -46,3 +46,4 @@ htmlcov/
 
 # Media (si subís archivos durante pruebas)
 media/
+.env

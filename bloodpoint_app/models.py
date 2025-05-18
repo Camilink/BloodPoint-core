@@ -56,8 +56,9 @@ TIPO_SANGRE_CHOICES = [
 class donante(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, blank=True)  # Vinculación correcta
     id_donante = models.AutoField(primary_key=True)
-    rut = models.CharField(unique=True)
-    nombre_completo = models.CharField(max_length=100)
+    rut = models.CharField(unique=True, max_length=12)
+    nombre = models.CharField(max_length=100)
+    apellido = models.CharField(max_length=100)
     sexo = models.CharField(max_length=1)
     direccion = models.CharField(max_length=255)
     comuna = models.CharField(max_length=100)
