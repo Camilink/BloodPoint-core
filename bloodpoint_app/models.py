@@ -5,11 +5,14 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import BaseUserManager
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email, password=None, rut=None, **extra_fields):
         if not email:
             raise ValueError('El email es obligatorio')
+        tipo_usuario = extra_fields.get('tipo_usuario')
+        if tipo_usuario == 'donante' and not rut:
+            raise ValueError('El rut es obligatorio para los donantes')
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        user = self.model(email=email, rut=rut, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -17,23 +20,22 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('El superusuario debe tener is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('El superusuario debe tener is_superuser=True.')
-
-        return self.create_user(email, password, **extra_fields)
-
+        extra_fields.setdefault('is_superadmin', True)
+        extra_fields.setdefault('tipo_usuario', 'admin')
+        return self.create_user(email=email, password=password, **extra_fields)
 class CustomUser(AbstractUser):
     username = None  # Eliminamos el campo username predeterminado
     email = models.EmailField(unique=False, blank=True, null=True)  # Puedes mantener email como opcional o requerido, sin unique=True
-    rut = models.CharField(unique=True)
+    rut = models.CharField(unique=True, null=True, blank=True)
     tipo_usuario = models.CharField(max_length=20, choices=[  # Agrega esto
         ('donante', 'Donante'),
         ('representante', 'Representante'),
         ('admin', 'Administrador'),
     ])
+    is_superadmin = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+    #configuracion de login
     USERNAME_FIELD = 'rut'  # Define rut como el identificador único
     REQUIRED_FIELDS = ['email']  # Email sigue siendo requerido
 
