@@ -15,7 +15,6 @@ COPY . .
 
 RUN python manage.py collectstatic --noinput
 
-ENV PORT=8000
 EXPOSE 8000
 
-CMD ["gunicorn", "bloodpoint_project.wsgi", "--bind", "0.0.0.0:8000"]
+CMD ["sh", "-c", "gunicorn bloodpoint_project.wsgi:application --bind 0.0.0.0:$PORT"]
