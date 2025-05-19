@@ -35,7 +35,8 @@ def signup_representante(request):
     if request.method == 'POST':
         # Extraer datos del formulario
         rut = request.POST.get('rut_representante', '').strip()
-        nombre = request.POST.get('nombre', '').strip()
+        nombre = request.POST.get('nombre', '')
+        apellido = request.POST.get('apellido', '')
         email = request.POST.get('email', '').strip()
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
@@ -49,6 +50,8 @@ def signup_representante(request):
         if not nombre:
             return render(request, 'signup.html', {'error': 'El nombre es obligatorio'})
             
+        if not apellido:
+            return render(request, 'signup.html', {'error': 'El apellido es obligatorio'})
         if not email:
             return render(request, 'signup.html', {'error': 'El correo electrónico es obligatorio'})
             
@@ -60,17 +63,17 @@ def signup_representante(request):
             
         # Limpiar formato del RUT (si es necesario)
         rut = rut.replace('.', '').replace(' ', '')
-        
+
         # Verificar si el usuario ya existe
-        if CustomUser.objects.filter(rut=rut).exists():
-            return render(request, 'signup.html', {'error': 'Este RUT ya está registrado'})
+        if CustomUser.objects.filter(rut=rut).exists() or CustomUser.objects.filter(email=email).exists(): 
+            return render(request, 'signup.html', {'error': 'Este email ya está registrado'})
         
         try:
             # Usamos transaction.atomic para asegurarnos de que ambas operaciones se ejecuten o fallen juntas
             with transaction.atomic():
                 # Crear el usuario primero
                 user = CustomUser.objects.create_user(
-                    rut=rut,
+                    rut=None,
                     email=email,
                     password=password1,
                     tipo_usuario='representante'
@@ -82,7 +85,8 @@ def signup_representante(request):
                     user=user,
                     rut_representante=rut,
                     rol=rol,
-                    nombre=nombre
+                    nombre=nombre,
+                    apellido=apellido
                 )
                 
                 if credencial:

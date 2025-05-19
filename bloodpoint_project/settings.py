@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 import secrets
 from pathlib import Path
-
 import dj_database_url
 
 
@@ -101,9 +100,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 AUTH_USER_MODEL = 'bloodpoint_app.CustomUser'
 
 DATABASES = {
-    "default": dj_database_url.config(
-        default=os.getenv("DATABASE_URL")
-    )
+    "default": dj_database_url.config(default=os.environ.get("DATABASE_URL"))
 }
 
 
