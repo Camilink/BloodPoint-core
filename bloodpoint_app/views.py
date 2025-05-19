@@ -64,10 +64,6 @@ def signup_representante(request):
         # Limpiar formato del RUT (si es necesario)
         rut = rut.replace('.', '').replace(' ', '')
         
-        # Verificar si el usuario ya existe
-        if CustomUser.objects.filter(rut=rut).exists():
-            return render(request, 'signup.html', {'error': 'Este RUT ya está registrado'})
-        
         try:
             # Usamos transaction.atomic para asegurarnos de que ambas operaciones se ejecuten o fallen juntas
             with transaction.atomic():
@@ -85,7 +81,8 @@ def signup_representante(request):
                     user=user,
                     rut_representante=rut,
                     rol=rol,
-                    nombre=nombre
+                    nombre=nombre,
+                    apellido=apellido
                 )
                 
                 if credencial:
