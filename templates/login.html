@@ -21,8 +21,9 @@
 				</div> -->
 			</div>
 		</header>
-        <form method="POST" action="{% url 'login' %}">
+        <form class='login' method="POST" action="{% url 'login' %}">
             {% csrf_token %}
+			<h3>Iniciar Sesión</h3>
             <label for="email">Correo electrónico:</label>
             <input type="email" name="email" required>
 
