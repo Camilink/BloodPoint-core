@@ -38,19 +38,16 @@ def login_representante_view(request):
         if user is not None:
             if user.tipo_usuario != 'representante':
                 messages.error(request, 'Solo los representantes pueden iniciar sesión aquí.')
-                return render(request, 'login_representante.html')
+                return render(request, 'login.html')
 
             try:
                 representante = representante_org.objects.get(user=user)
-                if not representante.verificado:
-                    messages.error(request, 'Tu cuenta aún no ha sido verificada por el administrador.')
-                    return render(request, 'login_representante.html')
             except representante_org.DoesNotExist:
                 messages.error(request, 'No se encontró el perfil del representante.')
-                return render(request, 'login_representante.html')
+                return render(request, 'login.html')
 
             login(request, user)
-            return redirect('dashboard_representante')  # Ajusta esta ruta según tu app
+            return redirect('home')  # Ajusta esta ruta según tu app
 
         else:
             messages.error(request, 'Correo o contraseña incorrectos.')
