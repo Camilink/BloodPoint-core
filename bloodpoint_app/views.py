@@ -16,7 +16,7 @@ from django.contrib.auth import get_user_model
 import uuid
 from bloodpoint_app import views
 from django.db import IntegrityError, transaction
-
+from django.contrib import messages
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,33 @@ logger = logging.getLogger(__name__)
 def home(request):
     return render(request, 'home.html')
 
-def login(request):
+def login_representante_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        user = authenticate(request, email=email, password=password)
+
+        if user is not None:
+            if user.tipo_usuario != 'representante':
+                messages.error(request, 'Solo los representantes pueden iniciar sesión aquí.')
+                return render(request, 'login_representante.html')
+
+            try:
+                representante = representante_org.objects.get(user=user)
+                if not representante.verificado:
+                    messages.error(request, 'Tu cuenta aún no ha sido verificada por el administrador.')
+                    return render(request, 'login_representante.html')
+            except representante_org.DoesNotExist:
+                messages.error(request, 'No se encontró el perfil del representante.')
+                return render(request, 'login_representante.html')
+
+            login(request, user)
+            return redirect('dashboard_representante')  # Ajusta esta ruta según tu app
+
+        else:
+            messages.error(request, 'Correo o contraseña incorrectos.')
+
     return render(request, 'login.html')
 
 def signup_representante(request):

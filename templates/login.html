@@ -268,16 +268,27 @@
         </div>
     </header>
     
-    <form method="post">
-        <h3>Ingreso</h3>
-        {% csrf_token %} 
-        <label for="username">Correo electrónico</label>
-        <input type="text" placeholder="Enter Username" id="username" name="username">
 
-        <label for="password">Contraseña</label>
-        <input type="password" placeholder="Password" id="password" name="pass">
+    <form method="POST" action="{% url 'login' %}">
+        {% csrf_token %}
 
-        <button type="submit">Ingresar</button>
+        <label for="email">Correo electrónico:</label>
+        <input type="email" name="email" required>
+
+        <label for="password">Contraseña:</label>
+        <input type="password" name="password" required>
+
+        <button type="submit">Iniciar sesión</button>
+    </form>
+
+    <!-- Muestra mensajes de error si existen -->
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
         <a href="{% url 'home' %}" style="text-align: center;">Ir a home (prueba)</a>
         <a href="{% url 'signup_representante' %}">Crear una cuenta de representante</a>
     </form>
