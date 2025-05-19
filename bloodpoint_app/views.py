@@ -63,13 +63,17 @@ def signup_representante(request):
             
         # Limpiar formato del RUT (si es necesario)
         rut = rut.replace('.', '').replace(' ', '')
+
+        # Verificar si el usuario ya existe
+        if CustomUser.objects.filter(rut=rut).exists() or CustomUser.objects.filter(email=email).exists(): 
+            return render(request, 'signup.html', {'error': 'Este email ya está registrado'})
         
         try:
             # Usamos transaction.atomic para asegurarnos de que ambas operaciones se ejecuten o fallen juntas
             with transaction.atomic():
                 # Crear el usuario primero
                 user = CustomUser.objects.create_user(
-                    rut=rut,
+                    rut=None,
                     email=email,
                     password=password1,
                     tipo_usuario='representante'
