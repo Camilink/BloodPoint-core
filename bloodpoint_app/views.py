@@ -35,7 +35,8 @@ def signup_representante(request):
     if request.method == 'POST':
         # Extraer datos del formulario
         rut = request.POST.get('rut_representante', '').strip()
-        nombre = request.POST.get('nombre', '').strip()
+        nombre = request.POST.get('nombre', '')
+        apellido = request.POST.get('apellido', '')
         email = request.POST.get('email', '').strip()
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
@@ -49,6 +50,8 @@ def signup_representante(request):
         if not nombre:
             return render(request, 'signup.html', {'error': 'El nombre es obligatorio'})
             
+        if not apellido:
+            return render(request, 'signup.html', {'error': 'El apellido es obligatorio'})
         if not email:
             return render(request, 'signup.html', {'error': 'El correo electrónico es obligatorio'})
             
