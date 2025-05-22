@@ -1,9 +1,5 @@
 from rest_framework import serializers
-<<<<<<< HEAD
-from .models import donante, representante_org, centro_donacion,donacion, adminbp
-=======
-from .models import donante, representante_org, centro_donacion,donacion,solicitud_campana_repo
->>>>>>> c608bc13c345b5617800421f57e7d8b4843e15d5
+from .models import donante, representante_org, centro_donacion,donacion,solicitud_campana_repo, adminbp, CustomUser, campana
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from .models import CustomUser
