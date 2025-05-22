@@ -59,10 +59,11 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password')
-
+        print(f"[LOGIN ATTEMPT] Email: {email} | Password: {password}")
         user = authenticate(request, username=username, password=password)
-
+        print(user.email, user.tipo_usuario)
         if user is not None:
+            print(f"[AUTH SUCCESS] Email: {user.email} | Tipo: {user.tipo_usuario}")
             if user.tipo_usuario in ['admin', 'representante']:
                 login(request, user)
                 return redirect('home')
