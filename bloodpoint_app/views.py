@@ -14,25 +14,31 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
-from .serializers import donanteSerializer, CentroDonacionSerializer
-from django.http import HttpResponse
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate, login
-from bloodpoint_app.models import CustomUser, donante
-from .models import CustomUser, representante_org, donante, centro_donacion, donacion, solicitud_campana_repo, campana
-from .serializers import CustomUserSerializer, RepresentanteOrgSerializer, DonantePerfilSerializer, DonacionSerializer, SolicitudCampanaSerializer
-from django.contrib.auth.backends import ModelBackend
-from django.contrib.auth import get_user_model
-import uuid
-from bloodpoint_app import views
-from django.db import IntegrityError, transaction
-from django.contrib import messages
 
-from .models import centro_donacion, CustomUser, donacion, donante, representante_org, adminbp
-from .serializers import (CentroDonacionSerializer,CustomUserSerializer,DonacionSerializer,DonantePerfilSerializer,RepresentanteOrgSerializer,donanteSerializer)
+from .models import (
+    CustomUser,
+    representante_org,
+    donante,
+    centro_donacion,
+    donacion,
+    solicitud_campana_repo,
+    campana,
+    adminbp
+)
 
+from .serializers import (
+    CustomUserSerializer,
+    RepresentanteOrgSerializer,
+    DonantePerfilSerializer,
+    DonacionSerializer,
+    SolicitudCampanaSerializer,
+    CentroDonacionSerializer,
+    donanteSerializer
+)
+
+from bloodpoint_app.models import CustomUser as BP_CustomUser, donante as BP_donante
 from bloodpoint_app import views
+
 
 logger = logging.getLogger(__name__)
 
