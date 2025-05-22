@@ -9,8 +9,8 @@ from django.http import HttpResponse
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login
 from bloodpoint_app.models import CustomUser, donante
-from .models import CustomUser, representante_org, donante, centro_donacion, donacion
-from .serializers import CustomUserSerializer, RepresentanteOrgSerializer, DonantePerfilSerializer, DonacionSerializer
+from .models import CustomUser, representante_org, donante, centro_donacion, donacion, solicitud_campana_repo, campana
+from .serializers import CustomUserSerializer, RepresentanteOrgSerializer, DonantePerfilSerializer, DonacionSerializer, SolicitudCampanaSerializer
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 import uuid
@@ -487,13 +487,32 @@ def registrar_donacion(request):
             "status": "error",
             "message": "La fecha de donación no puede ser anterior a hoy."
         }, status=400)
+        
+    campana_id = request.data.get("campana_id")
+    solicitud_id = request.data.get("solicitud_id")
+
+    if campana_id and solicitud_id:
+        return Response({
+            "status": "error",
+            "message": "Una donación no puede estar asociada a campaña y solicitud al mismo tiempo."
+        }, status=400)
+    
+    tipo_donacion = 'punto'
+    if campana_id:
+        tipo_donacion = 'campana'
+    elif solicitud_id:
+        tipo_donacion = 'solicitud'
 
     nueva_donacion = donacion.objects.create(
         id_donante=donante_obj,
         centro_id=centro,
         fecha_donacion=fecha_donacion,
-        cantidad_donacion=1
-    )
+        cantidad_donacion=1,
+        campana_relacionada=campana.objects.get(id_campana=campana_id) if campana_id else None,
+        solicitud_relacionada=solicitud_campana_repo.objects.get(id_solicitud=solicitud_id) if solicitud_id else None,
+        tipo_donacion=tipo_donacion
+)
+
 
     return Response({
         "status": "success",
@@ -504,28 +523,123 @@ def registrar_donacion(request):
     }, status=201)
     
 @api_view(['GET'])
-def historial_donaciones(request, donante_id):
+def historial_donaciones(request):
+    if not request.user.is_authenticated:
+        return Response({
+            "status": "error",
+            "message": "Usuario no autenticado."
+        }, status=status.HTTP_403_FORBIDDEN)
+
     try:
-        # Obtener el objeto donante usando su ID real
-        donante_obj = donante.objects.get(id_donante=donante_id)
+        donante_obj = donante.objects.get(user=request.user)
     except donante.DoesNotExist:
         return Response({
             "status": "error",
             "message": "Donante no encontrado."
         }, status=status.HTTP_404_NOT_FOUND)
 
-    # Filtrar donaciones por ese objeto donante
     donaciones = donacion.objects.filter(id_donante=donante_obj).order_by('-fecha_donacion')
 
-    if not donaciones.exists():
-        return Response({
-            "status": "error",
-            "message": "No se encontraron donaciones para este donante."
-        }, status=status.HTTP_404_NOT_FOUND)
-
-    # Serializar y devolver el historial
     serializer = DonacionSerializer(donaciones, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response({
+        "status": "success",
+        "donaciones": serializer.data
+    }, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def crear_solicitud_campana(request):
+    if not request.user.is_authenticated:
+        return Response({"status": "error", "message": "No autenticado"}, status=403)
+
+    try:
+        donante_obj = donante.objects.get(user=request.user)
+    except donante.DoesNotExist:
+        return Response({"status": "error", "message": "Donante no encontrado"}, status=404)
+
+    data = request.data.copy()
+    data['id_donante'] = donante_obj.id_donante
+
+    serializer = SolicitudCampanaSerializer(data=data)
+    if serializer.is_valid():
+        solicitud = serializer.save()
+
+        # Crear campaña directamente al crear la solicitud
+        nueva_campana = campana.objects.create(
+            fecha_campana=solicitud.fecha_solicitud,
+            fecha_termino=solicitud.fecha_termino,
+            id_centro=solicitud.centro_donacion,
+            apertura=request.data.get("apertura"),
+            cierre=request.data.get("cierre"),
+            meta=str(solicitud.cantidad_personas),
+            latitud=request.data.get("latitud", ""),
+            longitud=request.data.get("longitud", ""),
+            id_solicitud=solicitud,
+            validada=True  # o False si quieres que los reps validen después
+        )
+
+        solicitud.estado = 'aprobado'  # O mantener en 'pendiente'
+        solicitud.campana_asociada = nueva_campana
+        solicitud.save()
+
+        return Response({
+            "status": "success",
+            "data": serializer.data,
+            "campana_creada": nueva_campana.id_campana
+        }, status=201)
+
+    return Response({"status": "error", "errors": serializer.errors}, status=400)
+
+@api_view(['PUT'])
+def validar_campana(request, campana_id):
+    if not request.user.is_authenticated:
+        return Response({"status": "error", "message": "No autenticado"}, status=403)
+
+    try:
+        representante = representante_org.objects.get(user=request.user)
+    except representante_org.DoesNotExist:
+        return Response({"status": "error", "message": "Solo representantes pueden validar campañas"}, status=403)
+
+    try:
+        camp = campana.objects.get(id_campana=campana_id)
+    except campana.DoesNotExist:
+        return Response({"status": "error", "message": "Campaña no encontrada"}, status=404)
+
+    camp.validada = True
+    camp.id_representante = representante  # También puedes dejar constancia del representante que la validó
+    camp.save()
+
+    return Response({"status": "success", "message": "Campaña validada"}, status=200)
+
+@api_view(['GET'])
+def listar_solicitudes_campana(request):
+    if not request.user.is_authenticated:
+        return Response({"status": "error", "message": "No autenticado"}, status=403)
+
+    try:
+        representante_org.objects.get(user=request.user)
+    except representante_org.DoesNotExist:
+        return Response({"status": "error", "message": "Solo los representantes pueden ver las solicitudes"}, status=403)
+
+    solicitudes = solicitud_campana_repo.objects.all().order_by('-created_at')
+    serializer = SolicitudCampanaSerializer(solicitudes, many=True)
+
+    return Response({"status": "success", "data": serializer.data}, status=200)
+
+@api_view(['GET'])
+def progreso_campana(request, campana_id):
+    try:
+        camp = campana.objects.get(id_campana=campana_id)
+    except campana.DoesNotExist:
+        return Response({"status": "error", "message": "Campaña no encontrada"}, status=404)
+
+    total = donacion.objects.filter(solicitud_relacionada=camp.id_solicitud).count()
+
+    return Response({
+        "status": "success",
+        "meta": camp.meta,
+        "donaciones_actuales": total
+    })
+
 
 #APACHE SUPERSET
 from django.http import JsonResponse

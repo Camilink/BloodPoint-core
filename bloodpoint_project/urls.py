@@ -21,7 +21,11 @@ urlpatterns = [
     path('centros/', views.centros_listado, name='centros-listado'),  # Para listar centros
     path('centros/<int:id>/', views.centro_detail, name='centro-detail'),  # Para obtener un centro (y hacer get,put,delete, etc)
     path('donaciones/registrar/', views.registrar_donacion, name='registrar-donacion'),
-    path('donaciones/<int:donante_id>/', views.historial_donaciones, name='historial-donaciones'),
+    path('donaciones/historial/', views.historial_donaciones, name='historial-donaciones'),
+    path('solicitudes/crear/', views.crear_solicitud_campana, name='crear-solicitud'),
+    path('solicitudes/', views.listar_solicitudes_campana, name='listar-solicitudes'),
+    path('campanas/<int:campana_id>/progreso/', views.progreso_campana, name='progreso-campana'),
+    
     #super set
     path('api/superset-token/<str:chart_id>/', views.generate_guest_token, name='chart-token'),
 
