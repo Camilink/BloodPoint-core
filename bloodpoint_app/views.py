@@ -10,6 +10,7 @@ from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from bloodpoint_app.forms import AdminBPForm
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
@@ -208,7 +209,28 @@ def crear_admin(request):
     if request.method == 'POST':
         form = AdminBPForm(request.POST)
         if form.is_valid():
-            form.save()
+            # Extraer los datos del formulario
+            nombre = form.cleaned_data['nombre']
+            email = form.cleaned_data['email']
+            contrasena = form.cleaned_data['contrasena']
+            rol = form.cleaned_data['rol']
+
+            # Crear el usuario base
+            user = CustomUser.objects.create_user(
+                email=email,
+                password=contrasena,
+                tipo_usuario='admin'
+            )
+
+            # Crear el perfil de adminbp vinculado
+            adminbp.objects.create(
+                user=user,
+                nombre=nombre,
+                email=email,
+                contrasena=contrasena,  # Opcional, podrías eliminar este campo si no se necesita
+                rol=rol
+            )
+
             return redirect('listar_admins')
     else:
         form = AdminBPForm()

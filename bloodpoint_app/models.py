@@ -138,11 +138,12 @@ class campana(models.Model):
     ], default='pendiente')
 class adminbp(models.Model):
     id_admin = models.AutoField(primary_key=True)
-    nombre = models.CharField()
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True)
+    nombre = models.CharField(max_length=100)
     email = models.EmailField()
-    contrasena = models.CharField()
+    contrasena = models.CharField(max_length=128)
     created_at = models.DateTimeField(auto_now_add=True)
-    rol= models.CharField()
+    rol = models.CharField(max_length=50)
 
 class solicitud_campana_repo(models.Model):
     id_solicitud = models.AutoField(primary_key=True)
