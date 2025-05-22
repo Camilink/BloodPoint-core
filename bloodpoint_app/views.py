@@ -54,12 +54,16 @@ def campanas(request):
 
 @login_required
 def home(request):
-    return render(request, 'home.html')
+    user = request.user
+    return render(request, 'home.html', {'user': user})
 
 def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()  # O cambia a 'email' si tu input es 'email'
         password = request.POST.get('password')
+
+        logout(request)
+        
         print(f"[LOGIN ATTEMPT] Email: {username} | Password: {password}")
         logger.info(f"[LOGIN ATTEMPT] Email: {username} | Password: {password}")
         user = authenticate(request, username=username, password=password)

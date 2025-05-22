@@ -1,6 +1,9 @@
 <!-- templates/componentes/navbar.html -->
 <nav class="navbar-vertical">
-    <p style="color: white;">Usuario: {{ request.user.email }} | Tipo: {{ request.user.tipo_usuario }}</p>
+    {% if request.user.is_authenticated %}
+    <p>Hola, {{ request.user.email }}</p>
+    <p>Tipo: {{ request.user.tipo_usuario }}</p>
+    {% endif %}
 
     <div class="navbar-brand">
         <i class="fas fa-heartbeat"></i>
