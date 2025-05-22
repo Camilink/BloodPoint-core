@@ -96,7 +96,14 @@ class centro_donacion(models.Model):
     fecha_creacion = models.DateField()
     id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    horario_apertura = models.TimeField()
+    horario_cierre = models.TimeField()
+    
+TIPO_DONACION_CHOICES = [
+    ('punto', 'Punto de Donación'),
+    ('campana', 'Campaña'),
+    ('solicitud', 'Solicitud de Campaña'),
+]
 class donacion(models.Model):
     id_donacion = models.AutoField(primary_key=True)
     id_donante = models.ForeignKey(donante, on_delete=models.CASCADE)
@@ -104,6 +111,10 @@ class donacion(models.Model):
     cantidad_donacion = models.IntegerField()
     centro_id = models.ForeignKey(centro_donacion, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+    tipo_donacion = models.CharField(max_length=20, choices=TIPO_DONACION_CHOICES)
+       # Asociación con campaña o solicitud
+    campana_relacionada = models.ForeignKey('campana', null=True, blank=True, on_delete=models.SET_NULL)
+    solicitud_relacionada = models.ForeignKey('solicitud_campana_repo', null=True, blank=True, on_delete=models.SET_NULL)
 
 class campana(models.Model):
     id_campana = models.AutoField(primary_key=True)
@@ -114,9 +125,17 @@ class campana(models.Model):
     meta = models.CharField()
     latitud = models.CharField()
     longitud = models.CharField()
-    id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE)
+    id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    fecha_termino = models.DateField()  # Fecha límite
+    id_solicitud = models.ForeignKey('solicitud_campana_repo', null=True, blank=True, on_delete=models.SET_NULL)
+    validada = models.BooleanField(default=True)  # Por ahora, se marca como validada al crear
+    estado = models.CharField(max_length=20, choices=[
+        ('pendiente', 'Pendiente'),
+        ('desarrollandose', 'Desarrollándose'),
+        ('cancelado', 'Cancelado'),
+        ('completo', 'Completo')
+    ], default='pendiente')
 class adminbp(models.Model):
     id_admin = models.AutoField(primary_key=True)
     nombre = models.CharField()
@@ -131,12 +150,15 @@ class solicitud_campana_repo(models.Model):
     fecha_solicitud = models.DateField()
     cantidad_personas = models.IntegerField()
     descripcion_solicitud = models.CharField()
-    direccion_solicitud = models.CharField()
     comuna_solicitud = models.CharField()
-    latitud = models.CharField()
-    longitud = models.CharField()
+    ciudad_solicitud = models.CharField()
+    region_solicitud = models.CharField()
     id_donante = models.ForeignKey(donante, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+    centro_donacion = models.ForeignKey(centro_donacion, on_delete=models.CASCADE)
+    fecha_termino = models.DateField()
+    desactivado_por = models.ForeignKey(representante_org, on_delete=models.SET_NULL, null=True, blank=True)
+    campana_asociada = models.OneToOneField('campana', on_delete=models.SET_NULL, null=True, blank=True)
 
 class logro(models.Model):
     id_logro = models.AutoField(primary_key=True)
