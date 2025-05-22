@@ -55,39 +55,21 @@ def campanas(request):
 def home(request):
     return render(request, 'home.html')
 
-
 def login_view(request):
     if request.method == 'POST':
-        email = request.POST.get('email', '').strip()
+        username = request.POST.get('username', '').strip()
         password = request.POST.get('password')
 
-        user = authenticate(request, email=email, password=password)
+        user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            tipo = user.tipo_usuario
-
-            if tipo == 'representante':
-                try:
-                    representante = representante_org.objects.get(user=user)
-                except representante_org.DoesNotExist:
-                    messages.error(request, 'No se encontró el perfil del representante.')
-                    return render(request, 'login.html')
+            if user.tipo_usuario in ['admin', 'representante']:
                 login(request, user)
-                return redirect('home') 
-
-            elif tipo == 'admin':
-                try:
-                    admin = adminbp.objects.get(email=user.email)
-                except adminbp.DoesNotExist:
-                    messages.error(request, 'No se encontró el perfil del administrador.')
-                    return render(request, 'login.html')
-                login(request, user)
-                return redirect('home')  
-
+                return redirect('home')
             else:
-                messages.error(request, 'Tipo de usuario no autorizado.')
+                messages.error(request, 'Usuario no autorizado para acceder al sitio.')
         else:
-            messages.error(request, 'Correo o contraseña incorrectos.')
+            messages.error(request, 'Usuario o contraseña incorrectos.')
 
     return render(request, 'login.html')
 

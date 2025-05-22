@@ -178,7 +178,10 @@ CORS_ALLOW_HEADERS = list(corsheaders.defaults.default_headers) + [
 AUTHENTICATION_BACKENDS = [
     'bloodpoint_app.backends.RutAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
+    'bloodpoint_app.backends.EmailOrRutBackend',
+    
 ]
+
 
 CSRF_TRUSTED_ORIGINS = [
     'https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com',
