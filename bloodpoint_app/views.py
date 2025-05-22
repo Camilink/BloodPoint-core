@@ -57,13 +57,15 @@ def home(request):
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
+        username = request.POST.get('username', '').strip()  # O cambia a 'email' si tu input es 'email'
         password = request.POST.get('password')
-        print(f"[LOGIN ATTEMPT] Email: {email} | Password: {password}")
+        print(f"[LOGIN ATTEMPT] Email: {username} | Password: {password}")
+
         user = authenticate(request, username=username, password=password)
-        print(user.email, user.tipo_usuario)
+
         if user is not None:
             print(f"[AUTH SUCCESS] Email: {user.email} | Tipo: {user.tipo_usuario}")
+
             if user.tipo_usuario in ['admin', 'representante']:
                 login(request, user)
                 return redirect('home')
@@ -73,6 +75,7 @@ def login_view(request):
             messages.error(request, 'Usuario o contraseña incorrectos.')
 
     return render(request, 'login.html')
+
 
 
 def signup_representante(request):
