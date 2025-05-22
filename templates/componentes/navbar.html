@@ -10,11 +10,11 @@
     </a>
     {% if request.user.is_authenticated and request.user.tipo_usuario == 'admin' %}
     <!-- Vistas solo para admin -->
-    <a href="{% url 'admin_dashboard' %}" class="nav-item">
+    <a href="#" class="nav-item">
         <i class="fas fa-user-shield"></i>
         <span>Panel Admin</span>
     </a>
-    <a href="{% url 'listar_representantes' %}" class="nav-item">
+    <a href="#" class="nav-item">
         <i class="fas fa-users-cog"></i>
         <span>Representantes</span>
     </a>
@@ -22,7 +22,7 @@
 
     {% if request.user.is_authenticated and request.user.tipo_usuario == 'representante' %}
     <!-- Vistas solo para representante -->
-    <a href="{% url 'campannas' %}" class="nav-item">
+    <a href=# class="nav-item">
         <i class="fas fa-users"></i>
         <span>Mis Campañas</span>
     </a>
