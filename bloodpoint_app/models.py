@@ -155,7 +155,7 @@ class solicitud_campana_repo(models.Model):
     region_solicitud = models.CharField()
     id_donante = models.ForeignKey(donante, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    centro_donacion = models.ForeignKey(centro_donacion, on_delete=models.CASCADE)
+    centro_donacion = models.ForeignKey(centro_donacion, on_delete=models.CASCADE, null=True)
     fecha_termino = models.DateField()
     desactivado_por = models.ForeignKey(representante_org, on_delete=models.SET_NULL, null=True, blank=True)
     campana_asociada = models.OneToOneField('campana', on_delete=models.SET_NULL, null=True, blank=True)
