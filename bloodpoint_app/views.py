@@ -50,6 +50,7 @@ logger = logging.getLogger(__name__)
 def campanas(request):
     return render(request, 'campannas.html')
 
+@login_required
 def home(request):
     return render(request, 'home.html')
 
