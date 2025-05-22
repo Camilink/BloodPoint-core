@@ -1,4 +1,4 @@
-from django.contrib.auth.backends import BaseBackend
+from django.contrib.auth.backends import BaseBackend, ModelBackend
 from bloodpoint_app.models import CustomUser
 
 
