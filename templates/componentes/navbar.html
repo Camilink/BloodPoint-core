@@ -1,5 +1,7 @@
 <!-- templates/componentes/navbar.html -->
 <nav class="navbar-vertical">
+    <p style="color: white;">Usuario: {{ request.user.email }} | Tipo: {{ request.user.tipo_usuario }}</p>
+
     <div class="navbar-brand">
         <i class="fas fa-heartbeat"></i>
         <span>BLOODPOINT</span>
