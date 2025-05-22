@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}Panel de control de administrador{% endblock %}
+{% block content %}
+<h2>Panel de control de administrador</h2>
+<a href="{% url 'crear_admin' %}">Crear nuevo admin</a>
+<a href="{% url 'listar_admins' %}">Volver al listado</a>
+{% endblock %}

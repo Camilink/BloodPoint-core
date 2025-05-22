@@ -1,0 +1,39 @@
+<!-- templates/componentes/navbar.html -->
+<nav class="navbar-vertical">
+    <div class="navbar-brand">
+        <i class="fas fa-heartbeat"></i>
+        <span>BLOODPOINT</span>
+    </div>
+    <a href="{% url 'inicio' %}" class="nav-item">
+        <i class="fas fa-home"></i>
+        <span>Inicio</span>
+    </a>
+    {% if request.user.is_authenticated and request.user.tipo_usuario == 'admin' %}
+    <!-- Vistas solo para admin -->
+    <a href="{% url 'admin_dashboard' %}" class="nav-item">
+        <i class="fas fa-user-shield"></i>
+        <span>Panel Admin</span>
+    </a>
+    <a href="{% url 'listar_representantes' %}" class="nav-item">
+        <i class="fas fa-users-cog"></i>
+        <span>Representantes</span>
+    </a>
+    {% endif %}
+
+    {% if request.user.is_authenticated and request.user.tipo_usuario == 'representante' %}
+    <!-- Vistas solo para representante -->
+    <a href="{% url 'campannas' %}" class="nav-item">
+        <i class="fas fa-users"></i>
+        <span>Mis Campañas</span>
+    </a>
+    {% endif %}
+
+    <a href="#" class="nav-item">
+        <i class="fas fa-cog"></i>
+        <span>Configuración</span>
+    </a>
+    <a href="{% url 'logout' %}" class="nav-item nav-item-right">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Cerrar sesión</span>
+    </a>
+</nav>

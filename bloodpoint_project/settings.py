@@ -186,3 +186,25 @@ CSRF_TRUSTED_ORIGINS = [
 
 SESSION_COOKIE_SECURE = True   # Send session cookie only over HTTPS
 CSRF_COOKIE_SECURE = True      # Send CSRF cookie only over HTTPS
+
+
+import os
+from dotenv import load_dotenv
+
+# Cargar variables del archivo .env
+load_dotenv()
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('GMAIL_EMAIL')  # Lee de variables de entorno
+EMAIL_HOST_PASSWORD = os.getenv('GMAIL_APP_PASSWORD')  # Lee de variables de entorno
+
+
+
+#LOGIN Y AUTENTICACION:
+
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'  # o '/home/' según tu configuración
+LOGOUT_REDIRECT_URL = 'login'  # o '/login/' según tu configuración

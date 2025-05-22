@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Listar administradores{% endblock %}
+{% block content %}
+
+<h2>Lista de Administradores</h2>
+<a href="{% url 'crear_admin' %}">Crear nuevo admin</a>
+<ul>
+    {% for admin in admins %}
+    <li>
+        {{ admin.nombre }} | {{ admin.email }} | {{ admin.rol }}
+        [<a href="{% url 'editar_admin' admin.id_admin %}">Editar</a>]
+        [<a href="{% url 'eliminar_admin' admin.id_admin %}">Eliminar</a>]
+    </li>
+    {% endfor %}
+</ul>

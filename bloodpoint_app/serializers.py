@@ -1,10 +1,14 @@
 from rest_framework import serializers
-from .models import donante, representante_org, centro_donacion,donacion
+from .models import donante, representante_org, centro_donacion,donacion, adminbp
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from .models import CustomUser
 
 
+class AdminBPSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = adminbp
+        fields = '__all__'
 class CentroDonacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = centro_donacion

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Crear administrador{% endblock %}
+{% block content %}
+<h2>Crear Administrador</h2>
+<form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Guardar</button>
+</form>
+<a href="{% url 'listar_admins' %}">Volver al listado</a>
+{% endblock %}

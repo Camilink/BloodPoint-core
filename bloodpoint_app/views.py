@@ -1,23 +1,24 @@
-from datetime import date, datetime
 import logging
-from django.shortcuts import render, redirect
+import uuid
+from datetime import date, datetime
+
+from django.contrib import messages
+from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError, transaction
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+
+from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
-from .serializers import donanteSerializer, CentroDonacionSerializer
-from django.http import HttpResponse
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate, login
-from bloodpoint_app.models import CustomUser, donante
-from .models import CustomUser, representante_org, donante, centro_donacion, donacion
-from .serializers import CustomUserSerializer, RepresentanteOrgSerializer, DonantePerfilSerializer, DonacionSerializer
-from django.contrib.auth.backends import ModelBackend
-from django.contrib.auth import get_user_model
-import uuid
-from bloodpoint_app import views
-from django.db import IntegrityError, transaction
-from django.contrib import messages
 
+from .models import centro_donacion, CustomUser, donacion, donante, representante_org, adminbp
+from .serializers import (CentroDonacionSerializer,CustomUserSerializer,DonacionSerializer,DonantePerfilSerializer,RepresentanteOrgSerializer,donanteSerializer)
+
+from bloodpoint_app import views
 
 logger = logging.getLogger(__name__)
 
@@ -25,34 +26,49 @@ logger = logging.getLogger(__name__)
 #    return HttpResponse("Welcome to Bloodpoint API")
 
 # NAVEGADOR 
+
+def campanas(request):
+    return render(request, 'campannas.html')
+
 def home(request):
     return render(request, 'home.html')
 
-def login_representante_view(request):
+
+def login_view(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
+        email = request.POST.get('email', '').strip()
         password = request.POST.get('password')
 
         user = authenticate(request, email=email, password=password)
 
         if user is not None:
-            if user.tipo_usuario != 'representante':
-                messages.error(request, 'Solo los representantes pueden iniciar sesión aquí.')
-                return render(request, 'login.html')
+            tipo = user.tipo_usuario
 
-            try:
-                representante = representante_org.objects.get(user=user)
-            except representante_org.DoesNotExist:
-                messages.error(request, 'No se encontró el perfil del representante.')
-                return render(request, 'login.html')
+            if tipo == 'representante':
+                try:
+                    representante = representante_org.objects.get(user=user)
+                except representante_org.DoesNotExist:
+                    messages.error(request, 'No se encontró el perfil del representante.')
+                    return render(request, 'login.html')
+                login(request, user)
+                return redirect('home') 
 
-            login(request, user)
-            return redirect('home')  # Ajusta esta ruta según tu app
+            elif tipo == 'admin':
+                try:
+                    admin = adminbp.objects.get(email=user.email)
+                except adminbp.DoesNotExist:
+                    messages.error(request, 'No se encontró el perfil del administrador.')
+                    return render(request, 'login.html')
+                login(request, user)
+                return redirect('home')  
 
+            else:
+                messages.error(request, 'Tipo de usuario no autorizado.')
         else:
             messages.error(request, 'Correo o contraseña incorrectos.')
 
     return render(request, 'login.html')
+
 
 def signup_representante(request):
     if request.method == 'POST':
@@ -84,7 +100,7 @@ def signup_representante(request):
         if len(password1) < 8:
             return render(request, 'signup.html', {'error': 'La contraseña debe tener al menos 8 caracteres'})
             
-        # Limpiar formato del RUT (si es necesario)
+        # Limpiar formato del RUT 
         rut = rut.replace('.', '').replace(' ', '')
 
         # Verificar si el usuario ya existe
@@ -132,10 +148,78 @@ def signup_representante(request):
     # Si es GET, mostrar el formulario vacío
     return render(request, 'signup.html')
 
-def logout(request):
-    pass
-    return redirect('login.html')
+@login_required
+def listar_representantes(request):
+    representantes = representante_org.objects.all()
+    return render(request, 'representantes/listar.html', {'representantes': representantes})
 
+@login_required
+def editar_representante(request, id):
+    representante = get_object_or_404(representante_org, id_representante=id)
+
+    if request.method == 'POST':
+        representante.nombre = request.POST.get('nombre')
+        representante.apellido = request.POST.get('apellido')
+        representante.rol = request.POST.get('rol')
+
+        credencial = request.FILES.get('credencial')
+        if credencial:
+            representante.credencial = credencial
+
+        representante.save()
+        return redirect('listar_representantes')  # O donde quieras redirigir
+
+    return render(request, 'representantes/editar.html', {'representante': representante})
+
+@login_required
+def eliminar_representante(request, id):
+    representante = get_object_or_404(representante_org, id_representante=id)
+
+    if request.method == 'POST':
+        representante.delete()
+        return redirect('listar_representantes')
+
+    return render(request, 'representantes/eliminar_confirmacion.html', {'representante': representante})
+
+
+# CREAR adminbp
+def crear_admin(request):
+    if request.method == 'POST':
+        form = AdminBPForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_admins')
+    else:
+        form = AdminBPForm()
+    return render(request, 'crear_admin.html', {'form': form})
+
+def listar_admins(request):
+    admins = adminbp.objects.all()
+    return render(request, 'listar_admins.html', {'admins': admins})
+
+def editar_admin(request, id):
+    admin = get_object_or_404(adminbp, id_admin=id)
+    if request.method == 'POST':
+        form = AdminBPForm(request.POST, instance=admin)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_admins')
+    else:
+        form = AdminBPForm(instance=admin)
+    return render(request, 'editar_admin.html', {'form': form})
+
+def eliminar_admin(request, id):
+    admin = get_object_or_404(adminbp, id_admin=id)
+    if request.method == 'POST':
+        admin.delete()
+        return redirect('listar_admins')
+    return render(request, 'eliminar_admin.html', {'admin': admin})
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+#APP MOVIL
 @api_view(['GET', 'POST'])
 def centros_listado(request):
     if request.method == 'GET':
@@ -416,7 +500,6 @@ def donantes_listado(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def donante_detail(request, id):
@@ -502,7 +585,7 @@ def registrar_donacion(request):
         "fecha_donacion": nueva_donacion.fecha_donacion.isoformat(),
         "centro": centro.nombre_centro
     }, status=201)
-    
+
 @api_view(['GET'])
 def historial_donaciones(request, donante_id):
     try:
@@ -527,7 +610,7 @@ def historial_donaciones(request, donante_id):
     serializer = DonacionSerializer(donaciones, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-#APACHE SUPERSET
+#=========================================================== APACHE SUPERSET ==============================================================
 from django.http import JsonResponse
 import jwt
 from datetime import datetime, timedelta
