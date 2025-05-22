@@ -211,3 +211,17 @@ EMAIL_HOST_PASSWORD = os.getenv('GMAIL_APP_PASSWORD')  # Lee de variables de ent
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'  # o '/home/' según tu configuración
 LOGOUT_REDIRECT_URL = 'login'  # o '/login/' según tu configuración
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}

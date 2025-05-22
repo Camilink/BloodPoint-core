@@ -39,6 +39,7 @@ from .serializers import (
 
 from bloodpoint_app.models import CustomUser as BP_CustomUser, donante as BP_donante
 from bloodpoint_app import views
+import logging
 
 
 logger = logging.getLogger(__name__)
@@ -60,11 +61,12 @@ def login_view(request):
         username = request.POST.get('username', '').strip()  # O cambia a 'email' si tu input es 'email'
         password = request.POST.get('password')
         print(f"[LOGIN ATTEMPT] Email: {username} | Password: {password}")
-
+        logger.info(f"[LOGIN ATTEMPT] Email: {username} | Password: {password}")
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
             print(f"[AUTH SUCCESS] Email: {user.email} | Tipo: {user.tipo_usuario}")
+            logger.info(f"[LOGIN ATTEMPT] Email: {username} | Password: {password}")
 
             if user.tipo_usuario in ['admin', 'representante']:
                 login(request, user)
