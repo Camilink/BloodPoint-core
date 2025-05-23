@@ -101,6 +101,9 @@ def signup_representante(request):
         if not rut:
             return render(request, 'signup.html', {'error': 'El RUT es obligatorio'})
         
+        if CustomUser.objects.filter(email=email).exists():
+            return render(request, 'signup.html', {'error': 'Este correo ya está registrado'})
+    
         if not nombre:
             return render(request, 'signup.html', {'error': 'El nombre es obligatorio'})
             
@@ -206,7 +209,6 @@ def crear_admin(request):
             nombre = form.cleaned_data['nombre']
             email = form.cleaned_data['email']
             contrasena = form.cleaned_data['contrasena']
-            rol = form.cleaned_data['rol']
 
             # Crear el usuario base
             user = CustomUser.objects.create_user(
@@ -220,8 +222,6 @@ def crear_admin(request):
                 user=user,
                 nombre=nombre,
                 email=email,
-                contrasena=contrasena,  # Opcional, podrías eliminar este campo si no se necesita
-                rol=rol
             )
 
             return redirect('listar_admins')

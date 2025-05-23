@@ -143,7 +143,6 @@ class adminbp(models.Model):
     email = models.EmailField()
     contrasena = models.CharField(max_length=128)
     created_at = models.DateTimeField(auto_now_add=True)
-    rol = models.CharField(max_length=50)
 
 class solicitud_campana_repo(models.Model):
     id_solicitud = models.AutoField(primary_key=True)

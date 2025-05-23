@@ -23,14 +23,13 @@ class EmailOrRutBackend(ModelBackend):
         user = None
         if username is None:
             username = kwargs.get('email') or kwargs.get('rut')
-        try:
-            user = CustomUser.objects.get(email=username)
-        except CustomUser.DoesNotExist:
-            try:
-                user = CustomUser.objects.get(rut=username)
-            except CustomUser.DoesNotExist:
-                return None
+
+        user = CustomUser.objects.filter(email=username).first()
         
-        if user.check_password(password) and self.user_can_authenticate(user):
+        if not user:
+            user = CustomUser.objects.filter(rut=username).first()
+        
+        if user and user.check_password(password) and self.user_can_authenticate(user):
             return user
         return None
+

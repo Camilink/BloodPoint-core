@@ -1,13 +1,5 @@
 <!-- templates/componentes/navbar.html -->
 <nav class="navbar-vertical">
-    {% if request.user.is_authenticated %}
-    <p>Usuario actual: {{ request.user.email }} ({{ request.user.tipo_usuario }})</p>
-    <p>ID: {{ request.user.id }}</p>
-    {% else %}
-    <p>No hay usuario logueado</p>
-    {% endif %}
-
-
     <div class="navbar-brand">
         <i class="fas fa-heartbeat"></i>
         <span>BLOODPOINT</span>
