@@ -55,7 +55,9 @@ def campanas(request):
 @login_required
 def home(request):
     user = request.user
-    return render(request, 'home.html', {'user': user})
+    print("USUARIO ACTUAL:", request.user, request.user.is_authenticated)
+    return render(request, 'home.html')
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -71,6 +73,7 @@ def login_view(request):
             logger.info(f"[LOGIN ATTEMPT] Email: {username} | Password: {password}")
 
             if user.tipo_usuario in ['admin', 'representante']:
+                user.backend = 'bloodpoint_app.backends.EmailOrRutBackend'  # <--- esto es clave
                 login(request, user)
                 return redirect('home')
             else:
