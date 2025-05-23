@@ -25,7 +25,7 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email=email, password=password, **extra_fields)
 class CustomUser(AbstractUser):
     username = None  # Eliminamos el campo username predeterminado
-    email = models.EmailField(unique=False, blank=True, null=True)  # Puedes mantener email como opcional o requerido, sin unique=True
+    email = models.EmailField(unique=True)  # Puedes mantener email como opcional o requerido, sin unique=True
     rut = models.CharField(unique=True, null=True, blank=True)
     tipo_usuario = models.CharField(max_length=20, choices=[  # Agrega esto
         ('donante', 'Donante'),
