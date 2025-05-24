@@ -28,7 +28,7 @@ urlpatterns = [
     path('donaciones/<int:donacion_id>/validar/', views.validar_donacion),
     path('donaciones/qr/', views.escanear_qr_donacion, name='qr-donacion'),
     path('campanas/crear/', views.crear_campana, name='crear_campana'),
-    path('campanas/activas/', views.campañas_activas, name='campanas_activas'),
+    path('campanas/activas/', views.campanas_activas, name='campanas_activas'),
 
 
     #super set
