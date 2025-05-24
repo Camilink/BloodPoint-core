@@ -25,7 +25,12 @@ urlpatterns = [
     path('solicitudes/crear/', views.crear_solicitud_campana, name='crear-solicitud'),
     path('solicitudes/', views.listar_solicitudes_campana, name='listar-solicitudes'),
     path('campanas/<int:campana_id>/progreso/', views.progreso_campana, name='progreso-campana'),
-    
+    path('donaciones/<int:donacion_id>/validar/', views.validar_donacion),
+    path('donaciones/qr/', views.escanear_qr_donacion, name='qr-donacion'),
+    path('campanas/crear/', views.crear_campana, name='crear_campana'),
+    path('campanas/activas/', views.campañas_activas, name='campanas_activas'),
+
+
     #super set
     path('api/superset-token/<str:chart_id>/', views.generate_guest_token, name='chart-token'),
 

@@ -112,6 +112,8 @@ class donacion(models.Model):
     centro_id = models.ForeignKey(centro_donacion, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     tipo_donacion = models.CharField(max_length=20, choices=TIPO_DONACION_CHOICES)
+    validada = models.BooleanField(default=False)
+    es_intencion = models.BooleanField(default=False)
        # Asociación con campaña o solicitud
     campana_relacionada = models.ForeignKey('campana', null=True, blank=True, on_delete=models.SET_NULL)
     solicitud_relacionada = models.ForeignKey('solicitud_campana_repo', null=True, blank=True, on_delete=models.SET_NULL)

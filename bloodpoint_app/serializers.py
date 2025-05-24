@@ -104,6 +104,8 @@ class DonacionSerializer(serializers.ModelSerializer):
             'campana_relacionada',
             'solicitud_relacionada',
             'tipo_donacion',
+            'validada',
+            'es_intencion',
         ]
 
 class SolicitudCampanaSerializer(serializers.ModelSerializer):
@@ -111,3 +113,23 @@ class SolicitudCampanaSerializer(serializers.ModelSerializer):
      class Meta:
         model = solicitud_campana_repo
         fields = '__all__'
+        
+class CampanaSerializer(serializers.ModelSerializer):
+    centro = serializers.CharField(source='id_centro.nombre_centro', read_only=True)
+    class Meta:
+        model = campana
+        fields = [
+            'id_campana',
+            'fecha_campana',
+            'fecha_termino',
+            'apertura',
+            'cierre',
+            'meta',
+            'latitud',
+            'longitud',
+            'id_centro',
+            'centro',
+            'id_solicitud',
+            'validada',
+            'estado'
+        ]

@@ -34,7 +34,8 @@ from .serializers import (
     DonacionSerializer,
     SolicitudCampanaSerializer,
     CentroDonacionSerializer,
-    donanteSerializer
+    donanteSerializer,
+    CampanaSerializer,
 )
 
 from bloodpoint_app.models import CustomUser as BP_CustomUser, donante as BP_donante
@@ -708,6 +709,48 @@ def crear_solicitud_campana(request):
 
     return Response({"status": "error", "errors": serializer.errors}, status=400)
 
+@api_view(['POST'])
+def crear_campana(request):
+    if not request.user.is_authenticated:
+        return Response({"status": "error", "message": "No autenticado"}, status=403)
+
+    try:
+        representante = representante_org.objects.get(user=request.user)
+    except representante_org.DoesNotExist:
+        return Response({"status": "error", "message": "Solo representantes pueden crear campañas"}, status=403)
+
+    data = request.data.copy()
+
+    # Validación básica
+    required_fields = ['fecha_campana', 'fecha_termino', 'id_centro', 'apertura', 'cierre', 'meta']
+    for field in required_fields:
+        if field not in data:
+            return Response({"status": "error", "message": f"Campo requerido: {field}"}, status=400)
+
+    try:
+        centro = centro_donacion.objects.get(id_centro=data['id_centro'])
+    except centro_donacion.DoesNotExist:
+        return Response({"status": "error", "message": "Centro no encontrado"}, status=404)
+
+    camp = campana.objects.create(
+        fecha_campana=data['fecha_campana'],
+        fecha_termino=data['fecha_termino'],
+        id_centro=centro,
+        apertura=data['apertura'],
+        cierre=data['cierre'],
+        meta=data['meta'],
+        latitud=data.get('latitud', ''),
+        longitud=data.get('longitud', ''),
+        id_representante=representante,
+        validada=True
+    )
+
+    return Response({
+        "status": "success",
+        "message": "Campaña creada exitosamente.",
+        "id_campana": camp.id_campana
+    }, status=201)
+
 @api_view(['PUT'])
 def validar_campana(request, campana_id):
     if not request.user.is_authenticated:
@@ -758,6 +801,168 @@ def progreso_campana(request, campana_id):
         "meta": camp.meta,
         "donaciones_actuales": total
     })
+    
+@api_view(['PUT'])
+def validar_donacion(request, donacion_id):
+    try:
+        representante = representante_org.objects.get(user=request.user)
+    except representante_org.DoesNotExist:
+        return Response({"status": "error", "message": "Solo representantes pueden validar donaciones"}, status=403)
+
+    try:
+        don = donacion.objects.get(id_donacion=donacion_id)
+    except donacion.DoesNotExist:
+        return Response({"status": "error", "message": "Donación no encontrada"}, status=404)
+
+    if don.validada:
+        return Response({"status": "warning", "message": "La donación ya está validada"}, status=200)
+
+    don.validada = True
+    don.save()
+
+    return Response({"status": "success", "message": "Donación validada"}, status=200)
+
+@api_view(['GET'])
+def donaciones_pendientes(request, rut):
+    try:
+        donante_obj = donante.objects.get(rut=rut)
+    except donante.DoesNotExist:
+        return Response({"status": "error", "message": "Donante no encontrado"}, status=404)
+
+    donaciones = donacion.objects.filter(id_donante=donante_obj, validada=False).order_by('-fecha_donacion')
+
+    serializer = DonacionSerializer(donaciones, many=True)
+    return Response({"status": "success", "data": serializer.data}, status=200)
+
+
+@api_view(['POST'])
+def registrar_intencion_donacion(request):
+    if not request.user.is_authenticated:
+        return Response({"status": "error", "message": "No autenticado"}, status=403)
+
+    try:
+        donante_obj = donante.objects.get(user=request.user)
+    except donante.DoesNotExist:
+        return Response({"status": "error", "message": "Donante no encontrado"}, status=404)
+
+    campana_id = request.data.get("campana_id")
+
+    if not campana_id:
+        return Response({"status": "error", "message": "campana_id es requerido"}, status=400)
+
+    try:
+        campana_obj = campana.objects.get(id_campana=campana_id)
+    except campana.DoesNotExist:
+        return Response({"status": "error", "message": "Campaña no encontrada"}, status=404)
+
+    # Registrar intención
+    donacion.objects.create(
+        id_donante=donante_obj,
+        centro_id=campana_obj.id_centro,
+        fecha_donacion=campana_obj.fecha_campana,
+        cantidad_donacion=1,
+        tipo_donacion='campana',
+        campana_relacionada=campana_obj,
+        es_intencion=True
+    )
+
+    return Response({"status": "success", "message": "Intención registrada"}, status=201)
+
+@api_view(['GET'])
+def estado_donaciones_campana(request, campana_id):
+    try:
+        camp = campana.objects.get(id_campana=campana_id)
+    except campana.DoesNotExist:
+        return Response({"status": "error", "message": "Campaña no encontrada"}, status=404)
+
+    donaciones = donacion.objects.filter(campana_relacionada=camp)
+
+    completadas = donaciones.filter(validada=True).count()
+    no_completadas = donaciones.filter(validada=False).count()
+
+    return Response({
+        "status": "success",
+        "meta": camp.meta,
+        "completadas": completadas,
+        "no_completadas": no_completadas,
+    })
+
+@api_view(['POST'])
+def escanear_qr_donacion(request):
+    rut = request.data.get("rut")
+    centro_id = request.data.get("centro_id")
+    tipo_donacion = request.data.get("tipo_donacion")  # punto | campana | solicitud
+    campana_id = request.data.get("campana_id")
+    solicitud_id = request.data.get("solicitud_id")
+
+    if not request.user.is_authenticated:
+        return Response({"status": "error", "message": "No autenticado"}, status=403)
+
+    if not rut or not centro_id or not tipo_donacion:
+        return Response({"status": "error", "message": "Campos obligatorios: rut, centro_id, tipo_donacion"}, status=400)
+
+    try:
+        representante = representante_org.objects.get(user=request.user)
+    except representante_org.DoesNotExist:
+        return Response({"status": "error", "message": "Solo representantes pueden registrar donaciones"}, status=403)
+
+    try:
+        donante_obj = donante.objects.get(rut=rut)
+    except donante.DoesNotExist:
+        return Response({"status": "error", "message": "Donante no encontrado"}, status=404)
+
+    try:
+        centro = centro_donacion.objects.get(id_centro=centro_id)
+    except centro_donacion.DoesNotExist:
+        return Response({"status": "error", "message": "Centro no encontrado"}, status=404)
+
+    campana_obj = None
+    solicitud_obj = None
+
+    if tipo_donacion == 'campana':
+        if not campana_id:
+            return Response({"status": "error", "message": "campana_id es requerido para tipo campana"}, status=400)
+        try:
+            campana_obj = campana.objects.get(id_campana=campana_id)
+        except campana.DoesNotExist:
+            return Response({"status": "error", "message": "Campaña no encontrada"}, status=404)
+    elif tipo_donacion == 'solicitud':
+        if not solicitud_id:
+            return Response({"status": "error", "message": "solicitud_id es requerido para tipo solicitud"}, status=400)
+        try:
+            solicitud_obj = solicitud_campana_repo.objects.get(id_solicitud=solicitud_id)
+        except solicitud_campana_repo.DoesNotExist:
+            return Response({"status": "error", "message": "Solicitud no encontrada"}, status=404)
+
+    # Crear la donación
+    nueva = donacion.objects.create(
+        id_donante=donante_obj,
+        centro_id=centro,
+        fecha_donacion=date.today(),
+        cantidad_donacion=1,
+        tipo_donacion=tipo_donacion,
+        campana_relacionada=campana_obj,
+        solicitud_relacionada=solicitud_obj,
+        validada=True
+    )
+
+    return Response({
+        "status": "success",
+        "message": "Donación registrada y validada por QR",
+        "donacion_id": nueva.id_donacion,
+        "fecha": nueva.fecha_donacion.isoformat(),
+        "tipo": tipo_donacion
+    }, status=201)
+    
+@api_view(['GET'])
+def campanas_activas(request):
+    hoy = date.today()
+    campanas = campana.objects.filter(validada=True, fecha_campana__lte=hoy, fecha_termino__gte=hoy)
+    serializer = CampanaSerializer(campanas, many=True)
+    return Response({
+        "status": "success",
+        "data": serializer.data
+    }, status=200)
 
 
 #=========================================================== APACHE SUPERSET ==============================================================
