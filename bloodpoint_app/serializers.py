@@ -131,5 +131,6 @@ class CampanaSerializer(serializers.ModelSerializer):
             'centro',
             'id_solicitud',
             'validada',
-            'estado'
+            'estado',
+            'id_representante'
         ]
