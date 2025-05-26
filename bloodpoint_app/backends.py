@@ -22,12 +22,8 @@ class EmailOrRutBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         user = None
         if username is None:
-            username = kwargs.get('email') or kwargs.get('rut')
-
+            username = kwargs.get('email')
         user = CustomUser.objects.filter(email=username).first()
-        
-        if not user:
-            user = CustomUser.objects.filter(rut=username).first()
         
         if user and user.check_password(password) and self.user_can_authenticate(user):
             return user
