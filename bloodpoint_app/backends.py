@@ -16,16 +16,17 @@ class RutAuthBackend(BaseBackend):
             return CustomUser.objects.get(pk=user_id)
         except CustomUser.DoesNotExist:
             return None
-# bloodpoint_app/backends.py
 
 class EmailOrRutBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
-        user = None
-        if username is None:
-            username = kwargs.get('email')
-        user = CustomUser.objects.filter(email=username).first()
+        # Solo acepta email (no RUT)
+        email = username or kwargs.get('email')
+        
+        if not email:
+            return None  # No se proporcionó email
+        
+        user = CustomUser.objects.filter(email=email).first()
         
         if user and user.check_password(password) and self.user_can_authenticate(user):
             return user
         return None
-

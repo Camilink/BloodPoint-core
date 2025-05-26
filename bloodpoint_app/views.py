@@ -60,28 +60,19 @@ def home(request):
     return render(request, 'home.html')
 
 
+
 def login_view(request):
     if request.method == 'POST':
-        email = request.POST.get('email', '').strip()  # O cambia a 'email' si tu input es 'email'
+        email = request.POST.get('email', '').strip()  # Solo email
         password = request.POST.get('password')
         
-        print(f"[LOGIN ATTEMPT] Email: {email} | Password: {password}")
-        logger.info(f"[LOGIN ATTEMPT] Email: {email} | Password: {password}")
-        user = authenticate(request, email=email, password=password)
-
-        if user is not None:
-            print(f"[AUTH SUCCESS] Email: {user.email} | Tipo: {user.tipo_usuario}")
-            logger.info(f"[LOGIN ATTEMPT] Email: {email} | Password: {password}")
-
-            if user.tipo_usuario in ['admin', 'representante']:
-                user.backend = 'bloodpoint_app.backends.EmailOrRutBackend'  # <--- esto es clave
-                login(request, user)
-                return redirect('home')
-            else:
-                messages.error(request, 'Usuario no autorizado para acceder al sitio.')
+        user = authenticate(request, email=email, password=password)  # Solo EmailOrRutBackend
+        
+        if user:
+            login(request, user)
+            return redirect('home')
         else:
-            messages.error(request, 'Usuario o contraseña incorrectos.')
-
+            messages.error(request, 'Correo electrónico o contraseña incorrectos.')
     return render(request, 'login.html')
 
 
