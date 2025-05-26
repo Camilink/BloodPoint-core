@@ -62,16 +62,16 @@ def home(request):
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username', '').strip()  # O cambia a 'email' si tu input es 'email'
+        email = request.POST.get('email', '').strip()  # O cambia a 'email' si tu input es 'email'
         password = request.POST.get('password')
         
-        print(f"[LOGIN ATTEMPT] Email: {username} | Password: {password}")
-        logger.info(f"[LOGIN ATTEMPT] Email: {username} | Password: {password}")
-        user = authenticate(request, username=username, password=password)
+        print(f"[LOGIN ATTEMPT] Email: {email} | Password: {password}")
+        logger.info(f"[LOGIN ATTEMPT] Email: {email} | Password: {password}")
+        user = authenticate(request, email=email, password=password)
 
         if user is not None:
             print(f"[AUTH SUCCESS] Email: {user.email} | Tipo: {user.tipo_usuario}")
-            logger.info(f"[LOGIN ATTEMPT] Email: {username} | Password: {password}")
+            logger.info(f"[LOGIN ATTEMPT] Email: {email} | Password: {password}")
 
             if user.tipo_usuario in ['admin', 'representante']:
                 user.backend = 'bloodpoint_app.backends.EmailOrRutBackend'  # <--- esto es clave
