@@ -1,4 +1,4 @@
-version: "3.9"
+version: '3.8'
 
 services:
   db:
@@ -11,18 +11,43 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d bloodpointbd"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   web:
     build: .
+    command: sh -c "while ! nc -z db 5432; do sleep 1; done && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
+      - ./static:/app/static:ro  # Montaje explícito para archivos estáticos
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
-      DATABASE_URL: postgres://admin:admin@db:5432/bloodpointbd
-      PORT: 8000
+      # Configuración PostgreSQL
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: bloodpointbd
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      
+      # Configuración Django
+      DJANGO_SETTINGS_MODULE: "bloodpoint_project.settings"
+      PYTHONUNBUFFERED: "1"
+      DEBUG: "True"  # Solo para desarrollo
+      
+      # Configuración Email
+      GMAIL_EMAIL: "bloodpointservice@gmail.com"
+      GMAIL_APP_PASSWORD: "dilwqkolpkhnfftm"
+      
+      # URLs de base de datos alternativas
+      DATABASE_URL: "postgresql://admin:admin@db:5432/bloodpointbd"
+      DEFAULT_DATABASE_URL: "postgresql://admin:admin@db:5432/bloodpointbd"
 
 volumes:
   postgres_data:
