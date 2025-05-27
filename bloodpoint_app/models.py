@@ -1,18 +1,26 @@
 from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-
-from django.contrib.auth.models import BaseUserManager
+from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.db import models
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, rut=None, **extra_fields):
+        # Validación de email obligatorio para todos
         if not email:
-            raise ValueError('El email es obligatorio')
+            raise ValueError('El email es obligatorio para todos los usuarios')
+        
+        # Validación de RUT obligatorio solo para donantes
         tipo_usuario = extra_fields.get('tipo_usuario')
         if tipo_usuario == 'donante' and not rut:
-            raise ValueError('El rut es obligatorio para los donantes')
+            raise ValueError('El RUT es obligatorio para donantes')
+        
+        # Limpieza y creación del usuario
         email = self.normalize_email(email)
-        user = self.model(email=email, rut=rut, **extra_fields)
+        user = self.model(
+            email=email,
+            rut=rut if tipo_usuario == 'donante' else None,  # RUT solo para donantes
+            **extra_fields
+        )
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -23,25 +31,42 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superadmin', True)
         extra_fields.setdefault('tipo_usuario', 'admin')
         return self.create_user(email=email, password=password, **extra_fields)
+
 class CustomUser(AbstractUser):
-    username = None  # Eliminamos el campo username predeterminado
-    email = models.EmailField(unique=True)  # Puedes mantener email como opcional o requerido, sin unique=True
-    rut = models.CharField(unique=True, null=True, blank=True)
-    tipo_usuario = models.CharField(max_length=20, choices=[  # Agrega esto
+    # Eliminamos username y usamos email como identificador principal
+    username = None
+    email = models.EmailField('correo electrónico', unique=True)  # Obligatorio y único
+    rut = models.CharField('RUT', max_length=12, unique=True, null=True, blank=True)  # Solo para donantes
+    
+    # Tipo de usuario
+    TIPO_USUARIO_CHOICES = [
         ('donante', 'Donante'),
         ('representante', 'Representante'),
         ('admin', 'Administrador'),
-    ])
+    ]
+    tipo_usuario = models.CharField(
+        max_length=20,
+        choices=TIPO_USUARIO_CHOICES,
+        default='donante'
+    )
+    
+    # Campos de permisos
     is_superadmin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
-    #configuracion de login
-    USERNAME_FIELD = 'rut'  # Define rut como el identificador único
-    REQUIRED_FIELDS = ['email']  # Email sigue siendo requerido
 
-    objects = CustomUserManager()  # Usa el manager personalizado
+    # Configuración de login
+    USERNAME_FIELD = 'email'  # Todos inician sesión con email por defecto
+    REQUIRED_FIELDS = []  # Campos adicionales para createsuperuser
+
+    objects = CustomUserManager()
+
     def __str__(self):
-        return f'{self.rut} - {self.tipo_usuario}'
+        return f'{self.email} ({self.tipo_usuario})'
+
+    def get_username(self):
+        """Sobrescribe para permitir login con RUT solo para donantes"""
+        return self.rut if self.tipo_usuario == 'donante' else self.email
 
 TIPO_SANGRE_CHOICES = [
     ('O+', 'O+'),

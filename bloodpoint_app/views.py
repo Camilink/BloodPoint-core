@@ -63,17 +63,23 @@ def home(request):
 
 def login_view(request):
     if request.method == 'POST':
-        email = request.POST.get('email', '').strip()  # Solo email
+        email = request.POST.get('email', '').strip()  # Campo obligatorio
         password = request.POST.get('password')
         
-        user = authenticate(request, email=email, password=password)  # Solo EmailOrRutBackend
+        # Autentica SOLO si es representante o admin (usa EmailAuthBackend o ModelBackend)
+        user = authenticate(request, email=email, password=password)
         
-        if user:
-            login(request, user)
-            return redirect('home')
+        if user is not None:
+            # Verifica que no sea un donante
+            if user.tipo_usuario in ['representante', 'admin']:
+                login(request, user)
+                return redirect('home')  # Cambia 'home' por tu URL deseada
+            else:
+                messages.error(request, 'Solo representantes/admins pueden acceder por aquí.')
         else:
-            messages.error(request, 'Correo electrónico o contraseña incorrectos.')
-    return render(request, 'login.html')
+            messages.error(request, 'Email o contraseña incorrectos.')
+    
+    return render(request, 'login.html')  # Template genérico (ajusta el nombre si es necesario)
 
 
 

@@ -17,16 +17,11 @@ class RutAuthBackend(BaseBackend):
         except CustomUser.DoesNotExist:
             return None
 
-class EmailOrRutBackend(ModelBackend):
-    def authenticate(self, request, username=None, password=None, **kwargs):
-        # Solo acepta email (no RUT)
-        email = username or kwargs.get('email')
-        
-        if not email:
-            return None  # No se proporcionó email
-        
-        user = CustomUser.objects.filter(email=email).first()
-        
-        if user and user.check_password(password) and self.user_can_authenticate(user):
-            return user
-        return None
+class EmailAuthBackend(ModelBackend):
+    def authenticate(self, request, email=None, password=None, **kwargs):
+        try:
+            user = CustomUser.objects.get(email=email)
+            if user.tipo_usuario != 'donante' and user.check_password(password):  # Excluye donantes
+                return user
+        except CustomUser.DoesNotExist:
+            return None
