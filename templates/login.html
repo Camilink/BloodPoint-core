@@ -35,16 +35,15 @@
 		<button type="submit">Iniciar sesión</button>
 		<a href="{% url 'signup_representante' %}">Crear una cuenta de representante</a>
 		<a href="{% url 'password_reset' %}"><i class="fas fa-key"></i>¿Olvidaste tu contraseña?</a>
+			<!-- Muestra mensajes de error si existen -->
+		{% if messages %}
+		<ul>
+			{% for message in messages %}
+			<li>{{ message }}</li>
+			{% endfor %}
+		</ul>
+		{% endif %}
 	</form>
-
-	<!-- Muestra mensajes de error si existen -->
-	{% if messages %}
-	<ul>
-		{% for message in messages %}
-		<li>{{ message }}</li>
-		{% endfor %}
-	</ul>
-	{% endif %}
 
 </body>
 {% endblock %}
