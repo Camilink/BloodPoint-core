@@ -147,7 +147,7 @@ SUPERSET_JWT_EXP_SECONDS = 3600  # 1 hour expiry
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es-cl'  # Español de Chile
 
 TIME_ZONE = 'America/Santiago'
 
