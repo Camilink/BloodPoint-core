@@ -4,11 +4,17 @@ from bloodpoint_app.models import CustomUser
 
 class RutAuthBackend(BaseBackend):
     def authenticate(self, request, rut=None, password=None, **kwargs):
+        if not rut:  # Si no hay RUT, ignora
+            return None
+            
         try:
-            user = CustomUser.objects.get(rut=rut)
-            if user.check_password(password):
-                return user
-        except CustomUser.DoesNotExist:
+            try:
+                user = CustomUser.objects.get(rut=rut)
+                if user.check_password(password):
+                    return user
+            except CustomUser.DoesNotExist:
+                return None
+        except (CustomUser.DoesNotExist, CustomUser.MultipleObjectsReturned):
             return None
 
     def get_user(self, user_id):
@@ -16,6 +22,7 @@ class RutAuthBackend(BaseBackend):
             return CustomUser.objects.get(pk=user_id)
         except CustomUser.DoesNotExist:
             return None
+
 
 class EmailAuthBackend(ModelBackend):
     def authenticate(self, request, email=None, password=None, **kwargs):
