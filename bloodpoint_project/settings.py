@@ -189,7 +189,7 @@ CORS_ALLOW_HEADERS = list(corsheaders.defaults.default_headers) + [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'bloodpoint_app.backends.EmailOrRutBackend',  # Primero: navegador (email)
+    'bloodpoint_app.backends.EmailAuthBackend',  # Primero: navegador (email)
     'bloodpoint_app.backends.RutAuthBackend',     # Segundo: móvil (RUT)
     'django.contrib.auth.backends.ModelBackend',
     
