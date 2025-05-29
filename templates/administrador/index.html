@@ -19,11 +19,11 @@
 				<div class="col-12">
 					<div class='list-item'>
 						<h3>{{ admin.nombre|default:"Sin nombre" }} </h3>
-						<a href="{% url 'editar_admin' admin.id_admin %}">
-							<i style="color: #7d0000; margin-left:auto" class="fas fa-eye fa-3" aria-hidden="true"></i>
+						<a href="{% url 'editar_admin' admin.id_admin %}" style="margin-left:auto">
+							<i style="color: #7d0000;" class="fas fa-eye fa-3" aria-hidden="true"></i>
 						</a>
-						<a href="{% url 'eliminar_admin' admin.id_admin %}">
-							<i style="color: #7d0000; margin-left: 0.65rem" class="fas fa-trash fa-3" aria-hidden="true"></i>
+						<a href="{% url 'eliminar_admin' admin.id_admin %}" style="margin-left:auto">
+							<i style="color: #7d0000;" class="fas fa-trash fa-3" aria-hidden="true"></i>
 						</a>
 					</div>
 				</div>
