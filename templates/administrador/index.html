@@ -8,14 +8,20 @@
 		<h2>
 			Panel Usuarios Administradores
 		</h2>
-		<a class="btn btn-primary" href="{% url 'crear_admin' %}">Crear administrador</a>
 		<div class="row">
+			<div class="col-12">
+				<a class="btn btn-primary red" style="width: 100%" href="{% url 'crear_admin' %}">Crear administrador</a>
+			</div>
 			{% for admin in admins %}
 				<div class="col-12">
 					<div class='list-item'>
-						<h3>{{ admin.nombre }} {{ admin.apellido }}</h3>
-						<a clas btn-primary" href="{% url 'editar_admin' admin.id_admin %}">Editar</a>
-						<a clas btn-primary" href="{% url 'eliminar_admin' admin.id_admin %}">Eliminar</a>
+						<h3>{{ admin.nombre ? admin.nombre : '' }}</h3>
+						<a class="btn-primary" href="{% url 'editar_admin' admin.id_admin %}">
+							<i style="color: #7d0000" class="fas fa-eye"></i>
+						</a>
+						<a class="btn-primary" href="{% url 'eliminar_admin' admin.id_admin %}">
+							<i style="color: #7d0000" class="fas fa-trash"></i>
+						</a>
 					</div>
 				</div>
 			{% endfor %}

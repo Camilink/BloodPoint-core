@@ -62,5 +62,14 @@ body.home {
 	background: #fff;
 	border: 1px solid #7d0000;
 	padding: 20px;
-	margin: 0 3rem 0.25rem 3rem;
+	margin: 0.5rem auto
+}
+.btn.btn-primary.red {
+	background-color: #7d0000;
+	border-color: #620202;
+}
+
+.btn.btn-primary.red:hover {
+	background-color: #520202;
+	border-color: #400404;
 }
