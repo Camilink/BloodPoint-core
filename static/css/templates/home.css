@@ -67,9 +67,11 @@ body.home {
 .btn.btn-primary.red {
 	background-color: #7d0000;
 	border-color: #620202;
+	color: white;
 }
 
 .btn.btn-primary.red:hover {
 	background-color: #520202;
 	border-color: #400404;
+	color: white;
 }

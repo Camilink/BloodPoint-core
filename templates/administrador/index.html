@@ -10,17 +10,20 @@
 		</h2>
 		<div class="row">
 			<div class="col-12">
-				<a class="btn btn-primary red" style="width: 100%" href="{% url 'crear_admin' %}">Crear administrador</a>
+				<a class="btn btn-primary red" style="width: 100%" href="{% url 'crear_admin' %}">
+					<span>Crear administrador</span>
+					<i class="fa fa-plus-square fa-3" aria-hidden="true"></i>
+				</a>
 			</div>
 			{% for admin in admins %}
 				<div class="col-12">
 					<div class='list-item'>
 						<h3>{{ admin.nombre|default:"Sin nombre" }} </h3>
-						<a class="btn-primary" href="{% url 'editar_admin' admin.id_admin %}">
-							<i style="color: #7d0000" class="fas fa-eye"></i>
+						<a href="{% url 'editar_admin' admin.id_admin %}">
+							<i style="color: #7d0000" class="fas fa-eye fa-3" aria-hidden="true"></i>
 						</a>
-						<a class="btn-primary" href="{% url 'eliminar_admin' admin.id_admin %}">
-							<i style="color: #7d0000" class="fas fa-trash"></i>
+						<a href="{% url 'eliminar_admin' admin.id_admin %}">
+							<i style="color: #7d0000" class="fas fa-trash fa-3" aria-hidden="true"></i>
 						</a>
 					</div>
 				</div>
