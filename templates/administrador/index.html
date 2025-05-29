@@ -15,7 +15,7 @@
 			{% for admin in admins %}
 				<div class="col-12">
 					<div class='list-item'>
-						<h3>{{ admin.nombre ? admin.nombre : '' }}</h3>
+						<h3>{{ admin.nombre|default:"Sin nombre" }} </h3>
 						<a class="btn-primary" href="{% url 'editar_admin' admin.id_admin %}">
 							<i style="color: #7d0000" class="fas fa-eye"></i>
 						</a>
