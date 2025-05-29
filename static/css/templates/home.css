@@ -56,3 +56,11 @@ body.home {
 	flex: 1;
 	padding: 20px;
 }
+
+.list-item {
+	width: 95%;
+	background: #fff;
+	border: 1px solid #7d0000;
+	padding: 20px;
+	margin: 0 3rem 0.25rem 3rem;
+}

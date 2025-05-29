@@ -8,15 +8,14 @@ def root_view(request):
 urlpatterns = [
     path('', root_view),
     path('home/', views.home, name='home'),
-    path('administrador/index/', views.admin_index, name='admin_index'),
     path('representante/index/', views.representante_index, name='representante_index'),
     path('login/', views.login_view, name='login'),
     path('signup/representante/', views.signup_representante, name='signup_representante'),
     
-    path('adminbp/crear/', views.crear_admin, name='crear_admin'),
-    path('adminbp/', views.listar_admins, name='listar_admins'),
-    path('adminbp/editar/<int:id>/', views.editar_admin, name='editar_admin'),
-    path('adminbp/eliminar/<int:id>/', views.eliminar_admin, name='eliminar_admin'),
+    path('administrador/crear/', views.crear_admin, name='crear_admin'),
+    path('administrador/', views.admin_index, name='admin_index'),
+    path('administrador/editar/<int:id>/', views.editar_admin, name='editar_admin'),
+    path('administrador/eliminar/<int:id>/', views.eliminar_admin, name='eliminar_admin'),
     
     path('representantes/', views.listar_representantes, name='listar_representantes'),
     path('representantes/editar/<int:id>/', views.editar_representante, name='editar_representante'),

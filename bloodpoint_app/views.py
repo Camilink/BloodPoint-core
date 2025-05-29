@@ -60,7 +60,56 @@ def home(request):
     return render(request, 'home.html')
 
 def admin_index(request):
-    return render(request, 'administrador/index.html')
+    admins = adminbp.objects.all()
+    return render(request, 'administrador/index.html', {'admins': admins})
+
+# CREAR adminbp
+def crear_admin(request):
+    if request.method == 'POST':
+        form = AdminBPForm(request.POST)
+        if form.is_valid():
+            # Extraer los datos del formulario
+            nombre = form.cleaned_data['nombre']
+            email = form.cleaned_data['email']
+            contrasena = form.cleaned_data['contrasena']
+
+            # Crear el usuario base
+            user = CustomUser.objects.create_user(
+                email=email,
+                password=contrasena,
+                tipo_usuario='admin'
+            )
+
+            # Crear el perfil de adminbp vinculado
+            adminbp.objects.create(
+                user=user,
+                nombre=nombre,
+                email=email,
+            )
+
+            return redirect('listar_admins')
+    else:
+        form = AdminBPForm()
+        return render(request, 'crear_admin.html', {'form': form})
+
+def editar_admin(request, id):
+    admin = get_object_or_404(adminbp, id_admin=id)
+    if request.method == 'POST':
+        form = AdminBPForm(request.POST, instance=admin)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_admins')
+    else:
+        form = AdminBPForm(instance=admin)
+    return render(request, 'editar_admin.html', {'form': form})
+
+def eliminar_admin(request, id):
+    admin = get_object_or_404(adminbp, id_admin=id)
+    if request.method == 'POST':
+        admin.delete()
+        return redirect('listar_admins')
+    return render(request, 'eliminar_admin.html', {'admin': admin})
+
 
 def representante_index(request):
     return render(request, 'representante/index.html')
@@ -202,57 +251,6 @@ def eliminar_representante(request, id):
 
     return render(request, 'representantes/eliminar_confirmacion.html', {'representante': representante})
 
-
-# CREAR adminbp
-def crear_admin(request):
-    if request.method == 'POST':
-        form = AdminBPForm(request.POST)
-        if form.is_valid():
-            # Extraer los datos del formulario
-            nombre = form.cleaned_data['nombre']
-            email = form.cleaned_data['email']
-            contrasena = form.cleaned_data['contrasena']
-
-            # Crear el usuario base
-            user = CustomUser.objects.create_user(
-                email=email,
-                password=contrasena,
-                tipo_usuario='admin'
-            )
-
-            # Crear el perfil de adminbp vinculado
-            adminbp.objects.create(
-                user=user,
-                nombre=nombre,
-                email=email,
-            )
-
-            return redirect('listar_admins')
-    else:
-        form = AdminBPForm()
-    return render(request, 'crear_admin.html', {'form': form})
-
-def listar_admins(request):
-    admins = adminbp.objects.all()
-    return render(request, 'listar_admins.html', {'admins': admins})
-
-def editar_admin(request, id):
-    admin = get_object_or_404(adminbp, id_admin=id)
-    if request.method == 'POST':
-        form = AdminBPForm(request.POST, instance=admin)
-        if form.is_valid():
-            form.save()
-            return redirect('listar_admins')
-    else:
-        form = AdminBPForm(instance=admin)
-    return render(request, 'editar_admin.html', {'form': form})
-
-def eliminar_admin(request, id):
-    admin = get_object_or_404(adminbp, id_admin=id)
-    if request.method == 'POST':
-        admin.delete()
-        return redirect('listar_admins')
-    return render(request, 'eliminar_admin.html', {'admin': admin})
 
 def logout_view(request):
     logout(request)
