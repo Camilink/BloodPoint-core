@@ -10,7 +10,7 @@
     </a>
     {% if request.user.is_authenticated and request.user.tipo_usuario == 'admin' %}
     <!-- Vistas solo para admin -->
-    <a href="#" class="nav-item">
+    <a href="{% url 'admin:index'}" class="nav-item">
         <i class="fas fa-user-shield"></i>
         <span>Panel Admin</span>
     </a>
