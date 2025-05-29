@@ -59,6 +59,9 @@ def home(request):
     print("USUARIO ACTUAL:", request.user, request.user.is_authenticated)
     return render(request, 'home.html')
 
+def admin_index(request):
+    return render(request, 'admin/index.html')
+
 
 
 def login_view(request):

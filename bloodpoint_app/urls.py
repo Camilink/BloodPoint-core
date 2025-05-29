@@ -8,6 +8,7 @@ def root_view(request):
 urlpatterns = [
     path('', root_view),
     path('home/', views.home, name='home'),
+    path('admin/index/', views.admin_index, name='admin_index'),
     path('login/', views.login_view, name='login'),
     path('signup/representante/', views.signup_representante, name='signup_representante'),
     
