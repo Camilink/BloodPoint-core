@@ -17,7 +17,7 @@ urlpatterns = [
     path('administrador/editar/<int:id>/', views.editar_admin, name='editar_admin'),
     path('administrador/eliminar/<int:id>/', views.eliminar_admin, name='eliminar_admin'),
     
-    path('representantes/', views.listar_representantes, name='listar_representantes'),
+    path('representantes/', views.representante_index, name='representante_index'),
     path('representantes/editar/<int:id>/', views.editar_representante, name='editar_representante'),
     path('representantes/eliminar/<int:id>/', views.eliminar_representante, name='eliminar_representante'),
     path('logout/', views.logout_view, name='logout')
