@@ -60,7 +60,7 @@ def home(request):
     return render(request, 'home.html')
 
 def admin_index(request):
-    return render(request, 'admin/index.html')
+    return render(request, 'administrador/index.html')
 
 
 
