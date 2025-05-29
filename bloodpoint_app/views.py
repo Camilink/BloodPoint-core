@@ -62,6 +62,8 @@ def home(request):
 def admin_index(request):
     return render(request, 'administrador/index.html')
 
+def representante_index(request):
+    return render(request, 'representante/index.html')
 
 
 def login_view(request):
