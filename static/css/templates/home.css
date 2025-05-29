@@ -58,11 +58,16 @@ body.home {
 }
 
 .list-item {
-	width: 95%;
+	width: 50%;
 	background: #fff;
 	border: 1px solid #7d0000;
 	padding: 20px;
-	margin: 0.5rem auto
+	margin: 0.5rem auto;
+	border-radius: 0.5rem;
+  	height: 4rem;
+	h3 {
+		font-size: 1.2rem;
+	}
 }
 .btn.btn-primary.red {
 	background-color: #7d0000;
