@@ -65,18 +65,22 @@ body.home {
 	margin: 0.5rem auto;
 	border-radius: 0.5rem;
   	height: 4rem;
+	display: flex;
 	h3 {
 		font-size: 1.2rem;
 	}
 }
 .btn.btn-primary.red {
+	width: 50%;
+	margin-left: auto;
+	margin-right: auto;
 	background-color: #7d0000;
 	border-color: #620202;
 	color: white;
 }
 
 .btn.btn-primary.red:hover {
-	background-color: #520202;
-	border-color: #400404;
+	background-color: #560101;
+	border-color: #490202;
 	color: white;
 }

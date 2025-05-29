@@ -9,8 +9,8 @@
 			Panel Usuarios Administradores
 		</h2>
 		<div class="row">
-			<div class="col-12">
-				<a class="btn btn-primary red" style="width: 100%" href="{% url 'crear_admin' %}">
+			<div class="col-12" style="display: flex;">
+				<a class="btn btn-primary red" href="{% url 'crear_admin' %}">
 					<span>Crear administrador</span>
 					<i class="fa fa-plus-square fa-3" aria-hidden="true"></i>
 				</a>
@@ -20,10 +20,10 @@
 					<div class='list-item'>
 						<h3>{{ admin.nombre|default:"Sin nombre" }} </h3>
 						<a href="{% url 'editar_admin' admin.id_admin %}">
-							<i style="color: #7d0000" class="fas fa-eye fa-3" aria-hidden="true"></i>
+							<i style="color: #7d0000; margin-left:auto" class="fas fa-eye fa-3" aria-hidden="true"></i>
 						</a>
 						<a href="{% url 'eliminar_admin' admin.id_admin %}">
-							<i style="color: #7d0000" class="fas fa-trash fa-3" aria-hidden="true"></i>
+							<i style="color: #7d0000; margin-left: 0.65rem" class="fas fa-trash fa-3" aria-hidden="true"></i>
 						</a>
 					</div>
 				</div>
