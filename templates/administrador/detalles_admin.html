@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}BloodPoint - Panel Administrador{% endblock %}
+{% block content %}
+
+<body class='home'>
+	{% include "componentes/navbar.html" %}
+	<div class="main-content">
+		<h2>
+			Panel Usuarios Administradores
+		</h2>
+		<div class="row">
+			<div class="col-12" style="display: flex;">
+				<a class="btn btn-primary red" href="{% url 'admin_index' %}">
+					<span>Volver al listado</span>
+				</a>
+				<a class="btn btn-primary red" href="{% url 'editar_admin' %}">
+					<span>Editar</span>
+				</a>
+			</div>
+			<div class="col-12">
+				<p>Admin entero: {{ admin }}</p>
+			</div>
+		</div>
+	</div>
+</body>
+{% endblock %}

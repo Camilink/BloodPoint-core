@@ -71,12 +71,15 @@ body.home {
 	}
 }
 .btn.btn-primary.red {
-	width: 50%;
-	margin-left: auto;
-	margin-right: auto;
 	background-color: #7d0000;
 	border-color: #620202;
 	color: white;
+}
+
+.btn.btn-primary.red.create {
+	width: 50%;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .btn.btn-primary.red:hover {

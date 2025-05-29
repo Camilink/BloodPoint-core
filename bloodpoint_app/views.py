@@ -63,6 +63,11 @@ def admin_index(request):
     admins = adminbp.objects.all()
     return render(request, 'administrador/index.html', {'admins': admins})
 
+def detalles_admin(request, id):
+    admin = get_object_or_404(adminbp, id_admin=id)
+    return render(request, 'administrador/detalles_admin.html', {'admin': admin})
+    
+
 # CREAR adminbp
 def crear_admin(request):
     if request.method == 'POST':
@@ -101,15 +106,12 @@ def editar_admin(request, id):
             return redirect('listar_admins')
     else:
         form = AdminBPForm(instance=admin)
-    return render(request, 'editar_admin.html', {'form': form})
+    return render(request, 'administrador/editar_admin.html', {'form': form})
 
 def eliminar_admin(request, id):
     admin = get_object_or_404(adminbp, id_admin=id)
-    if request.method == 'POST':
-        admin.delete()
-        return redirect('listar_admins')
-    return render(request, 'eliminar_admin.html', {'admin': admin})
-
+    admin.delete()
+    return redirect('listar_admins')
 
 def representante_index(request):
     return render(request, 'representante/index.html')
