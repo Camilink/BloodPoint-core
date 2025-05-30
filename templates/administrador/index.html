@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}BloodPoint - Panel Administrador{% endblock %}
+{% block content %}
+
+<body class='home'>
+	{% include "componentes/navbar.html" %}
+	<div class="main-content">
+		<h2>
+			Panel Usuarios Administradores
+		</h2>
+		<div class="row">
+			<div class="col-12" style="display: flex;">
+				<a class="btn btn-primary red create" href="{% url 'crear_admin' %}">
+					<span>Crear administrador</span>
+					<i class="fa fa-plus-square fa-3" aria-hidden="true"></i>
+				</a>
+			</div>
+			{% for admin in admins %}
+				<div class="col-12">
+					<div class='list-item'>
+						<h3>{{ admin.nombre|default:"Sin nombre" }} </h3>
+						<a href="{% url 'detalles_admin' id=admin.id_admin %}" style="margin-left:auto">
+							<i style="color: #7d0000;" class="fas fa-eye fa-3" aria-hidden="true"></i>
+						</a>
+						<a href="{% url 'eliminar_admin' id=admin.id_admin %}" style="margin-left: 1.25rem">
+							<i style="color: #7d0000;" class="fas fa-trash fa-3" aria-hidden="true"></i>
+						</a>
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+	</div>
+</body>
+{% endblock %}
