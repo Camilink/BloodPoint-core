@@ -16,16 +16,6 @@ JWT_AUDIENCE = "https://bloodpoint-core.onrender.com"  # Must match Django's SUP
 TALISMAN_ENABLED = False
 WTF_CSRF_ENABLED = False
 
-
-# CORS Enabling 
-ENABLE_CORS = True 
-CORS_OPTIONS = { 
-    "supports_credentials": True, 
-    "allow_headers": "*", 
-    "expose_headers": "*", 
-    "resources": "*", 
-    "origins": ["http://localhost:3000","https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com/"]  
-    }
         
 
 # Dashboard embedding
