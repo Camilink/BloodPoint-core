@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 # Exit on error
 set -o errexit
-echo "Render assigned PORT is: $PORT"
 
+# --- Instalar dependencias ---
+# Django y tus dependencias (como antes)
+pip install -r requirements.txt
 
 # Instalar Apache Superset y driver de PostgreSQL (si no están en requirements.txt)
 pip install apache-superset psycopg2-binary
 
+# --- Configuración de Django (mantén esto si lo necesitas) ---
+python manage.py collectstatic --no-input
+python manage.py migrate
 
 # --- Configuración de Superset ---
 # 1. Migrar la base de datos de Superset
