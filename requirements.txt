@@ -37,11 +37,13 @@ django-extensions==4.1
 djangorestframework==3.16.0
 dnspython==2.7.0
 email_validator==2.2.0
+Faker==37.3.0
 Flask==2.3.3
 Flask-AppBuilder==4.6.2
 Flask-Babel==2.0.0
 Flask-Caching==2.3.1
 Flask-Compress==1.17
+flask-cors==5.0.1
 Flask-JWT-Extended==4.7.1
 Flask-Limiter==3.12
 Flask-Login==0.6.3
@@ -50,7 +52,6 @@ Flask-Session==0.8.0
 Flask-SQLAlchemy==2.5.1
 flask-talisman==1.1.0
 Flask-WTF==1.2.2
-flask_cors==5.0.1
 func_timeout==4.3.5
 geographiclib==2.0
 geopy==2.4.1
@@ -93,6 +94,7 @@ pandas==2.0.3
 paramiko==3.5.1
 parsedatetime==2.6
 pgsanity==0.2.9
+Pillow==10.0.1
 platformdirs==4.3.7
 ply==3.11
 polyline==2.0.2
@@ -155,4 +157,3 @@ WTForms-JSON==0.3.5
 XlsxWriter==3.0.9
 zipp==3.21.0
 zstandard==0.23.0
-Pillow==10.0.1
