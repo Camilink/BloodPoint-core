@@ -10,7 +10,11 @@ services:
     name: bloodpoint-core
     runtime: python
     buildCommand: './build.sh'
-    startCommand: 'superset run -h 0.0.0.0 -p $PORT' 
+    startCommand: 'superset run -h 0.0.0.0 -p $PORT'
+    buildFilter:
+      paths:
+        exclude:
+          - Procfile
     envVars:
       - key: DATABASE_URL
         fromDatabase:
