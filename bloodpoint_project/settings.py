@@ -214,8 +214,8 @@ load_dotenv()
 #LOGIN Y AUTENTICACION:
 
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'home'  # o '/home/' según tu configuración
 LOGOUT_REDIRECT_URL = 'login'  # o '/login/' según tu configuración
+LOGIN_REDIRECT_URL = "/redirect/"
 
 LOGGING = {
     'version': 1,
