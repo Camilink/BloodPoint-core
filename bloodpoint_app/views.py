@@ -151,7 +151,10 @@ def login_view(request):
             # Verifica que no sea un donante
             if user.tipo_usuario in ['representante', 'admin']:
                 login(request, user)
-                return redirect('home')  # Cambia 'home' por tu URL deseada
+                if user.tipo_usuario == 'admin':
+                    return redirect('admin_home')  # redirige al home de admin
+                else:
+                    return redirect('home')  # home normal para representante u otro
             else:
                 messages.error(request, 'Solo representantes/admins pueden acceder por aquí.')
         else:
