@@ -54,7 +54,7 @@ def admin_home(request):
 
     superset_url = "https://bloodpoint-core.onrender.com"  # cambia por la URL pública de Superset
 
-    embed_url = f"{superset_url}/embedded/dashboard/{dashboard_id}/?token={token}"
+    embed_url = f"{superset_url}/superset/embedded/dashboard/{dashboard_id}/?token={token}"
 
     return render(request, "admin_home.html", {
         "superset_dashboard_url": embed_url
