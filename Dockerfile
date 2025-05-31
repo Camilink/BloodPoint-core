@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y \
 # Instalación de librerías adicionales si necesitas
 RUN pip install flask-cors psycopg2-binary
 
+# Crea el directorio para el config personalizado
+RUN mkdir -p /app/pythonpath/
 # Copia tu archivo de configuración si tienes uno personalizado
 ENV PYTHONPATH="/app/pythonpath"
 COPY config/superset_config.py /app/pythonpath/
