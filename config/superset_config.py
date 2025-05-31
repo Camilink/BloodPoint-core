@@ -70,3 +70,5 @@ GUEST_TOKEN_JWT_ALGO = "HS256"
 GUEST_TOKEN_JWT_EXP_SECONDS = 3600  # 1 hora
 GUEST_TOKEN_JWT_AUDIENCE = "superset_embedded"
 GUEST_TOKEN_HEADER_NAME = "X-GuestToken"
+
+print(f"✅ Using custom SECRET_KEY: {SECRET_KEY[:10]}... (truncated)")
