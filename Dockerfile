@@ -14,7 +14,7 @@ RUN pip install flask-cors psycopg2-binary
 RUN mkdir -p /app/pythonpath/
 # Copia tu archivo de configuración si tienes uno personalizado
 ENV PYTHONPATH="/app/pythonpath"
-COPY config/superset_config.py /app/pythonpath/
+COPY config/superset_config.py /app/pythonpath/superset_config.py
 
 
 # Opcional: copia tu requirements si tienes dependencias adicionales
