@@ -62,7 +62,7 @@ def admin_home(request):
 
 @login_required
 def redirect_after_login(request):
-    if request.user.is_staff:
+    if request.user.is_super_admin:
         return redirect("admin_home")
     return redirect("home")  # Cambia por tu home normal
 
