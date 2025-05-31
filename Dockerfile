@@ -8,7 +8,8 @@ USER root
 RUN pip install flask-cors psycopg2-binary
 
 # Copia tu archivo de configuración si tienes uno personalizado
-COPY superset_config.py /app/pythonpath/
+COPY config/superset_config.py /app/pythonpath/
+
 
 # Opcional: copia tu requirements si tienes dependencias adicionales
 COPY requirements.txt .
