@@ -51,7 +51,7 @@ from .superset_utils import generate_superset_embed_token  # importa tu función
 def admin_home(request):
     dashboard_id = 1  # ← aquí pon el ID real del dashboard en Superset
     token = generate_superset_embed_token(dashboard_id)
-
+    print("TOKEN GENERADO:", token)
     superset_url = "https://bloodpoint-core.onrender.com"  # cambia por la URL pública de Superset
 
     embed_url = f"{superset_url}/superset/embedded/dashboard/{dashboard_id}/?token={token}"
