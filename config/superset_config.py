@@ -14,10 +14,9 @@ SUPERSET_WEBSERVER_PORT = int(os.environ.get("PORT", 8088))
 # ===========================
 # 📦 Base de datos
 # ===========================
-SQLALCHEMY_DATABASE_URI = (
-    'postgres://u5mh9fi08iuct0:pb0d6bd9f0e847a780e5403a376a825847485c97a50a2dd1459a86dc144440ced'
-    '@ca932070ke6bv1.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d50aqolcf988ab'
-)
+
+
+SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
 
 # ===========================
 # 🔄 CSRF / HTTPS
