@@ -186,7 +186,10 @@ import corsheaders.defaults
 
 CORS_ALLOW_HEADERS = list(corsheaders.defaults.default_headers) + [
     'authorization',
+    'x-guesttoken',
+    'content-type',
 ]
+
 
 AUTHENTICATION_BACKENDS = [
     'bloodpoint_app.backends.EmailAuthBackend',  # Primero: navegador (email)
