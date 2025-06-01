@@ -75,14 +75,19 @@ campanas = []
 for _ in range(5):
     fecha_campana = fake.date_between(start_date='-1y', end_date='today')
     fecha_termino = fecha_campana + timedelta(days=7)
+    
+    # Para zonas más pobladas (aproximadamente entre Santiago y Concepción)
+    latitud_chilena = str(round(fake.pyfloat(min_value=-37.0, max_value=-33.0), 6))
+    longitud_chilena = str(round(fake.pyfloat(min_value=-73.0, max_value=-70.0), 6))
+    
     c = campana.objects.create(
         fecha_campana=fecha_campana,
         id_centro=random.choice(centros),
         apertura=datetime.strptime('09:00', '%H:%M').time(),
         cierre=datetime.strptime('16:00', '%H:%M').time(),
         meta=str(random.randint(50, 200)),
-        latitud=str(fake.latitude()),
-        longitud=str(fake.longitude()),
+        latitud=latitud_chilena,
+        longitud=longitud_chilena,
         id_representante=random.choice(representantes),
         fecha_termino=fecha_termino,
         validada=random.choice([True, False]),
