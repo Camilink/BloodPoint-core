@@ -49,7 +49,7 @@ from .superset_utils import generate_superset_embed_token  # importa tu función
 #================000SUPERSET================
 @login_required
 def admin_home(request):
-    dashboard_uuid = "7ee6d230-c4d0-4f06-9330-fbd57bf5f458"
+    dashboard_uuid = "266d44a4-80c1-4448-968b-de71f7fd5824"
     token = generate_superset_embed_token(dashboard_uuid)
 
     superset_url = "https://bloodpoint-core.onrender.com"
