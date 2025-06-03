@@ -84,6 +84,7 @@ class donante(models.Model):
     rut = models.CharField(unique=True, max_length=12)
     nombre_completo = models.CharField(max_length=100)
     sexo = models.CharField(max_length=1)
+    ocupacion = models.CharField(max_length=100)
     direccion = models.CharField(max_length=255)
     comuna = models.CharField(max_length=100)
     fono = models.CharField(max_length=20)
@@ -125,7 +126,6 @@ class centro_donacion(models.Model):
     horario_cierre = models.TimeField()
     
 TIPO_DONACION_CHOICES = [
-    ('punto', 'Punto de Donación'),
     ('campana', 'Campaña'),
     ('solicitud', 'Solicitud de Campaña'),
 ]
@@ -139,12 +139,13 @@ class donacion(models.Model):
     tipo_donacion = models.CharField(max_length=20, choices=TIPO_DONACION_CHOICES)
     validada = models.BooleanField(default=False)
     es_intencion = models.BooleanField(default=False)
-       # Asociación con campaña o solicitud
+        # Asociación con campaña o solicitud
     campana_relacionada = models.ForeignKey('campana', null=True, blank=True, on_delete=models.SET_NULL)
     solicitud_relacionada = models.ForeignKey('solicitud_campana_repo', null=True, blank=True, on_delete=models.SET_NULL)
 
 class campana(models.Model):
     id_campana = models.AutoField(primary_key=True)
+    nombre_campana = models.CharField(max_length=100)
     fecha_campana = models.DateField()
     id_centro = models.ForeignKey(centro_donacion, on_delete=models.CASCADE)
     apertura = models.TimeField()

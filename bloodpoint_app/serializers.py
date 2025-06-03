@@ -60,6 +60,7 @@ class DonantePerfilSerializer(serializers.ModelSerializer):
             'rut',
             'email',
             'nombre_completo',
+            'ocupacion',
             'sexo',
             'direccion',
             'comuna',
@@ -120,6 +121,7 @@ class CampanaSerializer(serializers.ModelSerializer):
         model = campana
         fields = [
             'id_campana',
+            'nombre_campana',
             'fecha_campana',
             'fecha_termino',
             'apertura',

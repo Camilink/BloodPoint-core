@@ -465,6 +465,7 @@ def register(request):
     donante_data = {
         "rut": rut,
         "nombre_completo": request.data.get("nombre_completo"),
+        "ocupacion": request.data.get("ocupacion"),
         "direccion": request.data.get("direccion"),
         "comuna": request.data.get("comuna"),
         "fono": request.data.get("fono"),
@@ -713,6 +714,7 @@ def crear_solicitud_campana(request):
 
         # Crear campaña directamente al crear la solicitud
         nueva_campana = campana.objects.create(
+            nombre_campana=solicitud.nombre_campana,
             fecha_campana=solicitud.fecha_solicitud,
             fecha_termino=solicitud.fecha_termino,
             id_centro=solicitud.centro_donacion,
@@ -761,6 +763,7 @@ def crear_campana(request):
         return Response({"status": "error", "message": "Centro no encontrado"}, status=404)
 
     camp = campana.objects.create(
+        nombre_campana=data['nombre_campana'],
         fecha_campana=data['fecha_campana'],
         fecha_termino=data['fecha_termino'],
         id_centro=centro,

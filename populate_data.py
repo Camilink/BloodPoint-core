@@ -12,7 +12,7 @@ from bloodpoint_app.models import CustomUser, donante, representante_org, centro
 fake = Faker('es_CL')
 
 TIPO_SANGRE_CHOICES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
-TIPO_DONACION_CHOICES = ['punto', 'campana', 'solicitud']
+TIPO_DONACION_CHOICES = ['campana', 'solicitud']
 ESTADO_CAMPANA_CHOICES = ['pendiente', 'desarrollandose', 'cancelado', 'completo']
 
 # Donantes
