@@ -14,6 +14,8 @@ fake = Faker('es_CL')
 TIPO_SANGRE_CHOICES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
 TIPO_DONACION_CHOICES = ['campana', 'solicitud']
 ESTADO_CAMPANA_CHOICES = ['pendiente', 'desarrollandose', 'cancelado', 'completo']
+OCUPACION_CHOICES = ['trabajador', 'estudiante', 'jubilado', 'familia', 'otro']
+REGION_CHOICES = ['Región Metropolitana', 'Región de Arica y Parinacota', 'Región de Tarapacá', 'Región de Antofagasta', 'Región del Bío-Bío', 'Región del Libertador Gral. Bernardo O’Higgins', 'Región del Maule', 'Región del Ñuble', 'Región Valparaíso']
 
 # Donantes
 donantes = []
@@ -27,13 +29,14 @@ for _ in range(5):
         rut=rut,
         nombre_completo=fake.name(),
         sexo=random.choice(['M', 'F']),
+        ocupacion=random.choice(OCUPACION_CHOICES),
         direccion=fake.address(),
         comuna=fake.city(),
         fono=fake.phone_number(),
         fecha_nacimiento=fake.date_of_birth(minimum_age=18, maximum_age=65),
         nacionalidad='Chilena',
         tipo_sangre=random.choice(TIPO_SANGRE_CHOICES),
-        dispo_dia_donacion=random.choice(['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']),
+        dispo_dia_donacion=random.choice(['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes','Sábado','Domingo']),
         nuevo_donante=random.choice([True, False]),
         noti_emergencia=random.choice([True, False])
     )
@@ -81,6 +84,7 @@ for _ in range(5):
     longitud_chilena = str(round(fake.pyfloat(min_value=-73.0, max_value=-70.0), 6))
     
     c = campana.objects.create(
+        nombre_campana=fake.company(),
         fecha_campana=fecha_campana,
         id_centro=random.choice(centros),
         apertura=datetime.strptime('09:00', '%H:%M').time(),
@@ -107,7 +111,7 @@ for _ in range(5):
         descripcion_solicitud=fake.text(max_nb_chars=200),
         comuna_solicitud=fake.city(),
         ciudad_solicitud=fake.city(),
-        region_solicitud='Región Metropolitana',
+        region_solicitud=random.choice(REGION_CHOICES),
         id_donante=random.choice(donantes),
         centro_donacion=random.choice(centros),
         fecha_termino=fecha_termino,

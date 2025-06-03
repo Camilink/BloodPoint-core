@@ -151,8 +151,8 @@ class campana(models.Model):
     apertura = models.TimeField()
     cierre = models.TimeField()
     meta = models.CharField()
-    latitud = models.CharField()
-    longitud = models.CharField()
+    latitud = models.IntegerField()
+    longitud = models.IntegerField()
     id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     fecha_termino = models.DateField()  # Fecha límite
