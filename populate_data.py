@@ -15,14 +15,19 @@ TIPO_SANGRE_CHOICES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
 TIPO_DONACION_CHOICES = ['campana', 'solicitud']
 ESTADO_CAMPANA_CHOICES = ['pendiente', 'desarrollandose', 'cancelado', 'completo']
 OCUPACION_CHOICES = ['trabajador', 'estudiante', 'jubilado', 'familia', 'otro']
-REGION_CHOICES = ['Región Metropolitana', 'Región de Arica y Parinacota', 'Región de Tarapacá', 'Región de Antofagasta', 'Región del Bío-Bío', 'Región del Libertador Gral. Bernardo O’Higgins', 'Región del Maule', 'Región del Ñuble', 'Región Valparaíso']
+REGION_CHOICES = [
+    'Región Metropolitana', 'Región de Arica y Parinacota', 'Región de Tarapacá',
+    'Región de Antofagasta', 'Región del Bío-Bío', 'Región del Libertador Gral. Bernardo O’Higgins',
+    'Región del Maule', 'Región del Ñuble', 'Región Valparaíso'
+]
+DISPO_DIA_CHOICES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
 # Donantes
 donantes = []
 for _ in range(5):
     email = fake.unique.email()
     password = 'password123'
-    rut = fake.unique.rut() if hasattr(fake, 'rut') else fake.unique.bothify(text='########-#')
+    rut = fake.unique.bothify(text='########-#')
     user = CustomUser.objects.create_user(email=email, password=password, rut=rut, tipo_usuario='donante')
     d = donante.objects.create(
         user=user,
@@ -30,13 +35,13 @@ for _ in range(5):
         nombre_completo=fake.name(),
         sexo=random.choice(['M', 'F']),
         ocupacion=random.choice(OCUPACION_CHOICES),
-        direccion=fake.address(),
+        direccion=fake.address().replace('\n', ', '),
         comuna=fake.city(),
         fono=fake.phone_number(),
         fecha_nacimiento=fake.date_of_birth(minimum_age=18, maximum_age=65),
         nacionalidad='Chilena',
         tipo_sangre=random.choice(TIPO_SANGRE_CHOICES),
-        dispo_dia_donacion=random.choice(['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes','Sábado','Domingo']),
+        dispo_dia_donacion=random.choice(DISPO_DIA_CHOICES),
         nuevo_donante=random.choice([True, False]),
         noti_emergencia=random.choice([True, False])
     )
@@ -63,7 +68,7 @@ centros = []
 for _ in range(5):
     c = centro_donacion.objects.create(
         nombre_centro=fake.company(),
-        direccion_centro=fake.address(),
+        direccion_centro=fake.address().replace('\n', ', '),
         comuna=fake.city(),
         telefono=fake.phone_number(),
         fecha_creacion=fake.date_between(start_date='-2y', end_date='today'),
@@ -79,9 +84,8 @@ for _ in range(5):
     fecha_campana = fake.date_between(start_date='-1y', end_date='today')
     fecha_termino = fecha_campana + timedelta(days=7)
     
-    # Para zonas más pobladas (aproximadamente entre Santiago y Concepción)
-    latitud_chilena = str(round(fake.pyfloat(min_value=-37.0, max_value=-33.0), 6))
-    longitud_chilena = str(round(fake.pyfloat(min_value=-73.0, max_value=-70.0), 6))
+    latitud_chilena = round(fake.pyfloat(min_value=-37.0, max_value=-33.0), 6)
+    longitud_chilena = round(fake.pyfloat(min_value=-73.0, max_value=-70.0), 6)
     
     c = campana.objects.create(
         nombre_campana=fake.company(),
