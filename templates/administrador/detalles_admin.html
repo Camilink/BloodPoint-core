@@ -20,7 +20,7 @@
 			<div class="col-12">
 				<p>Admin entero:</p>
 				<ul>
-					{% for field, value in admin.__dict__.items %}
+					{% for field, value in admin_fields.items %}
 						<li>{{ field }}: {{ value }}</li>
 					{% endfor %}
 				</ul>

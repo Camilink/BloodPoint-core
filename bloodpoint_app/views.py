@@ -88,7 +88,9 @@ def admin_index(request):
 
 def detalles_admin(request, id):
     admin = get_object_or_404(adminbp, id_admin=id)
-    return render(request, 'administrador/detalles_admin.html', {'admin': admin})
+    admin_fields = vars(admin)  # Convert to a dictionary
+
+    return render(request, 'administrador/detalles_admin.html', {'admin': admin, 'admin_fields': admin_fields})
 
 
 # CREAR adminbp
