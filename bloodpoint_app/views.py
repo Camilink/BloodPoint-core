@@ -120,7 +120,7 @@ def crear_admin(request):
             return redirect('admin_index')
     else:
         form = AdminBPForm()
-        return render(request, 'crear_admin.html', {'form': form})
+        return render(request, 'administrador/crear_admin.html', {'form': form})
 
 def editar_admin(request, id):
     admin = get_object_or_404(adminbp, id_admin=id)
@@ -128,10 +128,10 @@ def editar_admin(request, id):
         form = AdminBPForm(request.POST, instance=admin)
         if form.is_valid():
             form.save()
-            return redirect('admin_index')
+            return redirect('detalles_admin', id=id)
     else:
         form = AdminBPForm(instance=admin)
-    return render(request, 'administrador/editar_admin.html', {'form': form})
+    return render(request, 'administrador/editar_admin.html', {'form': form, 'admin': admin})
 
 def eliminar_admin(request, id):
     admin = get_object_or_404(adminbp, id_admin=id)
