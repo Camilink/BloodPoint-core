@@ -143,15 +143,15 @@ admins = []
 for _ in range(3):
     email = fake.unique.email()
     password = 'password123'
-    rut = fake.unique.bothify(text='########-#')
-    user = CustomUser.objects.create_user(email=email, password=password, rut=rut, tipo_usuario='admin')
+    user = CustomUser.objects.create_user(email=email, password=password, tipo_usuario='admin')
     admin = adminbp.objects.create(
         user=user,
         nombre=fake.first_name(),
-        apellido=fake.last_name(),
-        rut_admin=rut
+        email=email,
+        contrasena=user.password  # Guarda el hash que ya genera Django al crear el user
     )
     admins.append(admin)
+
 
 
 print("¡Datos insertados en la base de datos de Heroku con éxito!")
