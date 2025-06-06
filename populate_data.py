@@ -7,7 +7,7 @@ from faker import Faker
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bloodpoint_project.settings')  # Ajusta tu proyecto
 django.setup()
 
-from bloodpoint_app.models import CustomUser, donante, representante_org, centro_donacion, donacion, campana, solicitud_campana_repo
+from bloodpoint_app.models import CustomUser, adminbp, donante, representante_org, centro_donacion, donacion, campana, solicitud_campana_repo
 
 fake = Faker('es_CL')
 
@@ -137,5 +137,21 @@ for _ in range(5):
         campana_relacionada=random.choice(campanas),
         solicitud_relacionada=random.choice(solicitudes)
     )
+
+# Administradores del sistema (adminbp)
+admins = []
+for _ in range(3):
+    email = fake.unique.email()
+    password = 'password123'
+    user = CustomUser.objects.create_user(email=email, password=password, tipo_usuario='admin')
+    admin = adminbp.objects.create(
+        user=user,
+        nombre=fake.first_name(),
+        email=email,
+        contrasena=user.password  # Guarda el hash que ya genera Django al crear el user
+    )
+    admins.append(admin)
+
+
 
 print("¡Datos insertados en la base de datos de Heroku con éxito!")
