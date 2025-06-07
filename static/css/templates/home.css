@@ -4,6 +4,7 @@ body.home {
 	font-family: 'Poppins', sans-serif;
 	display: flex;
 	background-color: #f5f5f5;
+	min-height: 100vh;
 }
 /* Navbar Vertical */
 .navbar-vertical {
