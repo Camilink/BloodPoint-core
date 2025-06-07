@@ -24,7 +24,7 @@ DISPO_DIA_CHOICES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sáb
 
 # Donantes
 donantes = []
-for _ in range(100):
+for _ in range(20):
     email = fake.unique.email()
     password = 'password123'
     rut = fake.unique.bothify(text='########-#')
@@ -80,7 +80,7 @@ for _ in range(5):
 
 # Campañas
 campanas = []
-for _ in range(3):
+for _ in range(6):
     fecha_campana = fake.date_between(start_date='-1y', end_date='today')
     fecha_termino = fecha_campana + timedelta(days=7)
     
@@ -103,10 +103,28 @@ for _ in range(3):
     )
     campanas.append(c)
 
-
+# Solicitudes
+solicitudes = []
+for _ in range(5):
+    fecha_solicitud = fake.date_between(start_date='-1y', end_date='today')
+    fecha_termino = fecha_solicitud + timedelta(days=14)
+    s = solicitud_campana_repo.objects.create(
+        tipo_sangre_sol=random.choice(TIPO_SANGRE_CHOICES),
+        fecha_solicitud=fecha_solicitud,
+        cantidad_personas=random.randint(10, 100),
+        descripcion_solicitud=fake.text(max_nb_chars=200),
+        comuna_solicitud=fake.city(),
+        ciudad_solicitud=fake.city(),
+        region_solicitud=random.choice(REGION_CHOICES),
+        id_donante=random.choice(donantes),
+        centro_donacion=random.choice(centros),
+        fecha_termino=fecha_termino,
+        desactivado_por=random.choice(representantes)
+    )
+    solicitudes.append(s)
 
 # Donaciones
-for _ in range(100):
+for _ in range(110):
     fecha_donacion = fake.date_between(start_date='-1y', end_date='today')
     donacion.objects.create(
         id_donante=random.choice(donantes),
