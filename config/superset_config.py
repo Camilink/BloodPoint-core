@@ -30,6 +30,7 @@ FEATURE_FLAGS = {
     "EMBEDDABLE_CHARTS": True,
     "DASHBOARD_RBAC": True,
     "ALLOW_JINJA_IN_SQL": True,
+    "ENABLE_TEMPLATE_PROCESSING" : True,
 }
 
 # ===========================
@@ -40,7 +41,7 @@ JWT_SECRET = "django-insecure-08&ko%+7k8l=v1-@1y@1g-(7ht_uc816k#_&nt@uncpc^ki$jp
 JWT_ISSUER = "bloodpoint-core-qa"
 JWT_AUDIENCE = "superset_embedded"
 # Habilita Jinja en SQL Lab
-ENABLE_TEMPLATE_PROCESSING = True
+
 # ===========================
 # 🧩 Embedded Charts & Dashboards
 # ===========================
