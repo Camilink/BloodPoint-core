@@ -29,6 +29,7 @@ FEATURE_FLAGS = {
     "EMBEDDED_SUPERSET": True,
     "EMBEDDABLE_CHARTS": True,
     "DASHBOARD_RBAC": True,
+    "ALLOW_JINJA_IN_SQL": True,
 }
 
 # ===========================
