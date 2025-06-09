@@ -21,6 +21,18 @@
 				<input type="text" value="{{ campana.fecha_campana }}" disabled>
 				<h4>Creado el: {{admin.created_at}}</h4>
 			</div>
+			<div class="col-12">
+				<h4>Total Donaciones: </h4>
+				<iframe
+					width="300"
+					height="200"
+					seamless
+					frameBorder="0"
+					scrolling="no"
+					src="https://bloodpoint-core.onrender.com/superset/explore/p/a5JGOrJqQzd/?standalone=1&height=200&campana_id={{campana.id_campana}}"
+				>
+				</iframe>
+			</div>
 		</div>
 	</div>
 </body>
