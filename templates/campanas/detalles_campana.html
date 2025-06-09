@@ -10,16 +10,28 @@
 		</h2>
 		<div class="row">
 			<div class="col-12" style="display: flex;">
-				<a class="btn btn-primary red" href="{% url 'camapana_index' %}">
+				<a class="btn btn-primary red" href="{% url 'campana_index' %}">
 					<span>Volver al listado</span>
 				</a>
 			</div>
 			<div class="col-12">
 				<h4>Nombre: </h4>
-				<input type="text" value="{{ campana.nombre }}" disabled>
+				<input type="text" value="{{ campana_ojb.nombre_campana }}" disabled>
 				<h4>Fecha de la campaña: </h4>
-				<input type="text" value="{{ campana.fecha_campana }}" disabled>
-				<h4>Creado el: {{admin.created_at}}</h4>
+				<input type="text" value="{{ campana_ojb.fecha_campana }}" disabled>
+				<h4>Creado el: {{campana_ojb.created_at}}</h4>
+			</div>
+			<div class="col-12">
+				<h4>Total Donaciones: </h4>
+				<iframe
+					width="300"
+					height="200"
+					seamless
+					frameBorder="0"
+					scrolling="no"
+					src="https://bloodpoint-core.onrender.com/superset/explore/p/a5JGOrJqQzd/?standalone=1&height=200&campana_id={{campana_ojb.id_campana}}"
+				>
+				</iframe>
 			</div>
 		</div>
 	</div>
