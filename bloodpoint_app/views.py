@@ -150,8 +150,8 @@ def campana_index(request):
     return render(request, 'campanas/index.html', {'campanas': campanas})
 
 def detalles_campana(request, id):
-    campana = get_object_or_404(campana, id_campana=id)
-    return render(request, 'campanas/detalles_campana.html', {'campana': campana})
+    campana_ojb = get_object_or_404(campana, id_campana=id)
+    return render(request, 'campanas/detalles_campana.html', {'campana_ojb': campana_ojb})
 
 def login_view(request):
     if request.method == 'POST':
