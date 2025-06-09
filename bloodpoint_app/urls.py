@@ -22,5 +22,7 @@ urlpatterns = [
     path('representantes/', views.representante_index, name='representante_index'),
     path('representantes/editar/<int:id>/', views.editar_representante, name='editar_representante'),
     path('representantes/eliminar/<int:id>/', views.eliminar_representante, name='eliminar_representante'),
+    path('campanas/', views.campana_index, name='campana_index'),
+    path('campanas/detalles/<int:id>/', views.detalles_campana, name='detalles_campana'),
     path('logout/', views.logout_view, name='logout')
 ]
