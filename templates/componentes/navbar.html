@@ -26,7 +26,7 @@
 
     {% if request.user.is_authenticated and request.user.tipo_usuario == 'representante' %}
     <!-- Vistas solo para representante -->
-    <a href=# class="nav-item">
+    <a href="{% url 'campana_index' %}" class="nav-item">
         <i class="fas fa-users"></i>
         <span>Mis Campañas</span>
     </a>
