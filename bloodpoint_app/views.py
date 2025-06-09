@@ -47,21 +47,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from .superset_utils import generate_superset_embed_token  # importa tu función
-#================000SUPERSET================
-@login_required
-def admin_home(request):
-    dashboard_uuid = "266d44a4-80c1-4448-968b-de71f7fd5824"
-    token = generate_superset_embed_token(dashboard_uuid)
-
-    superset_url = "https://bloodpoint-core.onrender.com"
-
-    embed_url = f"{superset_url}/superset/dashboard/{dashboard_uuid}/?token={token}"
-
-    return render(request, "admin_home.html", {
-        "superset_dashboard_url": embed_url
-    })
-
 
 @login_required
 def redirect_after_login(request):
