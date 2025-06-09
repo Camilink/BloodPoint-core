@@ -145,7 +145,7 @@ def representante_index(request):
 
 def campana_index(request):
     representante = request.user
-    campanas = campana.objects.filter(representante_id=representante.id)
+    campanas = campana.objects.filter(id_representante=representante.id)
     return render(request, 'campana/index.html', {'campanas': campanas})
 
 def detalles_campana(request, id):
