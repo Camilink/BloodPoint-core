@@ -62,49 +62,6 @@ def admin_home(request):
         "superset_dashboard_url": embed_url
     })
 
-def chart_embed_view(request, chart_uuid, campana_id):
-    user = request.user
-    representante_id = user.representante_org.id
-    token = generate_superset_embed_token(chart_uuid, representante_id, campana_id)
-    
-    return render(request, "chart_embed.html", {
-        "token": token,
-        "chart_uuid": chart_uuid,
-    })
-
-
-SUPERSET_SECRET = "django-insecure-08&ko%+7k8l=v1-@1y@1g-(7ht_uc816k#_&nt@uncpc^ki$jp"
-SUPERSET_ISSUER = "bloodpoint-core-qa"
-SUPERSET_AUDIENCE = "superset_embedded"
-SUPERSET_EMBED_HOST = "https://bloodpoint-core.onrender.com"
-
-def embed_chart_view(request, chart_id, campana_id=None):
-    user = request.user
-    rep_id = user.representante_org.id_representante
-
-    payload = {
-        "resource": {"chart": chart_id},
-        "user": {
-            "username": f"rep_{rep_id}"
-        },
-        "exp": int(time.time()) + 3600,
-        "aud": SUPERSET_AUDIENCE,
-        "iss": SUPERSET_ISSUER,
-        "iat": int(time.time()),
-        "params": {
-            "rep_id": rep_id,
-            "campana_id": campana_id  # puede ser None
-        }
-    }
-
-    token = jwt.encode(payload, SUPERSET_SECRET, algorithm="HS256")
-    embed_url = f"{SUPERSET_EMBED_HOST}/embedded/{token}#"
-
-    return render(request, "embed_chart.html", {
-        "embed_url": embed_url,
-        "chart_id": chart_id
-    })
-
 
 @login_required
 def redirect_after_login(request):
