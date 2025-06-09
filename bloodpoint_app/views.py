@@ -292,7 +292,29 @@ def logout_view(request):
 @api_view(['GET', 'POST'])
 def centros_listado(request):
     if request.method == 'GET':
-        centros = centro_donacion.objects.all()
+        # Verificar si se solicitan solo los centros del representante
+        representante_filter = request.query_params.get('representante', 'false').lower() == 'true'
+        
+        if representante_filter:
+            # Verificar si el usuario está autenticado y es un representante
+            if not request.user.is_authenticated:
+                return Response({
+                    "status": "error",
+                    "message": "Usuario no autenticado."
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            
+            try:
+                representante = representante_org.objects.get(user=request.user)
+                centros = centro_donacion.objects.filter(id_representante=representante)
+            except representante_org.DoesNotExist:
+                return Response({
+                    "status": "error",
+                    "message": "El usuario no es un representante."
+                }, status=status.HTTP_403_FORBIDDEN)
+        else:
+            # Si no se especifica el filtro, mostrar todos los centros
+            centros = centro_donacion.objects.all()
+            
         serializer = CentroDonacionSerializer(centros, many=True)
         return Response({
             "status": "success",
