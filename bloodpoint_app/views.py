@@ -48,13 +48,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@login_required
-def redirect_after_login(request):
-    if request.user.is_superadmin:
-        return redirect("admin_home")
-    return redirect("home")  # Cambia por tu home normal
-
-
 #def home_view(request):
 #    return HttpResponse("Welcome to Bloodpoint API")
 
@@ -68,6 +61,11 @@ def home(request):
     user = request.user
     print("USUARIO ACTUAL:", request.user, request.user.is_authenticated)
     return render(request, 'home.html')
+
+def admin_home(request):
+    user = request.user
+    print("USUARIO ACTUAL:", request.user, request.user.is_authenticated)
+    return render(request, 'admin_home.html')
 
 def admin_index(request):
     admins = adminbp.objects.all()

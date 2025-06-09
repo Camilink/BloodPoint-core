@@ -9,7 +9,6 @@ urlpatterns = [
     path('', root_view),
     path('home/', views.home, name='home'),
     path('login/', views.login_view, name='login'),
-    path("redirect/", views.redirect_after_login, name="redirect_after_login"),
     path('signup/representante/', views.signup_representante, name='signup_representante'),
     
     path('administrador/crear/', views.crear_admin, name='crear_admin'),
