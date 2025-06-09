@@ -146,11 +146,11 @@ def representante_index(request):
 def campana_index(request):
     representante = request.user
     campanas = campana.objects.filter(id_representante=representante.id)
-    return render(request, 'campana/index.html', {'campanas': campanas})
+    return render(request, 'campanas/index.html', {'campanas': campanas})
 
 def detalles_campana(request, id):
     campana = get_object_or_404(Campana, id_campana=id)
-    return render(request, 'campana/detalles_campana.html', {'campana': campana})
+    return render(request, 'campanas/detalles_campana.html', {'campana': campana})
 
 def login_view(request):
     if request.method == 'POST':
