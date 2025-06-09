@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}BloodPoint - Inicio{% endblock %}
+{% block content %}
+
+<body class='home'>
+	<div class="main-content">
+        {% include "componentes/navbar.html" %}
+        <h2>Mis Campañas</h2>
+        {% for campana in campanas %}
+            <div class="list-item">
+                <h3>{{ campana.nombre_campana }} | {{ campana.fecha_campana }}</h3>
+                <a href="{% url 'detalles_campana' id=campana.id_campana %}" style="margin-left:auto">
+                    <i style="color: #7d0000;" class="fas fa-eye fa-3" aria-hidden="true"></i>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+{% endblock %}

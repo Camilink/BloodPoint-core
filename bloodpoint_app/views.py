@@ -143,6 +143,14 @@ def eliminar_admin(request, id):
 def representante_index(request):
     return render(request, 'representante/index.html')
 
+def campana_index(request):
+    representante = request.user
+    campanas = Campana.objects.filter(representante_id=representante.id)
+    return render(request, 'campana/index.html', {'campanas': campanas})
+
+def detalles_campana(request, id):
+    campana = get_object_or_404(Campana, id_campana=id)
+    return render(request, 'campana/detalles_campana.html', {'campana': campana})
 
 def login_view(request):
     if request.method == 'POST':
