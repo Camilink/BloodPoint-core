@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}BloodPoint - Panel Representantes{% endblock %}
+{% block title %}BloodPoint - Panel Representante{% endblock %}
 {% block content %}
 
 <body class='home'>
@@ -8,6 +8,21 @@
 		<h2>
 			Panel Usuarios Representantes
 		</h2>
+		<div class="row">
+			{% for representante in representantes %}
+				<div class="col-12">
+					<div class='list-item'>
+						<h3>{{ representante.full_name }} </h3>
+						<a href="{% url 'detalles_representante' id=representante.id_representante %}" style="margin-left:auto">
+							<i style="color: #7d0000;" class="fas fa-eye fa-3" aria-hidden="true"></i>
+						</a>
+						<a href="{% url 'eliminar_representante' id=representante.id_representante %}" style="margin-left: 1.25rem">
+							<i style="color: #7d0000;" class="fas fa-trash fa-3" aria-hidden="true"></i>
+						</a>
+					</div>
+				</div>
+			{% endfor %}
+		</div>
 	</div>
 </body>
 {% endblock %}

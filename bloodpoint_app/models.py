@@ -113,6 +113,15 @@ class representante_org(models.Model):
     def __str__(self):
         return self.nombre
 
+    def email(self):
+        return self.user.email
+
+    def full_name(self):
+        return self.nombre + ' ' + self.apellido
+
+    def verificado_text(self):
+        return 'Representante sin verificar' if self.verificado else 'Representante verificado'
+
 class centro_donacion(models.Model):
     id_centro = models.AutoField(primary_key=True)
     nombre_centro = models.CharField()

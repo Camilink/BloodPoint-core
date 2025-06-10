@@ -13,6 +13,8 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from bloodpoint_app.forms import AdminBPForm
+from bloodpoint_app.forms import RepresentanteOrgForm
+
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
@@ -124,7 +126,31 @@ def eliminar_admin(request, id):
     return redirect('admin_index')
 
 def representante_index(request):
-    return render(request, 'representante/index.html')
+    representantes = representante_org.objects.all()
+    return render(request, 'representante/index.html', {'representantes': representantes})
+
+def detalles_representante(request, id):
+    representante = get_object_or_404(representante_org, id_representante=id)
+    representante_fields = vars(representante)  # Convert to a dictionary
+
+    return render(request, 'representante/detalles_representante.html', {'representante': representante, 'representante_fields': representante_fields})
+
+def editar_representante(request, id):
+    representante = get_object_or_404(repesentante_org, id_representante=id)
+    if request.method == 'POST':
+        form = RepresentanteOrgForm(request.POST, instance=representante)
+        if form.is_valid():
+            form.save()
+            return redirect('detalles_representante', id=id)
+    else:
+        form = RepresentanteOrgForm(instance=representante)
+    return render(request, 'representante/editar_representante.html', {'form': form, 'representante': representante})
+
+def eliminar_representante(request, id):
+    representante = get_object_or_404(representante_org, id_representante=id)
+    repesentante.delete()
+    return redirect('representante_index')
+
 
 def campana_index(request):
     
