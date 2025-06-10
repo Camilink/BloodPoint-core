@@ -17,10 +17,13 @@ urlpatterns = [
     path('administrador/editar/<int:id>/', views.editar_admin, name='editar_admin'),
     path('administrador/eliminar/<int:id>/', views.eliminar_admin, name='eliminar_admin'),
     path("dashboard/admin/", views.admin_home, name="admin_home"),
-    
-    path('representantes/', views.representante_index, name='representante_index'),
-    path('representantes/editar/<int:id>/', views.editar_representante, name='editar_representante'),
-    path('representantes/eliminar/<int:id>/', views.eliminar_representante, name='eliminar_representante'),
+
+    path('representante/crear/', views.crear_admin, name='crear_representante'),
+    path('representante/', views.representante_index, name='representante_index'),
+    path('representante/detalles/<int:id>/', views.detalles_admin, name='detalles_representante'),
+    path('representante/editar/<int:id>/', views.editar_representante, name='editar_representante'),
+    path('representante/eliminar/<int:id>/', views.eliminar_representante, name='eliminar_representante'),
+
     path('campanas/', views.campana_index, name='campana_index'),
     path('campanas/detalles/<int:id>/', views.detalles_campana, name='detalles_campana'),
     path('logout/', views.logout_view, name='logout')

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}BloodPoint - Panel Representante{% endblock %}
+{% block content %}
+
+<body class='home'>
+	{% include "componentes/navbar.html" %}
+	<div class="main-content">
+		<h2>
+			Panel Usuarios Representantes
+		</h2>
+		<div class="row">
+			<div class="col-12" style="display: flex;">
+				<a class="btn btn-primary red" href="{% url 'representante_index' %}">
+					<span>Volver al listado</span>
+				</a>
+				<a class="btn btn-primary red" style="margin-left: 2rem" href="{% url 'editar_representante'  id=representante.id_representante %}">
+					<span>Editar</span>
+				</a>
+			</div>
+			<div class="col-12">
+				<h4>Nombre: </h4>
+				<input type="text" value="{{ representante.nombre }}" disabled>
+				<h4>Nombre: </h4>
+				<input type="text" value="{{ representante.apellido }}" disabled>
+				<h4>Email: </h4>
+				<input type="text" value="{{ representante.email() }}" disabled>
+				<h4>{{representente.verificado_text()}}</h4>
+				<h4>Creado el: {{representante.created_at}}</h4>
+			</div>
+		</div>
+	</div>
+</body>
+{% endblock %}

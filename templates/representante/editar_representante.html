@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Editar representante{% endblock %}
+{% block content %}
+<body class='home'>
+	{% include "componentes/navbar.html" %}
+	<div class="main-content">
+        <h2>Editar Representante</h2>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Guardar cambios</button>
+        </form>
+        <a href="{% url 'detalles_representante' id=representante.id_representante %}"> Cancelar </a>
+    </div>
+</body>
+
+{% endblock %}
