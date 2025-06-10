@@ -149,6 +149,12 @@ def detalles_representante(request, id):
 
     return render(request, 'representante/detalles_representante.html', {'representante': representante, 'representante_fields': representante_fields})
 
+def verificar_representante(request, id):
+    representante = get_object_or_404(representante_org, id_representante=id)
+    representante.verificado = True
+    representante.save()
+    return redirect('detalles_representante', id=id)
+
 def editar_representante(request, id):
     representante = get_object_or_404(repesentante_org, id_representante=id)
     if request.method == 'POST':
@@ -164,7 +170,6 @@ def eliminar_representante(request, id):
     representante = get_object_or_404(representante_org, id_representante=id)
     repesentante.delete()
     return redirect('representante_index')
-
 
 def campana_index(request):
     
@@ -281,39 +286,6 @@ def signup_representante(request):
     
     # Si es GET, mostrar el formulario vacío
     return render(request, 'signup.html')
-
-@login_required
-def listar_representantes(request):
-    representantes = representante_org.objects.all()
-    return render(request, 'representantes/listar.html', {'representantes': representantes})
-
-@login_required
-def editar_representante(request, id):
-    representante = get_object_or_404(representante_org, id_representante=id)
-
-    if request.method == 'POST':
-        representante.nombre = request.POST.get('nombre')
-        representante.apellido = request.POST.get('apellido')
-        representante.rol = request.POST.get('rol')
-
-        credencial = request.FILES.get('credencial')
-        if credencial:
-            representante.credencial = credencial
-
-        representante.save()
-        return redirect('listar_representantes')  # O donde quieras redirigir
-
-    return render(request, 'representantes/editar.html', {'representante': representante})
-
-@login_required
-def eliminar_representante(request, id):
-    representante = get_object_or_404(representante_org, id_representante=id)
-
-    if request.method == 'POST':
-        representante.delete()
-        return redirect('listar_representantes')
-
-    return render(request, 'representantes/eliminar_confirmacion.html', {'representante': representante})
 
 
 def logout_view(request):

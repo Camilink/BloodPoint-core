@@ -120,7 +120,7 @@ class representante_org(models.Model):
         return self.nombre + ' ' + self.apellido
 
     def verificado_text(self):
-        return 'Representante sin verificar' if self.verificado else 'Representante verificado'
+        return 'Representante verificado' if self.verificado else 'Representante sin verificar'
 
 class centro_donacion(models.Model):
     id_centro = models.AutoField(primary_key=True)

@@ -22,6 +22,7 @@ urlpatterns = [
     path('representante/detalles/<int:id>/', views.detalles_representante, name='detalles_representante'),
     path('representante/editar/<int:id>/', views.editar_representante, name='editar_representante'),
     path('representante/eliminar/<int:id>/', views.eliminar_representante, name='eliminar_representante'),
+    path('representante/verificar/<int:id>/', views.verificar_representante, name='verificar_representante'),
 
     path('campana/<int:campana_id>/descargar_csv/', views.exportar_resumen_una_campana_csv, name='descargar_csv_campana'),
 
