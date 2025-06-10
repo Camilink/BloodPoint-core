@@ -18,9 +18,8 @@ urlpatterns = [
     path('administrador/eliminar/<int:id>/', views.eliminar_admin, name='eliminar_admin'),
     path("dashboard/admin/", views.admin_home, name="admin_home"),
 
-    path('representante/crear/', views.crear_admin, name='crear_representante'),
     path('representante/', views.representante_index, name='representante_index'),
-    path('representante/detalles/<int:id>/', views.detalles_admin, name='detalles_representante'),
+    path('representante/detalles/<int:id>/', views.detalles_representante, name='detalles_representante'),
     path('representante/editar/<int:id>/', views.editar_representante, name='editar_representante'),
     path('representante/eliminar/<int:id>/', views.eliminar_representante, name='eliminar_representante'),
 
