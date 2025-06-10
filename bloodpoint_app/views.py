@@ -133,43 +133,7 @@ def detalles_representante(request, id):
     representante = get_object_or_404(representante_org, id_representante=id)
     representante_fields = vars(representante)  # Convert to a dictionary
 
-    return render(request, 'administrador/detalles_admin.html', {'representante': representante, 'representante_fields': representante_fields})
-
-# CREAR representante
-def crear_representante(request):
-    if request.method == 'POST':
-        form = RepresentanteOrgForm(request.POST)
-        if form.is_valid():
-            # Extraer los datos del formulario
-            nombre = form.cleaned_data['nombre']
-            apellido = form.cleaned_data['apellido']
-            rut_representante = form.cleaned_data['rut_representante']
-            rol = form.cleaned_data['rol']
-            credencial = form.cleaned_data['credencial']
-            email = form.cleaned_data['email']
-            contrasena = form.cleaned_data['contrasena']
-
-            # Crear el usuario base
-            user = CustomUser.objects.create_user(
-                email=email,
-                password=contrasena,
-                tipo_usuario='representante'
-            )
-
-            # Crear el perfil de representante_org vinculado
-            repesentante_org.objects.create(
-                user=user,
-                nombre=nombre,
-                apellido=apellido,
-                rut_representante=rut_representante,
-                rol=rol,
-                credencial=credencial
-            )
-
-            return redirect('representante_index')
-    else:
-        form = RepresentanteOrgForm()
-        return render(request, 'representante/crear_representante.html', {'form': form})
+    return render(request, 'representante/detalles_representante.html', {'representante': representante, 'representante_fields': representante_fields})
 
 def editar_representante(request, id):
     representante = get_object_or_404(repesentante_org, id_representante=id)
