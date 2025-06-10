@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-
+from bloodpoint_app.utils.export_helpers import generar_csv_resumen_campana
 from bloodpoint_app.forms import AdminBPForm
 from bloodpoint_app.forms import RepresentanteOrgForm
 
@@ -54,6 +54,20 @@ logger = logging.getLogger(__name__)
 #    return HttpResponse("Welcome to Bloodpoint API")
 
 # NAVEGADOR 
+
+##generador csv
+
+
+def exportar_resumen_una_campana_csv(request, campana_id):
+    csv_content = generar_csv_resumen_campana(campana_id)
+
+    response = HttpResponse(
+        csv_content,
+        content_type='text/csv',
+        headers={'Content-Disposition': f'attachment; filename="campaña_{campana_id}.csv"'},
+    )
+    return response
+
 
 def campanas(request):
     return render(request, 'campannas.html')

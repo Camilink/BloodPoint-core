@@ -23,6 +23,8 @@ urlpatterns = [
     path('representante/editar/<int:id>/', views.editar_representante, name='editar_representante'),
     path('representante/eliminar/<int:id>/', views.eliminar_representante, name='eliminar_representante'),
 
+    path('campana/<int:campana_id>/descargar_csv/', views.exportar_resumen_una_campana_csv, name='descargar_csv_campana'),
+
     path('campanas/', views.campana_index, name='campana_index'),
     path('campanas/detalles/<int:id>/', views.detalles_campana, name='detalles_campana'),
     path('logout/', views.logout_view, name='logout')
