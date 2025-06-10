@@ -12,7 +12,7 @@
 			{% for representante in representantes %}
 				<div class="col-12">
 					<div class='list-item'>
-						<h3>{{ representante.full_name() }} </h3>
+						<h3>{{ representante.full_name }} </h3>
 						<a href="{% url 'detalles_representante' id=representante.id_representante %}" style="margin-left:auto">
 							<i style="color: #7d0000;" class="fas fa-eye fa-3" aria-hidden="true"></i>
 						</a>
