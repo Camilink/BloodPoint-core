@@ -135,6 +135,12 @@ def detalles_representante(request, id):
 
     return render(request, 'representante/detalles_representante.html', {'representante': representante, 'representante_fields': representante_fields})
 
+def verificar_representante(request, id):
+    representante = get_object_or_404(representante_org, id_representante=id)
+    representante.verificado = True
+    representante.save()
+    return redirect('detalles_representante', id=id)
+
 def editar_representante(request, id):
     representante = get_object_or_404(repesentante_org, id_representante=id)
     if request.method == 'POST':
