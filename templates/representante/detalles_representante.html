@@ -23,8 +23,8 @@
 				<h4>Nombre: </h4>
 				<input type="text" value="{{ representante.apellido }}" disabled>
 				<h4>Email: </h4>
-				<input type="text" value="{{ representante.email() }}" disabled>
-				<h4>{{representente.verificado_text()}}</h4>
+				<input type="text" value="{{ representante.email }}" disabled>
+				<h4>{{representente.verificado_text}}</h4>
 				<a href="{% url 'verificar_representante' id=representante.id_representante %}" style="margin-left: 1.25rem">
 					Verificar
 					<i style="color: #7d0000;" class="fas fa-check fa-3" style="margin-left: 0.5rem" aria-hidden="true"></i>
