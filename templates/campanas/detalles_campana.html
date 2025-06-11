@@ -23,53 +23,36 @@
 			</div>
 			<div class="col-6">
 				<h4>Total donaciones recibidas: </h4>
-				<iframe
-				width="300"
-				height="200"
-				seamless
-				frameBorder="0"
-				scrolling="no"
-				src="https://bloodpoint-core.onrender.com/superset/explore/p/MopGjJxGYE3/?standalone=1&height=200&campana_id={{campana_ojb.id_campana}}"
-				>
+				<iframe width="300" height="200" seamless frameBorder="0" scrolling="no"
+					src="https://bloodpoint-core.onrender.com/superset/explore/p/MopGjJxGYE3/?standalone=1&height=200&campana_id={{campana_ojb.id_campana}}">
 				</iframe>
 			</div>
 			<div class="col-6">
 				<h4>Tipo de sangre por campaña: </h4>
-				<iframe
-				width="300"
-				height="200"
-				seamless
-				frameBorder="0"
-				scrolling="no"
-				src="https://bloodpoint-core.onrender.com/superset/explore/p/aEw7PmvqOpb/?standalone=1&height=200&campana_id={{campana_ojb.id_campana}}"
-				>
+				<iframe width="300" height="200" seamless frameBorder="0" scrolling="no"
+					src="https://bloodpoint-core.onrender.com/superset/explore/p/aEw7PmvqOpb/?standalone=1&height=200&campana_id={{campana_ojb.id_campana}}">
 				</iframe>
 			</div>
 			<div class="col-6">
 				<h4>Porcentaje logro campaña: </h4>
-				<iframe
-				width="300"
-				height="200"
-				seamless
-				frameBorder="0"
-				scrolling="no"
-				src="https://bloodpoint-core.onrender.com/superset/explore/p/WEVGbr0GKoN/?standalone=1&height=200&campana_id={{campana_ojb.id_campana}}"
-				>
+				<iframe width="300" height="200" seamless frameBorder="0" scrolling="no"
+					src="https://bloodpoint-core.onrender.com/superset/explore/p/WEVGbr0GKoN/?standalone=1&height=200&campana_id={{campana_ojb.id_campana}}">
 				</iframe>
 			</div>
 			<div class="col-6">
 				<h4>Meta Donaciones: </h4>
-				<iframe
-				width="300"
-				height="200"
-				seamless
-				frameBorder="0"
-				scrolling="no"
-				src="https://bloodpoint-core.onrender.com/superset/explore/p/bAOGKaD7NvQ/?standalone=1&height=200&campana_id={{campana_ojb.id_campana}}"
-				>
+				<iframe width="300" height="200" seamless frameBorder="0" scrolling="no"
+					src="https://bloodpoint-core.onrender.com/superset/explore/p/bAOGKaD7NvQ/?standalone=1&height=200&campana_id={{campana_ojb.id_campana}}">
 				</iframe>
 			</div>
 		</div>
 	</div>
+
+	<form method="get" action="{% url 'descargar_csv_campana' campana.id_campana %}">
+		<button type="submit" class="btn btn-primary">
+			Descargar resumen en CSV
+		</button>
+	</form>
+
 </body>
 {% endblock %}
