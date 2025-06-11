@@ -26,5 +26,6 @@ urlpatterns = [
 
     path('campanas/', views.campana_index, name='campana_index'),
     path('campanas/detalles/<int:id>/', views.detalles_campana, name='detalles_campana'),
+    path('campanas/<int:campana_id>/', views.validar_campana, name='validar_campana'),
     path('logout/', views.logout_view, name='logout')
 ]
