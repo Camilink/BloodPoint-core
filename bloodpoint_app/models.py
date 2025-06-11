@@ -100,11 +100,11 @@ class donante(models.Model):
         return self.nombre_completo
 
 class representante_org(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, blank=True)  # Añadido este campo
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, blank=True) 
     id_representante = models.AutoField(primary_key=True)
     rut_representante = models.CharField(max_length=12, unique=True)
-    rol = models.CharField(max_length=100)  # Añadido max_length
-    nombre = models.CharField(max_length=100)  # Añadido max_length
+    rol = models.CharField(max_length=100)
+    nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     credencial = models.ImageField(upload_to='credenciales', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -164,7 +164,7 @@ class campana(models.Model):
     longitud = models.IntegerField()
     id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    fecha_termino = models.DateField()  # Fecha límite
+    fecha_termino = models.DateField()
     id_solicitud = models.ForeignKey('solicitud_campana_repo', null=True, blank=True, on_delete=models.SET_NULL)
     validada = models.BooleanField(default=True)  # Por ahora, se marca como validada al crear
     estado = models.CharField(max_length=20, choices=[

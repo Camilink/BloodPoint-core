@@ -3,7 +3,7 @@ from io import StringIO
 from django.db.models import Count, Sum, Q
 from django.db.models.functions import Cast
 from django.db.models import IntegerField
-from tu_app.models import campana
+from bloodpoint_app.models import campana
 
 def generar_csv_resumen_campana(campana_id):
     campaña = campana.objects.annotate(
