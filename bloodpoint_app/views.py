@@ -305,11 +305,31 @@ def centros_listado(request):
             # Si no se especifica el filtro, mostrar todos los centros
             centros = centro_donacion.objects.all()
             
-        serializer = CentroDonacionSerializer(centros, many=True)
+        
+        withcampanas = request.query_params.get('campanas', 'false').lower() == 'true'
+        resultado = []
+        if withcampanas:
+            for centro in centros:
+                campanas = campana.objects.filter(id_centro=centro)
+                campanas_serializer = CampanaSerializer(campanas, many=True)
+            centro_data = {
+                "id_centro": centro.id_centro,
+                "nombre_centro": centro.nombre_centro,
+                "direccion_centro": centro.direccion_centro,
+                "comuna": centro.comuna,
+                "telefono": centro.telefono,
+                "horario_apertura": centro.horario_apertura,
+                "horario_cierre": centro.horario_cierre,
+                "campanas": campanas_serializer.data
+            }
+            resultado.append(centro_data)
+        else:
+            serializer = CentroDonacionSerializer(centros, many=True)
+            resultado = serializer.data
         return Response({
             "status": "success",
             "count": centros.count(),
-            "data": serializer.data
+            "data": resultado
         })
 
     elif request.method == 'POST':
