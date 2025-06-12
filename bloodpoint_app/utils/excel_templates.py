@@ -1,5 +1,7 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+from openpyxl.cell.cell import MergedCell
 from bloodpoint_app.models import campana, TIPO_SANGRE_CHOICES
 
 def generar_excel_campana(campana_id, response):
@@ -10,51 +12,34 @@ def generar_excel_campana(campana_id, response):
     ws.title = "Resumen Campaña"
 
     # Estilos
+    title_font = Font(size=16, bold=True, color="FF0000")
+    subtitle_font = Font(size=12, italic=True)
     header_font = Font(bold=True, color="FFFFFF")
     header_fill = PatternFill("solid", fgColor="FF0000")
     center_alignment = Alignment(horizontal="center", vertical="center")
-    bold_font = Font(bold=True)
-    title_font = Font(size=16, bold=True, color="9C0006")
-    subtitle_font = Font(size=12, bold=True)
     thin_border = Border(
         left=Side(style='thin'), right=Side(style='thin'),
         top=Side(style='thin'), bottom=Side(style='thin')
     )
 
-    # Datos para cálculos
-    total_donaciones = campana_obj.donacion_set.count()
-    total_ml = sum(d.cantidad_donacion for d in campana_obj.donacion_set.all())
-    meta = int(campana_obj.meta) if campana_obj.meta else 0
-    porcentaje = (total_donaciones / meta) * 100 if meta else 0
+    # Título principal
     nombre_representante = campana_obj.id_representante.full_name()
+    ws.merge_cells("A1:J1")
+    title_cell = ws["A1"]
+    title_cell.value = f"Campaña: {campana_obj.nombre_campana} - Representante: {nombre_representante}"
+    title_cell.font = title_font
+    title_cell.alignment = center_alignment
+
+    # Subtítulo con fechas
     fecha_inicio = campana_obj.fecha_campana.strftime('%Y-%m-%d')
     fecha_termino = campana_obj.fecha_termino.strftime('%Y-%m-%d') if campana_obj.fecha_termino else "N/A"
+    ws.merge_cells("A2:J2")
+    subtitle_cell = ws["A2"]
+    subtitle_cell.value = f"Desde {fecha_inicio} hasta {fecha_termino}"
+    subtitle_cell.font = subtitle_font
+    subtitle_cell.alignment = center_alignment
 
-    # Título principal
-    ws.merge_cells('A1:J1')
-    cell = ws['A1']
-    cell.value = f"Resumen de la Campaña: {campana_obj.nombre_campana}"
-    cell.font = title_font
-    cell.alignment = center_alignment
-
-    # Representante
-    ws.merge_cells('A2:J2')
-    cell = ws['A2']
-    cell.value = f"Representante: {nombre_representante}"
-    cell.font = subtitle_font
-    cell.alignment = center_alignment
-
-    # Fechas
-    ws.merge_cells('A3:J3')
-    cell = ws['A3']
-    cell.value = f"Fecha de inicio: {fecha_inicio} | Fecha de término: {fecha_termino}"
-    cell.font = subtitle_font
-    cell.alignment = center_alignment
-
-    # Espacio
-    ws.append([])
-
-    # Encabezados de tabla
+    # Encabezados de la tabla de resumen
     headers = [
         "ID Campaña",
         "Nombre Campaña",
@@ -67,15 +52,23 @@ def generar_excel_campana(campana_id, response):
         "Estado Campaña",
         "Representante Responsable",
     ]
+    ws.append([])  # Fila vacía para separar visualmente
     ws.append(headers)
+
+    header_row_idx = 4
     for col_num, _ in enumerate(headers, 1):
-        cell = ws.cell(row=5, column=col_num)
+        cell = ws.cell(row=header_row_idx, column=col_num)
         cell.font = header_font
         cell.fill = header_fill
         cell.alignment = center_alignment
         cell.border = thin_border
 
-    # Datos de la campaña
+    # Datos resumen
+    total_donaciones = campana_obj.donacion_set.count()
+    total_ml = sum(d.cantidad_donacion for d in campana_obj.donacion_set.all())
+    meta = int(campana_obj.meta) if campana_obj.meta else 0
+    porcentaje = (total_donaciones / meta) * 100 if meta else 0
+
     ws.append([
         campana_obj.id_campana,
         campana_obj.nombre_campana,
@@ -88,12 +81,15 @@ def generar_excel_campana(campana_id, response):
         campana_obj.estado,
         nombre_representante,
     ])
+
+    # Estilos para la fila de datos
+    data_row_idx = header_row_idx + 1
     for col_num in range(1, len(headers) + 1):
-        cell = ws.cell(row=6, column=col_num)
+        cell = ws.cell(row=data_row_idx, column=col_num)
         cell.alignment = center_alignment
         cell.border = thin_border
 
-    # Segunda hoja: Total ML por tipo de sangre
+    # Segunda hoja: ML por tipo de sangre
     ws2 = wb.create_sheet(title="ML por Tipo de Sangre")
     sub_headers = ["Tipo de Sangre", "Total ML Donados"]
     ws2.append(sub_headers)
@@ -104,7 +100,7 @@ def generar_excel_campana(campana_id, response):
         cell.alignment = center_alignment
         cell.border = thin_border
 
-    for row_num, (tipo, _) in enumerate(TIPO_SANGRE_CHOICES, start=2):
+    for row_num, (tipo, _) in enumerate(TIPO_SANGRE_CHOICES, 2):
         total_ml_tipo = sum(
             d.cantidad_donacion
             for d in campana_obj.donacion_set.filter(id_donante__tipo_sangre=tipo)
@@ -115,18 +111,17 @@ def generar_excel_campana(campana_id, response):
             cell.alignment = center_alignment
             cell.border = thin_border
 
-    # Ajustar ancho columnas - ignorar celdas fusionadas usando coordenadas de columnas
+    # Ajustar anchos de columna (evitar MergedCell error)
     for sheet in [ws, ws2]:
         for col_idx, column_cells in enumerate(sheet.columns, start=1):
             max_length = 0
-            col_letter = sheet.cell(row=1, column=col_idx).column_letter
+            col_letter = get_column_letter(col_idx)
             for cell in column_cells:
-                try:
-                    if cell.value:
-                        max_length = max(max_length, len(str(cell.value)))
-                except AttributeError:
-                    # Celdas fusionadas o especiales que no tienen value o length
-                    pass
+                if isinstance(cell, MergedCell):
+                    continue
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
             sheet.column_dimensions[col_letter].width = max_length + 4
 
+    # Guardar archivo en response
     wb.save(response)
