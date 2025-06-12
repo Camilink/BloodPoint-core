@@ -1,7 +1,6 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
-from bloodpoint_app.models import campana
-from django.db.models import Sum
+from bloodpoint_app.models import campana, TIPO_SANGRE_CHOICES
 
 def generar_excel_campana(campana_id, response):
     campana_obj = campana.objects.get(id_campana=campana_id)
@@ -10,18 +9,16 @@ def generar_excel_campana(campana_id, response):
     ws = wb.active
     ws.title = "Resumen Campaña"
 
-    # Estilos - rojo
+    # Estilos
     header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill(start_color="C00000", end_color="C00000", fill_type="solid")  # rojo oscuro
-    center_align = Alignment(horizontal="center", vertical="center")
+    header_fill = PatternFill("solid", fgColor="FF0000")
+    center_alignment = Alignment(horizontal="center", vertical="center")
     thin_border = Border(
-        left=Side(style="thin", color="C00000"),
-        right=Side(style="thin", color="C00000"),
-        top=Side(style="thin", color="C00000"),
-        bottom=Side(style="thin", color="C00000")
+        left=Side(style='thin'), right=Side(style='thin'),
+        top=Side(style='thin'), bottom=Side(style='thin')
     )
 
-    # Cabecera tabla resumen
+    # Encabezado hoja 1
     headers = [
         "ID Campaña",
         "Nombre Campaña",
@@ -31,105 +28,71 @@ def generar_excel_campana(campana_id, response):
         "Donaciones Realizadas (unidades)",
         "Porcentaje Cumplimiento (%)",
         "Total ML Donados",
-        "Donantes Únicos",
         "Estado Campaña",
         "Representante Responsable",
     ]
     ws.append(headers)
-
-    # Aplicar estilos a la cabecera
-    for cell in ws[1]:
+    for col_num, _ in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col_num)
         cell.font = header_font
         cell.fill = header_fill
-        cell.alignment = center_align
+        cell.alignment = center_alignment
         cell.border = thin_border
 
-    # Datos resumen
+    # Datos hoja 1
     total_donaciones = campana_obj.donacion_set.count()
     total_ml = sum(d.cantidad_donacion for d in campana_obj.donacion_set.all())
-    donantes_unicos = campana_obj.donacion_set.values('id_donante').distinct().count()
-
     meta = int(campana_obj.meta) if campana_obj.meta else 0
     porcentaje = (total_donaciones / meta) * 100 if meta else 0
 
-    representante = str(campana_obj.representante_responsable) if campana_obj.representante_responsable else "Sin representante"
+    representante = str(campana_obj.id_representante) if campana_obj.id_representante else "N/A"
 
     ws.append([
         campana_obj.id_campana,
         campana_obj.nombre_campana,
-        campana_obj.fecha_inicio.strftime('%Y-%m-%d') if campana_obj.fecha_inicio else "",
-        campana_obj.fecha_termino.strftime('%Y-%m-%d') if campana_obj.fecha_termino else "",
+        campana_obj.fecha_campana.strftime('%Y-%m-%d'),
+        campana_obj.fecha_termino.strftime('%Y-%m-%d') if campana_obj.fecha_termino else "N/A",
         campana_obj.meta,
         total_donaciones,
         f"{porcentaje:.1f}%",
         total_ml,
-        donantes_unicos,
         campana_obj.estado,
         representante,
     ])
 
-    # Aplicar borde a fila de datos
-    for cell in ws[2]:
+    for col_num in range(1, len(headers) + 1):
+        cell = ws.cell(row=2, column=col_num)
+        cell.alignment = center_alignment
         cell.border = thin_border
-        cell.alignment = center_align
 
-    # Espacio antes de la siguiente tabla
-    start_row = 4
-    ws.cell(row=start_row, column=1, value="Total ML Donados por Tipo de Sangre")
-    ws.cell(row=start_row, column=1).font = Font(bold=True, size=14)
+    # Segunda hoja: Total ML por tipo de sangre
+    ws2 = wb.create_sheet(title="ML por Tipo de Sangre")
+    sub_headers = ["Tipo de Sangre", "Total ML Donados"]
+    ws2.append(sub_headers)
+    for col_num, header in enumerate(sub_headers, 1):
+        cell = ws2.cell(row=1, column=col_num)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center_alignment
+        cell.border = thin_border
 
-    # Encabezados tipo sangre
-    tipo_sangre_header_row = start_row + 1
-    ws.cell(row=tipo_sangre_header_row, column=1, value="Tipo de Sangre").font = header_font
-    ws.cell(row=tipo_sangre_header_row, column=1).fill = header_fill
-    ws.cell(row=tipo_sangre_header_row, column=1).alignment = center_align
-    ws.cell(row=tipo_sangre_header_row, column=1).border = thin_border
+    for row_num, (tipo, _) in enumerate(TIPO_SANGRE_CHOICES, 2):
+        total_ml_tipo = sum(
+            d.cantidad_donacion
+            for d in campana_obj.donacion_set.filter(id_donante__tipo_sangre=tipo)
+        )
+        ws2.append([tipo, total_ml_tipo])
+        for col_num in range(1, 3):
+            cell = ws2.cell(row=row_num, column=col_num)
+            cell.alignment = center_alignment
+            cell.border = thin_border
 
-    ws.cell(row=tipo_sangre_header_row, column=2, value="Total ML Donados").font = header_font
-    ws.cell(row=tipo_sangre_header_row, column=2).fill = header_fill
-    ws.cell(row=tipo_sangre_header_row, column=2).alignment = center_align
-    ws.cell(row=tipo_sangre_header_row, column=2).border = thin_border
+    # Ajustar anchos
+    for sheet in [ws, ws2]:
+        for col in sheet.columns:
+            max_length = max(len(str(cell.value)) if cell.value else 0 for cell in col)
+            col_letter = col[0].column_letter
+            sheet.column_dimensions[col_letter].width = max_length + 2
 
-    # Tipos de sangre posibles
-    tipos_sangre = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
-
-    # Donaciones agrupadas por tipo sangre
-    donaciones_por_tipo = (
-        campana_obj.donacion_set
-        .values('id_donante__tipo_sangre')
-        .annotate(total_ml=Sum('cantidad_donacion'))
-    )
-    # Convertir queryset a dict {tipo_sangre: total_ml}
-    donaciones_dict = {item['id_donante__tipo_sangre']: item['total_ml'] for item in donaciones_por_tipo}
-
-    current_row = tipo_sangre_header_row + 1
-    for tipo in tipos_sangre:
-        total_ml_tipo = donaciones_dict.get(tipo, 0)
-        ws.cell(row=current_row, column=1, value=tipo)
-        ws.cell(row=current_row, column=1).alignment = center_align
-        ws.cell(row=current_row, column=1).border = thin_border
-
-        ws.cell(row=current_row, column=2, value=total_ml_tipo)
-        ws.cell(row=current_row, column=2).alignment = center_align
-        ws.cell(row=current_row, column=2).border = thin_border
-
-        current_row += 1
-
-    # Ajustar ancho columnas para mejorar lectura
-    column_widths = {
-        1: 20,
-        2: 25,
-        3: 18,
-        4: 18,
-        5: 25,
-        6: 22,
-        7: 22,
-        8: 18,
-        9: 18,
-        10: 18,
-        11: 30,
-    }
-    for col, width in column_widths.items():
-        ws.column_dimensions[chr(64 + col)].width = width
-
+    # Guardar
     wb.save(response)
