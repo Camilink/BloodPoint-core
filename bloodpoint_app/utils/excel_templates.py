@@ -10,6 +10,7 @@ def generar_excel_campana(campana_id, response):
     ws = wb.active
     ws.title = "Resumen Campaña"
 
+    # Encabezado
     ws.append([
         "ID Campaña",
         "Nombre Campaña",
@@ -18,34 +19,37 @@ def generar_excel_campana(campana_id, response):
         "Meta Donaciones (unidades)",
         "Donaciones Realizadas (unidades)",
         "Porcentaje Cumplimiento (%)",
-        "Total ML Donados",
+        "Total Unidades Donadas",
         "Donantes Únicos",
         "Estado Campaña",
         "Representante Responsable",
-        "Centro de Donación",
     ])
 
+    # Datos agregados
     total_donaciones = campana_obj.donacion_set.count()
-    total_ml = sum(d.ml_donados for d in campana_obj.donacion_set.all())
+    total_unidades_donadas = sum(d.cantidad_donacion for d in campana_obj.donacion_set.all())
     donantes_unicos = campana_obj.donacion_set.values('id_donante').distinct().count()
 
     meta = int(campana_obj.meta) if campana_obj.meta else 0
     porcentaje = (total_donaciones / meta) * 100 if meta else 0
 
+    representante = (
+        campana_obj.id_representante.full_name()
+        if campana_obj.id_representante else "No asignado"
+    )
 
     ws.append([
-        campana_obj.id,
-        campana_obj.nombre,
-        campana_obj.fecha_inicio.strftime('%Y-%m-%d'),
+        campana_obj.id_campana,
+        campana_obj.nombre_campana,
+        campana_obj.fecha_campana.strftime('%Y-%m-%d'),
         campana_obj.fecha_termino.strftime('%Y-%m-%d'),
-        campana_obj.meta,
+        meta,
         total_donaciones,
         f"{porcentaje:.1f}%",
-        total_ml,
+        total_unidades_donadas,
         donantes_unicos,
         campana_obj.estado,
-        str(campana_obj.representante_responsable),
-        str(campana_obj.centro_donacion),
+        representante,
     ])
 
     wb.save(response)
