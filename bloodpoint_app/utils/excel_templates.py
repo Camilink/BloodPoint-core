@@ -1,5 +1,6 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
 from bloodpoint_app.models import campana, TIPO_SANGRE_CHOICES
 
 def generar_excel_campana(campana_id, response):
@@ -115,18 +116,14 @@ def generar_excel_campana(campana_id, response):
             cell.alignment = center_alignment
             cell.border = thin_border
 
-    # Ajustar ancho columnas - ignorar celdas fusionadas usando coordenadas de columnas
+    # Ajustar ancho columnas - usar get_column_letter para evitar error con celdas fusionadas
     for sheet in [ws, ws2]:
         for col_idx, column_cells in enumerate(sheet.columns, start=1):
             max_length = 0
-            col_letter = sheet.cell(row=1, column=col_idx).column_letter
+            col_letter = get_column_letter(col_idx)
             for cell in column_cells:
-                try:
-                    if cell.value:
-                        max_length = max(max_length, len(str(cell.value)))
-                except AttributeError:
-                    # Celdas fusionadas o especiales que no tienen value o length
-                    pass
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
             sheet.column_dimensions[col_letter].width = max_length + 4
 
     wb.save(response)
