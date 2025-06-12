@@ -1,6 +1,7 @@
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from bloodpoint_app.models import campana, TIPO_SANGRE_CHOICES
+from openpyxl.utils import get_column_letter
 
 def generar_excel_campana(campana_id, response):
     campana_obj = campana.objects.get(id_campana=campana_id)
@@ -118,11 +119,17 @@ def generar_excel_campana(campana_id, response):
             cell.border = thin_border
 
     # --- AJUSTE DE ANCHOS ---
+
+
     for sheet in [ws, ws2]:
-        for col in sheet.columns:
-            max_length = max(len(str(cell.value)) if cell.value else 0 for cell in col)
-            col_letter = col[0].column_letter
+        for col_idx, col_cells in enumerate(sheet.columns, start=1):
+            max_length = max(
+                len(str(cell.value)) if cell.value and not isinstance(cell, type(sheet.cell(row=1, column=1))) else 0
+                for cell in col_cells
+            )
+            col_letter = get_column_letter(col_idx)
             sheet.column_dimensions[col_letter].width = max_length + 2
+
 
     # --- GUARDAR ---
     wb.save(response)
