@@ -4,7 +4,7 @@ from openpyxl import Workbook
 from bloodpoint_app.models import campana
 
 def generar_excel_campana(campana_id, response):
-    campana_obj = campana.objects.get(id=campana_id)
+    campana_obj = campana.objects.get(id_campana=campana_id)
 
     wb = Workbook()
     ws = wb.active
