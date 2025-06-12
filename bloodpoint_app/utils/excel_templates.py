@@ -1,10 +1,10 @@
 # bloodpoint_app/utils/excel_templates.py
 
 from openpyxl import Workbook
-from ..models import campana  # ajusta si la estructura es diferente
+from bloodpoint_app.models import campana
 
 def generar_excel_campana(campana_id, response):
-    campana = campana.objects.get(id=campana_id)
+    campana_obj = campana.objects.get(id=campana_id)
 
     wb = Workbook()
     ws = wb.active
@@ -25,24 +25,24 @@ def generar_excel_campana(campana_id, response):
         "Centro de Donación",
     ])
 
-    total_donaciones = campana.donacion_set.count()
-    total_ml = sum(d.ml_donados for d in campana.donacion_set.all())
-    porcentaje = (total_donaciones / campana.meta_donaciones) * 100 if campana.meta_donaciones else 0
-    donantes_unicos = campana.donacion_set.values('donante').distinct().count()
+    total_donaciones = campana_obj.donacion_set.count()
+    total_ml = sum(d.ml_donados for d in campana_obj.donacion_set.all())
+    porcentaje = (total_donaciones / campana_obj.meta_donaciones) * 100 if campana_obj.meta_donaciones else 0
+    donantes_unicos = campana_obj.donacion_set.values('donante').distinct().count()
 
     ws.append([
-        campana.id,
-        campana.nombre,
-        campana.fecha_inicio.strftime('%Y-%m-%d'),
-        campana.fecha_termino.strftime('%Y-%m-%d'),
-        campana.meta_donaciones,
+        campana_obj.id,
+        campana_obj.nombre,
+        campana_obj.fecha_inicio.strftime('%Y-%m-%d'),
+        campana_obj.fecha_termino.strftime('%Y-%m-%d'),
+        campana_obj.meta_donaciones,
         total_donaciones,
         f"{porcentaje:.1f}%",
         total_ml,
         donantes_unicos,
-        campana.estado,
-        str(campana.representante_responsable),
-        str(campana.centro_donacion),
+        campana_obj.estado,
+        str(campana_obj.representante_responsable),
+        str(campana_obj.centro_donacion),
     ])
 
     wb.save(response)
