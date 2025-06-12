@@ -27,7 +27,7 @@ def generar_excel_campana(campana_id, response):
 
     total_donaciones = campana_obj.donacion_set.count()
     total_ml = sum(d.ml_donados for d in campana_obj.donacion_set.all())
-    donantes_unicos = campana_obj.donacion_set.values('donante').distinct().count()
+    donantes_unicos = campana_obj.donacion_set.values('id_donante').distinct().count()
 
     meta = int(campana_obj.meta) if campana_obj.meta else 0
     porcentaje = (total_donaciones / meta) * 100 if meta else 0
