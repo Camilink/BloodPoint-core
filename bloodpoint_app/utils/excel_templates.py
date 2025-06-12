@@ -1,10 +1,10 @@
 # bloodpoint_app/utils/excel_templates.py
 
 from openpyxl import Workbook
-from ..models import Campana  # ajusta si la estructura es diferente
+from ..models import campana  # ajusta si la estructura es diferente
 
 def generar_excel_campana(campana_id, response):
-    campana = Campana.objects.get(id=campana_id)
+    campana = campana.objects.get(id=campana_id)
 
     wb = Workbook()
     ws = wb.active
