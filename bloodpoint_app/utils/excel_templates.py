@@ -10,13 +10,15 @@ def generar_excel_campana(campana_id, response):
     ws = wb.active
     ws.title = "Resumen Campaña"
 
-    # Estilos
+    # Estilos - rojo
     header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
+    header_fill = PatternFill(start_color="C00000", end_color="C00000", fill_type="solid")  # rojo oscuro
     center_align = Alignment(horizontal="center", vertical="center")
     thin_border = Border(
-        left=Side(style="thin"), right=Side(style="thin"),
-        top=Side(style="thin"), bottom=Side(style="thin")
+        left=Side(style="thin", color="C00000"),
+        right=Side(style="thin", color="C00000"),
+        top=Side(style="thin", color="C00000"),
+        bottom=Side(style="thin", color="C00000")
     )
 
     # Cabecera tabla resumen
@@ -36,7 +38,7 @@ def generar_excel_campana(campana_id, response):
     ws.append(headers)
 
     # Aplicar estilos a la cabecera
-    for col_num, cell in enumerate(ws[1], 1):
+    for cell in ws[1]:
         cell.font = header_font
         cell.fill = header_fill
         cell.alignment = center_align
@@ -50,12 +52,12 @@ def generar_excel_campana(campana_id, response):
     meta = int(campana_obj.meta) if campana_obj.meta else 0
     porcentaje = (total_donaciones / meta) * 100 if meta else 0
 
-    representante = campana_obj.id_representante.full_name() if campana_obj.id_representante else "Sin representante"
+    representante = str(campana_obj.representante_responsable) if campana_obj.representante_responsable else "Sin representante"
 
     ws.append([
         campana_obj.id_campana,
         campana_obj.nombre_campana,
-        campana_obj.fecha_campana.strftime('%Y-%m-%d'),
+        campana_obj.fecha_inicio.strftime('%Y-%m-%d') if campana_obj.fecha_inicio else "",
         campana_obj.fecha_termino.strftime('%Y-%m-%d') if campana_obj.fecha_termino else "",
         campana_obj.meta,
         total_donaciones,
@@ -75,7 +77,7 @@ def generar_excel_campana(campana_id, response):
     start_row = 4
     ws.cell(row=start_row, column=1, value="Total ML Donados por Tipo de Sangre")
     ws.cell(row=start_row, column=1).font = Font(bold=True, size=14)
-    
+
     # Encabezados tipo sangre
     tipo_sangre_header_row = start_row + 1
     ws.cell(row=tipo_sangre_header_row, column=1, value="Tipo de Sangre").font = header_font
@@ -88,19 +90,22 @@ def generar_excel_campana(campana_id, response):
     ws.cell(row=tipo_sangre_header_row, column=2).alignment = center_align
     ws.cell(row=tipo_sangre_header_row, column=2).border = thin_border
 
-    # Datos de ml por tipo de sangre
+    # Tipos de sangre posibles
+    tipos_sangre = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+
+    # Donaciones agrupadas por tipo sangre
     donaciones_por_tipo = (
         campana_obj.donacion_set
         .values('id_donante__tipo_sangre')
         .annotate(total_ml=Sum('cantidad_donacion'))
-        .order_by('id_donante__tipo_sangre')
     )
+    # Convertir queryset a dict {tipo_sangre: total_ml}
+    donaciones_dict = {item['id_donante__tipo_sangre']: item['total_ml'] for item in donaciones_por_tipo}
 
     current_row = tipo_sangre_header_row + 1
-    for item in donaciones_por_tipo:
-        tipo_sangre = item['id_donante__tipo_sangre'] or "Desconocido"
-        total_ml_tipo = item['total_ml'] or 0
-        ws.cell(row=current_row, column=1, value=tipo_sangre)
+    for tipo in tipos_sangre:
+        total_ml_tipo = donaciones_dict.get(tipo, 0)
+        ws.cell(row=current_row, column=1, value=tipo)
         ws.cell(row=current_row, column=1).alignment = center_align
         ws.cell(row=current_row, column=1).border = thin_border
 
