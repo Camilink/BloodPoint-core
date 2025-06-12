@@ -13,7 +13,6 @@ def generar_excel_campana(campana_id, response):
     header_font = Font(bold=True, color="FFFFFF")
     header_fill = PatternFill("solid", fgColor="FF0000")
     center_alignment = Alignment(horizontal="center", vertical="center")
-    left_alignment = Alignment(horizontal="left", vertical="center")
     bold_font = Font(bold=True)
     title_font = Font(size=16, bold=True, color="9C0006")
     subtitle_font = Font(size=12, bold=True)
@@ -22,7 +21,7 @@ def generar_excel_campana(campana_id, response):
         top=Side(style='thin'), bottom=Side(style='thin')
     )
 
-    # Datos para los cálculos
+    # Datos para cálculos
     total_donaciones = campana_obj.donacion_set.count()
     total_ml = sum(d.cantidad_donacion for d in campana_obj.donacion_set.all())
     meta = int(campana_obj.meta) if campana_obj.meta else 0
@@ -52,7 +51,7 @@ def generar_excel_campana(campana_id, response):
     cell.font = subtitle_font
     cell.alignment = center_alignment
 
-    # Espacio visual
+    # Espacio
     ws.append([])
 
     # Encabezados de tabla
@@ -116,15 +115,18 @@ def generar_excel_campana(campana_id, response):
             cell.alignment = center_alignment
             cell.border = thin_border
 
-    # Ajustar anchos sin usar MergedCell (evita error)
+    # Ajustar ancho columnas - ignorar celdas fusionadas usando coordenadas de columnas
     for sheet in [ws, ws2]:
-        for col_cells in sheet.columns:
-            normal_cells = [cell for cell in col_cells if not isinstance(cell, type(sheet.cell(row=1, column=1)._parent.cell(1,1)))]
-            if not normal_cells:
-                continue
-            max_length = max(len(str(cell.value)) if cell.value else 0 for cell in normal_cells)
-            col_letter = normal_cells[0].column_letter
-            sheet.column_dimensions[col_letter].width = max_length + 2
+        for col_idx, column_cells in enumerate(sheet.columns, start=1):
+            max_length = 0
+            col_letter = sheet.cell(row=1, column=col_idx).column_letter
+            for cell in column_cells:
+                try:
+                    if cell.value:
+                        max_length = max(max_length, len(str(cell.value)))
+                except AttributeError:
+                    # Celdas fusionadas o especiales que no tienen value o length
+                    pass
+            sheet.column_dimensions[col_letter].width = max_length + 4
 
-    # Guardar
     wb.save(response)
