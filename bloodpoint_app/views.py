@@ -12,6 +12,7 @@ from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from bloodpoint_app.utils.export_helpers import generar_csv_resumen_campana
+from bloodpoint_app.utils.excel_templates import generar_excel_campana
 from bloodpoint_app.forms import AdminBPForm
 from bloodpoint_app.forms import RepresentanteOrgForm
 
@@ -56,8 +57,6 @@ logger = logging.getLogger(__name__)
 # NAVEGADOR 
 
 ##generador csv
-
-
 def exportar_resumen_una_campana_csv(request, campana_id):
     csv_content = generar_csv_resumen_campana(campana_id)
 
@@ -66,6 +65,16 @@ def exportar_resumen_una_campana_csv(request, campana_id):
         content_type='text/csv',
         headers={'Content-Disposition': f'attachment; filename="campaña_{campana_id}.csv"'},
     )
+    return response
+
+
+def descargar_excel_campana(request, campana_id):
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename=resumen_campana_{campana_id}.xlsx'
+
+    generar_excel_campana(campana_id, response)
     return response
 
 

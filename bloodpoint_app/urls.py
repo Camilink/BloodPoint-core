@@ -25,6 +25,7 @@ urlpatterns = [
     path('representante/verificar/<int:id>/', views.verificar_representante, name='verificar_representante'),
 
     path('campana/<int:campana_id>/descargar_csv/', views.exportar_resumen_una_campana_csv, name='descargar_csv_campana'),
+    path('campana/<int:campana_id>/descargar_excel/', views.descargar_excel_campana, name='descargar_excel_campana'),
 
     path('campanas/', views.campana_index, name='campana_index'),
     path('campanas/detalles/<int:id>/', views.detalles_campana, name='detalles_campana'),
