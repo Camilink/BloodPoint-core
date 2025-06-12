@@ -87,3 +87,8 @@ body.home {
 	border-color: #490202;
 	color: white;
 }
+
+.graph-container {
+	display: flex;
+	justify-content: center;
+}
