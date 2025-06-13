@@ -4,7 +4,7 @@ from datetime import date, datetime
 import jwt
 import time
 from datetime import datetime
-from bloodpoint_app.utils import exportar_top3_campañas_por_donaciones
+
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
@@ -15,6 +15,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from bloodpoint_app.utils.export_helpers import generar_csv_resumen_campana
 from bloodpoint_app.utils.excel_templates import generar_excel_campana
+from bloodpoint_app.utils.exportar_top3_campanas_por_donaciones import exportar_top3_campanas_por_donaciones
 from bloodpoint_app.forms import AdminBPForm
 from bloodpoint_app.forms import RepresentanteOrgForm
 
@@ -69,7 +70,6 @@ def exportar_resumen_una_campana_csv(request, campana_id):
     )
     return response
 
-
 def descargar_excel_campana(request, campana_id):
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -79,7 +79,7 @@ def descargar_excel_campana(request, campana_id):
     return response
 
 def descargar_top3_campanas(request):
-    excel_file = exportar_top3_campañas_por_donaciones()
+    excel_file = exportar_top3_campanas_por_donaciones()
     response = HttpResponse(
         excel_file,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
