@@ -74,6 +74,7 @@ body.home {
 	background-color: #7d0000;
 	border-color: #620202;
 	color: white;
+	max-height: 2.5rem;
 }
 
 .btn.btn-primary.red.create {

@@ -15,13 +15,13 @@
 				</a>
 			</div>
 			<div class="col-6">
-				<form method="get" action="{% url 'descargar_csv_campana' campana_ojb.id_campana %}">
-					<button type="submit" class="btn btn-primary red">
+				<form method="get" action="{% url 'descargar_csv_campana' campana_ojb.id_campana %}" style="height: 3rem;">
+					<button type="submit" style='width: 20rem; margin-top: 0px' class="btn btn-primary red">
 						Descargar Resumen en CSV
 					</button>
 				</form>
-				<form action="{% url 'descargar_excel_campana' campana_ojb.id_campana %}">
-					<button type="submit" class="btn btn-primar red">
+				<form action="{% url 'descargar_excel_campana' campana_ojb.id_campana %}" style="height: 3rem;">
+					<button type="submit" style='width: 20rem; margin-top: 0px' class="btn btn-primary red">
 						Descargar Resumen en Excel
 					</button>
 				</form>
