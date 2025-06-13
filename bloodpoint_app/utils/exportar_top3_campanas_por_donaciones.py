@@ -19,7 +19,7 @@ def exportar_top3_campanas_por_donaciones():
         porcentaje_nuevos = (nuevos_donantes / total_donaciones * 100) if total_donaciones else 0
 
         try:
-            meta_personas = int(c.meta) if c.meta else 0  # Meta como número de personas
+            meta_personas = int(c.meta) if c.meta else 0
         except (ValueError, TypeError):
             meta_personas = 0
 
@@ -36,17 +36,16 @@ def exportar_top3_campanas_por_donaciones():
             "porc_nuevos": porcentaje_nuevos
         })
 
-    # Ordenar y seleccionar top 3
     top3 = sorted(campañas_data, key=lambda x: x["total_donaciones"], reverse=True)[:3]
 
-    # Crear workbook y hoja
     wb = Workbook()
     ws = wb.active
     ws.title = "Top 3 campañas"
 
     # Estilos
+    burdeo = "8B0000"
     header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill("solid", fgColor="4F81BD")
+    header_fill = PatternFill("solid", fgColor=burdeo)
     border = Border(
         left=Side(style='thin'),
         right=Side(style='thin'),
@@ -55,23 +54,40 @@ def exportar_top3_campanas_por_donaciones():
     )
     center_align = Alignment(horizontal="center", vertical="center")
 
+    # Título
+    titulo = "Reporte TOP 3 Campañas de donación a nivel nacional"
+    fecha = datetime.now().strftime("Generado el %d-%m-%Y a las %H:%M")
+
+    ws.merge_cells("A1:N1")
+    cell_titulo = ws["A1"]
+    cell_titulo.value = titulo
+    cell_titulo.font = Font(size=16, bold=True, color="000000")  # negro
+    cell_titulo.alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.merge_cells("A2:N2")
+    cell_fecha = ws["A2"]
+    cell_fecha.value = fecha
+    cell_fecha.font = Font(italic=True, color="555555")
+    cell_fecha.alignment = Alignment(horizontal="center", vertical="center")
+
+    # Encabezados
     headers = [
         "ID campaña", "Nombre", "Fecha inicio", "Fecha fin", "Comuna", "Centro",
         "Representante", "Meta (personas)", "Donaciones recibidas", "% meta alcanzada",
         "Validas", "Intencionadas", "Total sangre (ml)", "% nuevos donantes"
     ]
-    ws.append(headers)
+    ws.append([])  # fila 3 vacía
+    ws.append(headers)  # fila 4
 
-    # Aplicar estilo a cabecera
     for col_num, header in enumerate(headers, 1):
-        cell = ws.cell(row=1, column=col_num, value=header)
+        cell = ws.cell(row=4, column=col_num, value=header)
         cell.font = header_font
         cell.fill = header_fill
         cell.border = border
         cell.alignment = center_align
 
-    # Agregar datos
-    for data in top3:
+    # Datos desde fila 5
+    for i, data in enumerate(top3, start=5):
         c = data["campana"]
         fila = [
             c.id_campana,
@@ -89,21 +105,17 @@ def exportar_top3_campanas_por_donaciones():
             data["total_sangre"],
             round(data["porc_nuevos"], 2)
         ]
-        ws.append(fila)
-
-    # Aplicar estilo a celdas de datos
-    for row in ws.iter_rows(min_row=2, max_row=ws.max_row):
-        for cell in row:
+        for j, valor in enumerate(fila, 1):
+            cell = ws.cell(row=i, column=j, value=valor)
             cell.border = border
-            cell.alignment = Alignment(horizontal="center", vertical="center")
+            cell.alignment = center_align
 
-    # Ajustar ancho de columnas automáticamente
+    # Ajustar ancho de columnas
     for column_cells in ws.columns:
         length = max(len(str(cell.value)) if cell.value else 0 for cell in column_cells)
         adjusted_width = length + 2
         ws.column_dimensions[get_column_letter(column_cells[0].column)].width = adjusted_width
 
-    # Guardar en memoria y devolver bytes
     output = BytesIO()
     wb.save(output)
     output.seek(0)
