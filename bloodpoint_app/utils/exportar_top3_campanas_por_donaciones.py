@@ -1,5 +1,3 @@
-# bloodpoint_app/exportador_excel_top3.py
-
 from openpyxl import Workbook
 from datetime import datetime
 from io import BytesIO
@@ -15,8 +13,16 @@ def exportar_top3_campanas_por_donaciones():
         total_intencionadas = donaciones.filter(es_intencion=True).count()
         total_sangre = sum([d.cantidad_donacion for d in donaciones])
         nuevos_donantes = sum([1 for d in donaciones if d.id_donante.nuevo_donante])
+
         porcentaje_nuevos = (nuevos_donantes / total_donaciones * 100) if total_donaciones else 0
-        porcentaje_meta = (total_sangre / c.meta * 100) if c.meta else 0
+
+        # Convertir meta a número
+        try:
+            meta_valor = float(c.meta) if c.meta else 0
+        except (ValueError, TypeError):
+            meta_valor = 0
+
+        porcentaje_meta = (total_sangre / meta_valor * 100) if meta_valor else 0
 
         campañas_data.append({
             "campana": c,
@@ -24,13 +30,15 @@ def exportar_top3_campanas_por_donaciones():
             "validadas": total_validadas,
             "intencionadas": total_intencionadas,
             "total_sangre": total_sangre,
-            "meta": c.meta,
+            "meta": meta_valor,
             "porc_meta": porcentaje_meta,
             "porc_nuevos": porcentaje_nuevos
         })
 
+    # Ordenar por total de donaciones
     top3 = sorted(campañas_data, key=lambda x: x["total_donaciones"], reverse=True)[:3]
 
+    # Crear Excel
     wb = Workbook()
     ws = wb.active
     ws.title = "Top 3 campañas"
@@ -61,7 +69,7 @@ def exportar_top3_campanas_por_donaciones():
             round(data["porc_nuevos"], 2)
         ])
 
-    # Guardar en memoria
+    # Guardar en memoria y devolver como bytes
     output = BytesIO()
     wb.save(output)
     output.seek(0)
