@@ -3,6 +3,8 @@ import uuid
 from datetime import date, datetime
 import jwt
 import time
+from datetime import datetime
+from yourapp.utils import exportar_top3_campañas_por_donaciones
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
@@ -72,11 +74,19 @@ def descargar_excel_campana(request, campana_id):
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = f'attachment; filename=resumen_campana_{campana_id}.xlsx'
-
+    response['Content-Disposition'] = f'attachment; filename=resumen_campana_N°{campana_id}.xlsx'
     generar_excel_campana(campana_id, response)
     return response
 
+def descargar_top3_campanas(request):
+    excel_file = exportar_top3_campañas_por_donaciones()
+    response = HttpResponse(
+        excel_file,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"top3_campanas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+    return response
 
 def campanas(request):
     return render(request, 'campannas.html')

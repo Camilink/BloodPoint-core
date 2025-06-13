@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from django.shortcuts import redirect
+from .views import descargar_top3_campanas
 
 def root_view(request):
     return redirect('login')  # or 'home' if you prefer
@@ -26,6 +27,7 @@ urlpatterns = [
 
     path('campana/<int:campana_id>/descargar_csv/', views.exportar_resumen_una_campana_csv, name='descargar_csv_campana'),
     path('campana/<int:campana_id>/descargar_excel/', views.descargar_excel_campana, name='descargar_excel_campana'),
+    path('exportar-top3-campanas/', descargar_top3_campanas, name='exportar_top3_campanas'),
 
     path('campanas/', views.campana_index, name='campana_index'),
     path('campanas/detalles/<int:id>/', views.detalles_campana, name='detalles_campana'),
