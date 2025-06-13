@@ -58,7 +58,7 @@ body.home {
 }
 
 .list-item {
-	width: 50%;
+	width: 60%;
 	background: #fff;
 	border: 1px solid #7d0000;
 	padding: 20px;
@@ -91,4 +91,18 @@ body.home {
 .graph-container {
 	display: flex;
 	justify-content: center;
+}
+
+input {
+	font-size: 1.15rem;
+	border: solid 1px #7d3434;
+	color: black;
+	background-color: white;
+	border-radius: 5px;
+	margin-bottom: 0.5rem;
+}
+
+input:disabled {
+	color: #7f7d7d;
+	background-color: #00000008;
 }
