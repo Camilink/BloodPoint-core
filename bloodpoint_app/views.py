@@ -4,7 +4,7 @@ from datetime import date, datetime
 import jwt
 import time
 from datetime import datetime
-from yourapp.utils import exportar_top3_campañas_por_donaciones
+from bloodpoint_app.utils import exportar_top3_campañas_por_donaciones
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
