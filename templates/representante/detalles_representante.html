@@ -33,6 +33,7 @@
 				<label>Verificado: </label>
 				{% if representante.verificado %}
 					<input type="text" value="Si" disabled>
+				{% endif %}
 				{% if not representante.verificado %}
 					<a href="{% url 'verificar_representante' id=representante.id_representante %}" class='btn btn-primary red' style="margin-left: 1.25rem">
 						Verificar
