@@ -21,11 +21,18 @@
 		<div class="row">
 			<div class="col-12">
 				<label>Nombre: </label>
-				<input type="text" value="{{ r4epresentante.nombre }}" disabled>
-				<label>Nombre: </label>
+				<input type="text" value="{{ representante.nombre }}" disabled>
+				<label>Apellido: </label>
 				<input type="text" value="{{ representante.apellido }}" disabled>
 				<label>Email: </label>
 				<input type="text" value="{{ representante.email }}" disabled>
+				<label>RUT: </label>
+				<input type="text" value="{{ representante.rut }}" disabled>
+				<label>Rol: </label>
+				<input type="text" value="{{ representante.rol }}" disabled>
+				<label>Verificado: </label>
+				{% if representante.verificado %}
+					<input type="text" value="Si" disabled>
 				{% if not representante.verificado %}
 					<a href="{% url 'verificar_representante' id=representante.id_representante %}" class='btn btn-primary red' style="margin-left: 1.25rem">
 						Verificar
