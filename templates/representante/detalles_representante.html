@@ -8,7 +8,7 @@
 		<h2>
 			Panel Usuarios Representantes
 		</h2>
-		<div class="row">
+		<div class="row" style="margin-bottom: 1.5rem">
 			<div class="col-12" style="display: flex;">
 				<a class="btn btn-primary red" href="{% url 'representante_index' %}">
 					<span>Volver al listado</span>
@@ -17,22 +17,22 @@
 					<span>Editar</span>
 				</a>
 			</div>
+		</div>
+		<div class="row">
 			<div class="col-12">
-				<h4>Nombre: </h4>
-				<input type="text" value="{{ representante.nombre }}" disabled>
-				<h4>Nombre: </h4>
+				<label>Nombre: </label>
+				<input type="text" value="{{ r4epresentante.nombre }}" disabled>
+				<label>Nombre: </label>
 				<input type="text" value="{{ representante.apellido }}" disabled>
-				<h4>Email: </h4>
+				<label>Email: </label>
 				<input type="text" value="{{ representante.email }}" disabled>
-				<h4>{{representente.verificado}}</h4>
-				<h4>--{{representente.verificado_text}}--</h4>
 				{% if not representante.verificado %}
-					<a href="{% url 'verificar_representante' id=representante.id_representante %}" style="margin-left: 1.25rem">
+					<a href="{% url 'verificar_representante' id=representante.id_representante %}" class='btn btn-primary red' style="margin-left: 1.25rem">
 						Verificar
 						<i style="color: #7d0000;" class="fas fa-check fa-3" style="margin-left: 0.5rem" aria-hidden="true"></i>
 					</a>
 				{% endif %}
-				<h4>Creado el: {{representante.created_at}}</h4>
+				<label>Creado el: {{representante.created_at}}</label>
 			</div>
 		</div>
 	</div>

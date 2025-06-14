@@ -103,7 +103,7 @@ def admin_home(request):
     return render(request, 'admin_home.html')
 
 def admin_index(request):
-    admins = adminbp.objects.all()
+    admins = adminbp.objects.exclude(user_id=request.user.id)
     return render(request, 'administrador/index.html', {'admins': admins})
 
 def detalles_admin(request, id):
@@ -175,7 +175,7 @@ def verificar_representante(request, id):
     return redirect('detalles_representante', id=id)
 
 def editar_representante(request, id):
-    representante = get_object_or_404(repesentante_org, id_representante=id)
+    representante = get_object_or_404(representante_org, id_representante=id)
     if request.method == 'POST':
         form = RepresentanteOrgForm(request.POST, instance=representante)
         if form.is_valid():
