@@ -89,6 +89,14 @@ body.home {
 	color: white;
 }
 
+.btn.btn-primary.red:focus,
+.btn.btn-primary.red:active{
+	background-color: #3c0000;
+	border-color: #3c0202;
+  	color: white !important;
+  	box-shadow: 0 0 0 0.2rem rgba(149, 26, 26, 0.703); 
+}
+
 .graph-container {
 	display: flex;
 	justify-content: center;
@@ -123,3 +131,4 @@ input:disabled {
 	color: #7f7d7d;
 	background-color: #00000008;
 }
+
