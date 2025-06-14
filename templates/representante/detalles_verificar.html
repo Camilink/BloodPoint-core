@@ -9,9 +9,15 @@
 			Panel Usuarios Representantes
 		</h2>
 		<div class="row" style="margin-bottom: 1.5rem">
-			<div class="col-12" style="display: flex;">
+			<div class="col-6" style="display: flex;">
 				<a class="btn btn-primary red" href="{% url 'lista_verificar' %}">
 					<span>Volver al listado</span>
+				</a>
+			</div>
+			<div class="col-6">
+				<a href="{% url 'verificar_representante' id=representante.id_representante %}" class='btn btn-primary red' style="margin-left: 1.25rem">
+					Verificar
+					<i style="color: #7d0000;" class="fas fa-solid fa-user-check fa-3" style="margin-left: 0.5rem; color: white;" aria-hidden="true"></i>
 				</a>
 			</div>
 		</div>
@@ -35,10 +41,6 @@
 					<input type="text" value="Sin credencial" disabled>
 				{% endif %}
 				<label>Creado el: {{representante.created_at}}</label>
-				<a href="{% url 'verificar_representante' id=representante.id_representante %}" class='btn btn-primary red' style="margin-left: 1.25rem">
-					Verificar
-					<i style="color: #7d0000;" class="fas fa-solid fa-user-check fa-3" style="margin-left: 0.5rem" aria-hidden="true"></i>
-				</a>
 			</div>
 		</div>
 	</div>
