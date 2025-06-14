@@ -159,7 +159,7 @@ def eliminar_admin(request, id):
     return redirect('admin_index')
 
 def representante_index(request):
-    representantes = representante_org.objects.all()
+    representantes = representante_org.objects.filter(verificado=True)
     return render(request, 'representante/index.html', {'representantes': representantes})
 
 def detalles_representante(request, id):
@@ -172,7 +172,7 @@ def verificar_representante(request, id):
     representante = get_object_or_404(representante_org, id_representante=id)
     representante.verificado = True
     representante.save()
-    return redirect('detalles_representante', id=id)
+    return redirect('lista_verificar')
 
 def editar_representante(request, id):
     representante = get_object_or_404(representante_org, id_representante=id)
@@ -189,6 +189,15 @@ def eliminar_representante(request, id):
     representante = get_object_or_404(representante_org, id_representante=id)
     repesentante.delete()
     return redirect('representante_index')
+
+def lista_verificar(request):
+    representantes = representante_org.objects.filter(verificado=False)
+    return render(request, 'representante/lista_verificar.html', {'representantes': representantes})
+
+def detalles_verificar(request, id):
+    representante = get_object_or_404(representante_org, id_representante=id)
+
+    return render(request, 'representante/detalles_verificar.html', {'representante': representante})
 
 def campana_index(request):
     

@@ -25,6 +25,9 @@ urlpatterns = [
     path('representante/eliminar/<int:id>/', views.eliminar_representante, name='eliminar_representante'),
     path('representante/verificar/<int:id>/', views.verificar_representante, name='verificar_representante'),
 
+    path('representante/lista_verificar/', views.lista_verificar, name='lista_verificar'),
+    path('representante/lista_verificar/<int:id>/', views.detalles_verificar, name='detalles_verificar'),
+
     path('campana/<int:campana_id>/descargar_csv/', views.exportar_resumen_una_campana_csv, name='descargar_csv_campana'),
     path('campana/<int:campana_id>/descargar_excel/', views.descargar_excel_campana, name='descargar_excel_campana'),
     path('exportar-top3-campanas/', descargar_top3_campanas, name='exportar_top3_campanas'),
