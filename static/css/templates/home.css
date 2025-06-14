@@ -90,7 +90,8 @@ body.home {
 }
 
 .btn.btn-primary.red:focus,
-.btn.btn-primary.red:active{
+.btn.btn-primary.red:active,
+.btn.btn-primary.red:hover:active{
 	background-color: #3c0000;
 	border-color: #3c0202;
   	color: white !important;

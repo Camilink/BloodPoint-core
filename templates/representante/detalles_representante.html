@@ -27,19 +27,16 @@
 				<label>Email: </label>
 				<input type="text" value="{{ representante.email }}" disabled>
 				<label>RUT: </label>
-				<input type="text" value="{{ representante.rut }}" disabled>
+				<input type="text" value="{{ representante.rut_representante }}" disabled>
 				<label>Rol: </label>
 				<input type="text" value="{{ representante.rol }}" disabled>
 				<label>Verificado: </label>
 				{% if representante.verificado %}
 					<input type="text" value="Si" disabled>
 				{% endif %}
-				{% if not representante.verificado %}
-					<a href="{% url 'verificar_representante' id=representante.id_representante %}" class='btn btn-primary red' style="margin-left: 1.25rem">
-						Verificar
-						<i style="color: #7d0000;" class="fas fa-check fa-3" style="margin-left: 0.5rem" aria-hidden="true"></i>
-					</a>
-				{% endif %}
+				<label>Credencial: </label>
+				{% if representante.credencial %}
+					<img src="{{ representante.credencial.url }}" alt="Credencial Representante" style="max-width: 750; max-height: 400px; margin-top: 1rem">
 				<label>Creado el: {{representante.created_at}}</label>
 			</div>
 		</div>

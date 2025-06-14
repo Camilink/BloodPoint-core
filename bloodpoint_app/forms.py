@@ -14,10 +14,11 @@ class AdminBPForm(forms.ModelForm):
 class RepresentanteOrgForm(forms.ModelForm):
     class Meta:
         model = representante_org
-        fields = ['nombre', 'apellido', 'rut_representante', 'rol', 'credencial']
+        fields = ['nombre', 'apellido','email', 'rut_representante', 'rol', 'credencial']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'apellido': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'disabled': 'disabled'}),
             'rut_representante': forms.TextInput(attrs={'class': 'form-control'}),
             'user': forms.Select(attrs={'class': 'form-control'}),
             'rol': forms.TextInput(attrs={'class': 'form-control'}),
