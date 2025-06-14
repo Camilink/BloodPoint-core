@@ -104,6 +104,11 @@ input {
 	max-width: 35vw;
 }
 
+label {
+	color: black;
+	margin-top: 0rem;
+}
+
 input.form-control {
 	font-size: 1.15rem;
 	border: solid 1px #7d3434;

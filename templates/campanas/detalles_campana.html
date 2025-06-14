@@ -8,7 +8,8 @@
 		<h2>
 			Detalles Campaña
 		</h2>
-		<div class="row">
+		<div class="row" style="margin-bottom: 1.5rem">
+			
 			<div class="col-6" style="display: flex;">
 				<a class="btn btn-primary red" href="{% url 'campana_index' %}">
 					<span>Volver al listado</span>
@@ -26,12 +27,14 @@
 					</button>
 				</form>
 			</div>
+		</div>
+		<div class="row">
 			<div class="col-12">
-				<h4>Nombre: </h4>
-				<input type="text" value="{{ campana_ojb.nombre_campana }}" disabled>
-				<h4>Fecha de la campaña: </h4>
+				<label> Nombre: </label>
+				<input id='nombre_campana' type="text" value="{{ campana_ojb.nombre_campana }}" disabled>
+				<label> Fecha de la campaña: </label>
 				<input type="text" value="{{ campana_ojb.fecha_campana }}" disabled>
-				<h4>Creado el: {{campana_ojb.created_at}}</h4>
+				<h5>Creado el: {{campana_ojb.created_at}}</h5>
 			</div>
 			<div class="col-6">
 				<h4>Total donaciones recibidas: </h4>
