@@ -101,6 +101,17 @@ input {
 	background-color: white;
 	border-radius: 5px;
 	margin-bottom: 0.5rem;
+	max-width: 35vw;
+}
+
+input.form-control {
+	font-size: 1.15rem;
+	border: solid 1px #7d3434;
+	color: black;
+	background-color: white;
+	border-radius: 5px;
+	margin-bottom: 0.5rem;
+	max-width: 35vw;
 }
 
 input:disabled {
