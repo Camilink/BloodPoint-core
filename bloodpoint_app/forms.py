@@ -12,10 +12,6 @@ class AdminBPForm(forms.ModelForm):
         }
 
 class RepresentanteOrgForm(forms.ModelForm):
-from django import forms
-from .models import representante_org
-
-class RepresentanteOrgForm(forms.ModelForm):
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={'class': 'form-control', 'disabled': 'disabled'}),
         required=False  # Since it's not a model field, avoid validation errors
