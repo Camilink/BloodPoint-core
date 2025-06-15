@@ -125,3 +125,5 @@ def generar_excel_campana(campana_id, response):
 
     # Guardar archivo en response
     wb.save(response)
+    if hasattr(response, "seek"):
+        response.seek(0)
