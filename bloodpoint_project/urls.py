@@ -29,6 +29,7 @@ urlpatterns = [
     path('donaciones/qr/', views.escanear_qr_donacion, name='qr-donacion'),
     path('campanas/crear/', views.crear_campana, name='crear_campana'),
     path('campanas/activas/', views.campanas_activas, name='campanas_activas'),
+    path('ask/', views.ask_bot, name='preguntar-llm'),
 
 
     #super set
