@@ -1,12 +1,13 @@
 from django.core.management.base import BaseCommand
-from datetime import datetime, timedelta, date
+from datetime import timedelta, date
+from django.utils import timezone
 from bloodpoint_app.models import CustomUser, adminbp, donante, representante_org, centro_donacion, donacion, campana, solicitud_campana_repo
 
 class Command(BaseCommand):
     help = 'Llena la base de datos con datos de prueba específicos (basados en la query)'
 
     def handle(self, *args, **options):
-        # Limpieza opcional: eliminar registros previos si quieres (descomenta si quieres)
+        # Limpieza opcional
         adminbp.objects.all().delete()
         representante_org.objects.all().delete()
         donante.objects.all().delete()
@@ -34,7 +35,7 @@ class Command(BaseCommand):
                     'is_superuser': True,
                     'is_superadmin': True,
                     'is_active': True,
-                    'date_joined': datetime.now(),
+                    'date_joined': timezone.now(),
                 }
             )
             if created:
@@ -47,7 +48,7 @@ class Command(BaseCommand):
                     nombre=f'{first_name} {last_name}',
                     email=email,
                     contrasena=pwd,
-                    created_at=datetime.now()
+                    created_at=timezone.now()
                 )
 
         # --- REPRESENTANTES ---
@@ -70,7 +71,7 @@ class Command(BaseCommand):
                     'is_superadmin': False,
                     'is_staff': False,
                     'is_superuser': False,
-                    'date_joined': datetime.now(),
+                    'date_joined': timezone.now(),
                 }
             )
             if created:
@@ -86,7 +87,7 @@ class Command(BaseCommand):
                     apellido=last_name,
                     credencial=credencial,
                     verificado=verificado,
-                    created_at=datetime.now()
+                    created_at=timezone.now()
                 )
 
         # --- DONANTES ---
@@ -111,7 +112,7 @@ class Command(BaseCommand):
                     'is_superadmin': False,
                     'is_staff': False,
                     'is_superuser': False,
-                    'date_joined': datetime.now(),
+                    'date_joined': timezone.now(),
                 }
             )
             if created:
@@ -134,7 +135,7 @@ class Command(BaseCommand):
                     dispo_dia_donacion=dias[(i % len(dias))],
                     nuevo_donante=(i % 2 == 0),
                     noti_emergencia=True,
-                    created_at=datetime.now()
+                    created_at=timezone.now()
                 )
 
         self.stdout.write(self.style.SUCCESS('¡Datos insertados en la base de datos con éxito!'))
