@@ -203,3 +203,10 @@ class logro(models.Model):
     id_donante = models.ForeignKey(donante, on_delete=models.CASCADE)
     fecha_logro = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+class preguntas_usuario(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    pregunta=models.CharField(max_length=255)
+    respondida=models.BooleanField(default=False)
+    fecha_pregunta = models.DateTimeField(auto_now_add=True)
