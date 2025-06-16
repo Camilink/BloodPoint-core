@@ -1,8 +1,11 @@
 import logging
+import os
 import uuid
 from datetime import date, datetime
 import jwt
+import requests
 import time
+import json
 from datetime import datetime
 
 
@@ -1072,6 +1075,158 @@ def campanas_activas(request):
         "status": "success",
         "data": serializer.data
     }, status=200)
+
+@api_view(['POST'])
+def ask_bot(request):
+    try:
+        # Get question from either GET parameters or POST body
+        if request.method == "GET":
+            question = request.GET.get("prompt")
+        elif request.method == "POST":
+            try:
+                data = json.loads(request.body)
+                question = data.get("prompt")
+            except json.JSONDecodeError:
+                return HttpResponse({"error": "Invalid JSON in request body"}, status=400)
+        else:
+            return HttpResponse({"error": "Método no permitido"}, status=405)
+
+        if not question:
+            return HttpResponse({"error": "Falta el parámetro 'prompt'"}, status=400)
+
+        # Validación con modelo
+        resultado_validacion = validar_con_modelo(question)
+
+        if resultado_validacion == "no":
+            return HttpResponse({
+                "validacion": "no",
+                "response": "Por favor, realiza una pregunta relacionada con la donación de sangre."
+            })
+
+        elif resultado_validacion == "idk":
+            return HttpResponse({
+                "validacion": "idk",
+                "response": "No estoy seguro si tu pregunta está relacionada. ¿Podrías reformularla?"
+            })
+
+        # Si pasó la validación
+        headers = {
+            "Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}",
+            "Content-Type": "application/json",
+            "X-Title": "Chatbot Donación de Sangre",
+            "OpenAI-Organization": "org-123456789"  # Adding organization header
+        }
+
+        # Obtener el archivo BPCB.json
+        with open('bloodpoint_app/BPCB.json', 'r') as file:
+            bpcb_data = json.load(file)
+
+        # Crear el prompt completo
+        full_question = create_full_question(question, bpcb_data)
+
+        body = {
+            "model": "deepseek/deepseek-chat-v3-0324:free",
+            "messages": [
+                {"role": "system", "content": "Eres un asistente especializado en donación de sangre."},
+                {"role": "user", "content": full_question["prompt"]}
+            ]
+        }
+
+        print("Sending request to OpenRouter with headers:", headers)  # Debug print
+        openrouter_response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers=headers,
+            json=body
+        )
+
+        result = openrouter_response.json()
+        print("OpenRouter Response:", result)  # Debug print
+
+        # Extraer el texto limpio de la respuesta del modelo
+        answer = result.get("choices", [{}])[0].get("message", {}).get("content", "Sin respuesta generada.").strip()
+
+        # Devolver respuesta con formato estructurado
+        return Response({
+            "validacion": resultado_validacion,
+            "response": answer,
+        })
+
+    except Exception as e:
+        print("Error in ask_bot:", str(e))  # Debug print
+        return HttpResponse({"error": str(e)}, status=500)
+    
+def validar_con_modelo(prompt: str) -> str:
+    headers = {
+        "Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}",
+        "Content-Type": "application/json",
+        "X-Title": "Chatbot Donación de Sangre",
+        "OpenAI-Organization": "org-123456789"  # Adding organization header
+    }
+
+    body = {
+        "model": "deepseek/deepseek-chat-v3-0324:free",  # o cualquier otro modelo gratuito
+        "messages": [
+            {"role": "system", "content": "Responde únicamente con una de estas opciones: 'yes', 'no' o 'idk'. ¿La siguiente pregunta está relacionada con la donación de sangre?"},
+            {"role": "user", "content": prompt}
+        ]
+    }
+
+    try:
+        print("Validator sending request with headers:", headers)  # Debug print
+        response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=body)
+        result = response.json()
+        print("Validator Response:", result)  # Debug print
+        message = result.get("choices", [{}])[0].get("message", {}).get("content", "").lower().strip()
+
+        if "yes" in message:
+            return "yes"
+        elif "idk" in message:
+            return "idk"
+        elif "no" in message:
+            return "no"
+        else:
+            return prompt
+
+    except Exception as e:
+        print("Error en validador:", e)
+        return "idk"
+
+def create_full_question(question, bpcb_data):
+    """
+    Creates a full question prompt using the BPCB.json data
+    """
+    # Get the first document's data
+    doc_data = bpcb_data[0]
+    
+    # Create the base prompt
+    prompt = f"""Eres un asistente especializado en como .
+
+Contexto: {doc_data['descripcion']}
+
+Base de conocimiento sobre donación de sangre:
+"""
+    
+    # Add all FAQ entries as context
+    for faq in doc_data['faq']:
+        prompt += f"\nPregunta: {faq['pregunta']}\nRespuesta: {faq['respuesta']}\n"
+    
+    # Add the current question
+    prompt += f"\nPregunta actual: {question}\n"
+    
+    # Add instructions
+    prompt += """
+Por favor, responde la pregunta actual basándote en la información proporcionada.
+Si la pregunta no está directamente relacionada con el contexto de donación de sangre,
+indica que tu conocimiento está limitado a este tema específico.
+
+ex: pregunta : ¿Qué regula la Norma 0146?
+    respuesta: Regula el procedimiento de atención a donantes de sangre en lugares fijos (centros de sangre) o móviles (colectas móviles).
+"""
+    
+    return {
+        "question": question,
+        "prompt": prompt
+    }
 
 
 #=========================================================== APACHE SUPERSET ==============================================================
