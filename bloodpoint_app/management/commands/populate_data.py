@@ -126,8 +126,8 @@ class Command(BaseCommand):
             fecha_campana = fake.date_between(start_date='-1y', end_date='today')
             fecha_termino = fecha_campana + timedelta(days=7)
 
-            latitud = int(round(fake.pyfloat(min_value=-37.0, max_value=-33.0), 6) * 1_000_000)
-            longitud = int(round(fake.pyfloat(min_value=-73.0, max_value=-70.0), 6) * 1_000_000)
+            latitud = round(fake.pyfloat(min_value=-37.0, max_value=-33.0), 6)
+            longitud = round(fake.pyfloat(min_value=-73.0, max_value=-70.0), 6)
 
             c = campana.objects.create(
                 nombre_campana=fake.company(),
