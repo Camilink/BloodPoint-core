@@ -81,7 +81,7 @@ class Command(BaseCommand):
         ocupaciones = ['estudiante', 'trabajador', 'jubilado', 'otro']
         tipo_sangres = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
 
-        for _ in range(20):
+        for _ in range(100):
             nombre = random.choice(nombres)
             apellido = random.choice(apellidos)
             email = fake.unique.email()
