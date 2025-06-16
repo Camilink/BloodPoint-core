@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}BloodPoint - FAQ{% endblock %}
+{% block content %}
+
+<body class='home'>
+    {% include "componentes/navbar.html" %}
+    <div class="main-content">
+        <h2>
+            Responder FAQ
+        </h2>
+        <h4>En esta sección podrás ver preguntas frecuentes y responderlas.</h4><br>
+        <h4>¡Estarás ayudando a un potencial donante!</h4>
+        <h2>Responder Pregunta</h2>
+        {% for pregunta in preguntas %}
+        <div class="pregunta-card">
+            <p><strong>Donante:</strong> {{ pregunta.user.get_full_name }}</p>
+            <p><strong>Fecha:</strong> {{ pregunta.fecha_pregunta }}</p>
+            <p><strong>Pregunta:</strong> {{ pregunta.pregunta }}</p>
+            <a href="{% url 'responder_pregunta' pregunta.id %}" class="btn btn-primary">Responder</a>
+        </div>
+        {% empty %}
+        <p>No hay preguntas pendientes.</p>
+        {% endfor %}
+        <div>
+    <body>
+        {% endblock %}

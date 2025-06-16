@@ -19,6 +19,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from bloodpoint_app.utils.export_helpers import generar_csv_resumen_campana
 from bloodpoint_app.utils.excel_templates import generar_excel_campana
 from bloodpoint_app.utils.exportar_top3_campanas_por_donaciones import exportar_top3_campanas_por_donaciones
+from bloodpoint_app.utils.respuesta_donante import enviar_respuesta_a_donante
 from bloodpoint_app.forms import AdminBPForm
 from bloodpoint_app.forms import RepresentanteOrgForm
 
@@ -35,7 +36,9 @@ from .models import (
     donacion,
     solicitud_campana_repo,
     campana,
-    adminbp
+    adminbp,
+    preguntas_usuario,
+    respuestas_representante
 )
 
 from .serializers import (
@@ -61,6 +64,36 @@ logger = logging.getLogger(__name__)
 #    return HttpResponse("Welcome to Bloodpoint API")
 
 # NAVEGADOR 
+
+
+@login_required
+def listar_preguntas(request):
+    representante = representante_org.objects.get(user=request.user)
+    preguntas = preguntas_usuario.objects.filter(respondida=False, id_campana__id_representante=representante)
+    return render(request, 'listar_preguntas.html', {'preguntas': preguntas})
+
+@login_required
+def responder_pregunta(request, pregunta_id):
+    pregunta = get_object_or_404(preguntas_usuario, id=pregunta_id)
+    representante = representante_org.objects.get(user=request.user)
+
+    if request.method == 'POST':
+        respuesta_texto = request.POST.get('respuesta')
+
+        respuesta = respuestas_representante.objects.create(
+            respuesta=respuesta_texto,
+            fecha_respuesta=timezone.now(),
+            id_pregunta=pregunta,
+            id_representante=representante
+        )
+
+        pregunta.respondida = True
+        pregunta.save()
+
+        enviar_respuesta_a_donante(respuesta.id)
+        return redirect('listar_preguntas')
+
+    return render(request, 'pregunta_chatbot.html', {'pregunta': pregunta})
 
 ##generador csv
 def exportar_resumen_una_campana_csv(request, campana_id):

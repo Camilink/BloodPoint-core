@@ -4,7 +4,7 @@
         <i class="fas fa-heartbeat"></i>
         <span>BLOODPOINT</span>
     </div>
-    
+
     {% if request.user.is_authenticated and request.user.tipo_usuario == 'admin' %}
     <!-- Vistas solo para admin -->
     <a href="{% url 'admin_home' %}" class="nav-item">
@@ -39,8 +39,8 @@
         <i class="fas fa-users"></i>
         <span>Mis Campañas</span>
     </a>
-    <a href="" class="nav-item">
-        <i class="fas fa-users"></i>
+    <a href="{% url 'listar_preguntas' %}" class="nav-item">
+        <i class="fas fa-question-circle"></i>
         <span>Responder FAQ</span>
     </a>
     <a href="{% url 'configuracion_representante' %}" class="nav-item">

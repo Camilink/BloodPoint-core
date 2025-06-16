@@ -210,3 +210,10 @@ class preguntas_usuario(models.Model):
     pregunta=models.CharField(max_length=255)
     respondida=models.BooleanField(default=False)
     fecha_pregunta = models.DateTimeField(auto_now_add=True)
+
+class respuestas_representante(models.Model):
+    id = models.AutoField(primary_key=True)
+    respuesta=models.CharField(max_length=255)
+    fecha_respuesta = models.DateTimeField(auto_now_add=True)
+    id_pregunta = models.ForeignKey(preguntas_usuario, on_delete=models.CASCADE)
+    id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE)
