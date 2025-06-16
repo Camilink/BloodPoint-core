@@ -1,199 +1,212 @@
-import random
-from datetime import datetime, timedelta
-from django.core.management.base import BaseCommand
-from django.utils import timezone
-from django.contrib.auth import get_user_model
-from bloodpoint_app.models import donante, representante_org, centro_donacion, campana, donacion, adminbp
+from django.conf import settings
+from django.db import models
+from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.db import models
 
-User = get_user_model()
-
-OCUPACIONES = ['estudiante', 'trabajador', 'jubilado', 'otro']
-TIPO_SANGRE = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
-
-# Coordenadas aproximadas para Región Metropolitana (Santiago)
-LAT_MIN, LAT_MAX = -33.75, -33.35
-LON_MIN, LON_MAX = -70.95, -70.45
-
-def random_lat_lon():
-    lat = round(random.uniform(LAT_MIN, LAT_MAX), 6)
-    lon = round(random.uniform(LON_MIN, LON_MAX), 6)
-    return lat, lon
-
-class Command(BaseCommand):
-    help = 'Populate database with test users, donantes, representantes, campañas, centros y donaciones'
-
-    def handle(self, *args, **options):
-        self.stdout.write("Borrando datos antiguos...")
-        donacion.objects.all().delete()
-        campana.objects.all().delete()
-        centro_donacion.objects.all().delete()
-        representante_org.objects.all().delete()
-        donante.objects.all().delete()
-        adminbp.objects.all().delete()
-        User.objects.exclude(email='admin@example.com').delete()
-
-        self.stdout.write("Creando admin...")
-        admin_user = User.objects.create_superuser(
-            email='admin@example.com',
-            password='12345678'
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, rut=None, **extra_fields):
+        # Validación de email obligatorio para todos
+        if not email:
+            raise ValueError('El email es obligatorio para todos los usuarios')
+        
+        # Validación de RUT obligatorio solo para donantes
+        tipo_usuario = extra_fields.get('tipo_usuario')
+        if tipo_usuario == 'donante' and not rut:
+            raise ValueError('El RUT es obligatorio para donantes')
+        
+        # Limpieza y creación del usuario
+        email = self.normalize_email(email)
+        user = self.model(
+            email=email,
+            rut=rut if tipo_usuario == 'donante' else None,  # RUT solo para donantes
+            **extra_fields
         )
-        adminbp.objects.create(
-            user=admin_user,
-            nombre='Administrador Principal',
-            email=admin_user.email,
-            contrasena='12345678'
-        )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
-        self.stdout.write("Creando representante especial y su campaña...")
-        # Crear usuario representante especial
-        rep_user = User.objects.create_user(
-            email='camilaajojeda@gmail.com',
-            password='12345678',
-            tipo_usuario='representante',
-            is_staff=True,
-        )
-        representante = representante_org.objects.create(
-            user=rep_user,
-            rut_representante='12345678-9',
-            rol='Líder',
-            nombre='Camila',
-            apellido='Ajo',
-            verificado=True
-        )
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_superadmin', True)
+        extra_fields.setdefault('tipo_usuario', 'admin')
+        return self.create_user(email=email, password=password, **extra_fields)
 
-        # Crear centro de donación ligado al representante
-        centro = centro_donacion.objects.create(
-            nombre_centro='Centro Donación Santiago',
-            direccion_centro='Av. Libertador 123',
-            comuna='Santiago',
-            telefono='123456789',
-            fecha_creacion=datetime.now().date(),
-            id_representante=representante,
-            horario_apertura=datetime.strptime('08:00', '%H:%M').time(),
-            horario_cierre=datetime.strptime('18:00', '%H:%M').time()
-        )
+class CustomUser(AbstractUser):
+    # Eliminamos username y usamos email como identificador principal
+    username = None
+    email = models.EmailField('correo electrónico', unique=True)  # Obligatorio y único
+    rut = models.CharField('RUT', max_length=12, unique=True, null=True, blank=True)  # Solo para donantes
+    
+    # Tipo de usuario
+    TIPO_USUARIO_CHOICES = [
+        ('donante', 'Donante'),
+        ('representante', 'Representante'),
+        ('admin', 'Administrador'),
+    ]
+    tipo_usuario = models.CharField(
+        max_length=20,
+        choices=TIPO_USUARIO_CHOICES,
+        default='donante'
+    )
+    
+    # Campos de permisos
+    is_superadmin = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
 
-        lat, lon = random_lat_lon()
+    # Configuración de login
+    USERNAME_FIELD = 'email'  # Todos inician sesión con email por defecto
+    REQUIRED_FIELDS = []  # Campos adicionales para createsuperuser
 
-        # Crear campaña ligada al centro y representante especial
-        camp = campana.objects.create(
-            nombre_campana='Campaña Camila Especial',
-            fecha_campana=datetime.now().date(),
-            id_centro=centro,
-            apertura=datetime.strptime('08:00', '%H:%M').time(),
-            cierre=datetime.strptime('18:00', '%H:%M').time(),
-            meta='100',
-            latitud=int(lat * 1e6),  # Según modelo, es IntegerField, por eso escalamos
-            longitud=int(lon * 1e6),
-            id_representante=representante,
-            fecha_termino=(datetime.now() + timedelta(days=30)).date(),
-            validada=True,
-            estado='desarrollandose'
-        )
+    objects = CustomUserManager()
 
-        self.stdout.write("Creando 20 donantes...")
+    def __str__(self):
+        return f'{self.email} ({self.tipo_usuario})'
 
-        donantes_list = []
-        for i in range(20):
-            user = User.objects.create_user(
-                email=f'donante{i}@example.com',
-                password='12345678',
-                tipo_usuario='donante',
-                rut=f'1111111{i}-1',
-            )
-            d = donante.objects.create(
-                user=user,
-                rut=user.rut,
-                nombre_completo=f'Donante {i}',
-                sexo=random.choice(['M', 'F']),
-                ocupacion=random.choice(OCUPACIONES),
-                direccion=f'Calle {i} #123',
-                comuna='Santiago',
-                fono=f'91234567{i}',
-                fecha_nacimiento=(datetime.now() - timedelta(days=365*random.randint(18,65))).date(),
-                nacionalidad='Chilena',
-                tipo_sangre=random.choice(TIPO_SANGRE),
-                dispo_dia_donacion='Fines de semana',
-                nuevo_donante=random.choice([True, False]),
-                noti_emergencia=True,
-            )
-            donantes_list.append(d)
+    def get_username(self):
+        """Sobrescribe para permitir login con RUT solo para donantes"""
+        return self.rut if self.tipo_usuario == 'donante' else self.email
 
-        self.stdout.write("Creando 4 representantes adicionales...")
+TIPO_SANGRE_CHOICES = [
+    ('O+', 'O+'),
+    ('O-', 'O-'),
+    ('A+', 'A+'),
+    ('A-', 'A-'),
+    ('B+', 'B+'),
+    ('B-', 'B-'),
+    ('AB+', 'AB+'),
+    ('AB-', 'AB-'),
+]
+class donante(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, blank=True)  # Vinculación correcta
+    id_donante = models.AutoField(primary_key=True)
+    rut = models.CharField(unique=True, max_length=12)
+    nombre_completo = models.CharField(max_length=100)
+    sexo = models.CharField(max_length=1)
+    ocupacion = models.CharField(max_length=100)
+    direccion = models.CharField(max_length=255)
+    comuna = models.CharField(max_length=100)
+    fono = models.CharField(max_length=20)
+    fecha_nacimiento = models.DateField()
+    nacionalidad = models.CharField(max_length=50)
+    tipo_sangre = models.CharField(max_length=3, choices=TIPO_SANGRE_CHOICES)
+    dispo_dia_donacion = models.CharField(max_length=50)
+    nuevo_donante = models.BooleanField(default=False)
+    noti_emergencia = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-        for i in range(4):
-            user = User.objects.create_user(
-                email=f'representante{i}@example.com',
-                password='12345678',
-                tipo_usuario='representante',
-                is_staff=True,
-            )
-            representante_org.objects.create(
-                user=user,
-                rut_representante=f'2222222{i}-2',
-                rol='Coordinador',
-                nombre=f'RepNombre{i}',
-                apellido=f'RepApellido{i}',
-                verificado=bool(random.getrandbits(1)),
-            )
+    def __str__(self):
+        return self.nombre_completo
 
-        self.stdout.write("Creando campañas y donaciones para los donantes...")
+class representante_org(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, blank=True) 
+    id_representante = models.AutoField(primary_key=True)
+    rut_representante = models.CharField(max_length=12, unique=True)
+    rol = models.CharField(max_length=100)
+    nombre = models.CharField(max_length=100)
+    apellido = models.CharField(max_length=100)
+    credencial = models.ImageField(upload_to='credenciales', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    verificado = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return self.nombre
 
-        # Crear más centros y campañas
-        for j in range(3):  # 3 centros extra
-            rep_random = representante_org.objects.order_by('?').first()
-            centro_extra = centro_donacion.objects.create(
-                nombre_centro=f'Centro Donacion Extra {j}',
-                direccion_centro=f'Avenida Extra {j} 456',
-                comuna='Santiago',
-                telefono=f'98765432{j}',
-                fecha_creacion=datetime.now().date(),
-                id_representante=rep_random,
-                horario_apertura=datetime.strptime('08:00', '%H:%M').time(),
-                horario_cierre=datetime.strptime('17:00', '%H:%M').time()
-            )
-            lat, lon = random_lat_lon()
-            camp_extra = campana.objects.create(
-                nombre_campana=f'Campaña Extra {j}',
-                fecha_campana=datetime.now().date(),
-                id_centro=centro_extra,
-                apertura=datetime.strptime('09:00', '%H:%M').time(),
-                cierre=datetime.strptime('16:00', '%H:%M').time(),
-                meta=str(random.randint(50, 150)),
-                latitud=int(lat * 1e6),
-                longitud=int(lon * 1e6),
-                id_representante=rep_random,
-                fecha_termino=(datetime.now() + timedelta(days=20)).date(),
-                validada=True,
-                estado='desarrollandose'
-            )
+    def email(self):
+        return self.user.email
 
-            # Crear donaciones para estas campañas (entre 10 y 20 por campaña)
-            donantes_para_esta_campana = random.sample(donantes_list, k=15)
-            for donante_obj in donantes_para_esta_campana:
-                donacion.objects.create(
-                    id_donante=donante_obj,
-                    fecha_donacion=datetime.now().date() - timedelta(days=random.randint(0,30)),
-                    cantidad_donacion=random.choice([1, 2]),
-                    centro_id=centro_extra,
-                    tipo_donacion='campana',
-                    validada=True,
-                    es_intencion=False,
-                    campana_relacionada=camp_extra
-                )
+    def full_name(self):
+        return self.nombre + ' ' + self.apellido
 
-        # Crear 30 donaciones para la campaña especial de Camila con los mismos donantes
-        for i in range(30):
-            don_obj = random.choice(donantes_list)
-            donacion.objects.create(
-                id_donante=don_obj,
-                fecha_donacion=datetime.now().date() - timedelta(days=random.randint(0,30)),
-                cantidad_donacion=random.choice([1, 2]),
-                centro_id=centro,
-                tipo_donacion='campana',
-                validada=True,
-                es_intencion=False,
-                campana_relacionada=camp
-            )
+    def verificado_text(self):
+        return 'Representante verificado' if self.verificado else 'Representante sin verificar'
 
-        self.stdout.write(self.style.SUCCESS("Datos creados exitosamente."))
+class centro_donacion(models.Model):
+    id_centro = models.AutoField(primary_key=True)
+    nombre_centro = models.CharField()
+    direccion_centro = models.CharField()
+    comuna = models.CharField()
+    telefono = models.CharField()
+    fecha_creacion = models.DateField()
+    id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    horario_apertura = models.TimeField()
+    horario_cierre = models.TimeField()
+    
+TIPO_DONACION_CHOICES = [
+    ('campana', 'Campaña'),
+    ('solicitud', 'Solicitud de Campaña'),
+]
+class donacion(models.Model):
+    id_donacion = models.AutoField(primary_key=True)
+    id_donante = models.ForeignKey(donante, on_delete=models.CASCADE)
+    fecha_donacion = models.DateField()
+    cantidad_donacion = models.IntegerField()
+    centro_id = models.ForeignKey(centro_donacion, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    tipo_donacion = models.CharField(max_length=20, choices=TIPO_DONACION_CHOICES)
+    validada = models.BooleanField(default=False)
+    es_intencion = models.BooleanField(default=False)
+        # Asociación con campaña o solicitud
+    campana_relacionada = models.ForeignKey('campana', null=True, blank=True, on_delete=models.SET_NULL)
+    solicitud_relacionada = models.ForeignKey('solicitud_campana_repo', null=True, blank=True, on_delete=models.SET_NULL)
+
+class campana(models.Model):
+    id_campana = models.AutoField(primary_key=True)
+    nombre_campana = models.CharField(max_length=100)
+    fecha_campana = models.DateField()
+    id_centro = models.ForeignKey(centro_donacion, on_delete=models.CASCADE)
+    apertura = models.TimeField()
+    cierre = models.TimeField()
+    meta = models.CharField()
+    latitud = models.IntegerField()
+    longitud = models.IntegerField()
+    id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    fecha_termino = models.DateField()
+    id_solicitud = models.ForeignKey('solicitud_campana_repo', null=True, blank=True, on_delete=models.SET_NULL)
+    validada = models.BooleanField(default=True)  # Por ahora, se marca como validada al crear
+    estado = models.CharField(max_length=20, choices=[
+        ('pendiente', 'Pendiente'),
+        ('desarrollandose', 'Desarrollándose'),
+        ('cancelado', 'Cancelado'),
+        ('completo', 'Completo')
+    ], default='pendiente')
+class adminbp(models.Model):
+    id_admin = models.AutoField(primary_key=True)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True)
+    nombre = models.CharField(max_length=100)
+    email = models.EmailField()
+    contrasena = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class solicitud_campana_repo(models.Model):
+    id_solicitud = models.AutoField(primary_key=True)
+    tipo_sangre_sol= models.CharField()
+    fecha_solicitud = models.DateField()
+    cantidad_personas = models.IntegerField()
+    descripcion_solicitud = models.CharField()
+    comuna_solicitud = models.CharField()
+    ciudad_solicitud = models.CharField()
+    region_solicitud = models.CharField()
+    id_donante = models.ForeignKey(donante, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    centro_donacion = models.ForeignKey(centro_donacion, on_delete=models.CASCADE, null=True)
+    fecha_termino = models.DateField()
+    desactivado_por = models.ForeignKey(representante_org, on_delete=models.SET_NULL, null=True, blank=True)
+    campana_asociada = models.OneToOneField('campana', on_delete=models.SET_NULL, null=True, blank=True)
+
+class logro(models.Model):
+    id_logro = models.AutoField(primary_key=True)
+    descripcion_logro = models.CharField()
+    id_donante = models.ForeignKey(donante, on_delete=models.CASCADE)
+    fecha_logro = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class preguntas_usuario(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    pregunta=models.CharField(max_length=255)
+    respondida=models.BooleanField(default=False)
+    fecha_pregunta = models.DateTimeField(auto_now_add=True)

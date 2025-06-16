@@ -1,167 +1,199 @@
-from django.core.management.base import BaseCommand
-from datetime import datetime, timedelta, date
 import random
-from bloodpoint_app.models import CustomUser, adminbp, donante, representante_org, centro_donacion, donacion, campana, solicitud_campana_repo
+from datetime import datetime, timedelta
+from django.core.management.base import BaseCommand
+from django.utils import timezone
+from django.contrib.auth import get_user_model
+from bloodpoint_app.models import donante, representante_org, centro_donacion, campana, donacion, adminbp
+
+User = get_user_model()
+
+OCUPACIONES = ['estudiante', 'trabajador', 'jubilado', 'otro']
+TIPO_SANGRE = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
+
+# Coordenadas aproximadas para Región Metropolitana (Santiago)
+LAT_MIN, LAT_MAX = -33.75, -33.35
+LON_MIN, LON_MAX = -70.95, -70.45
+
+def random_lat_lon():
+    lat = round(random.uniform(LAT_MIN, LAT_MAX), 6)
+    lon = round(random.uniform(LON_MIN, LON_MAX), 6)
+    return lat, lon
 
 class Command(BaseCommand):
-    help = 'Llena la base de datos con datos de prueba específicos'
+    help = 'Populate database with test users, donantes, representantes, campañas, centros y donaciones'
 
     def handle(self, *args, **options):
-        # Limpieza
-        adminbp.objects.all().delete()
+        self.stdout.write("Borrando datos antiguos...")
+        donacion.objects.all().delete()
+        campana.objects.all().delete()
+        centro_donacion.objects.all().delete()
         representante_org.objects.all().delete()
         donante.objects.all().delete()
-        CustomUser.objects.filter(tipo_usuario__in=['admin', 'representante', 'donante']).delete()
-        campana.objects.all().delete()
-        solicitud_campana_repo.objects.all().delete()
-        centro_donacion.objects.all().delete()
-        donacion.objects.all().delete()
+        adminbp.objects.all().delete()
+        User.objects.exclude(email='admin@example.com').delete()
 
-        # Admins
-        admins = [
-            ('admin@gmail.com', 'bloodpoint123', 'admin', 'Juan', 'Pérez'),
-            ('admin2@gmail.com', 'bloodpoint123', 'admin', 'Carla', 'Soto'),
-            ('admin3@gmail.com', 'bloodpoint123', 'admin', 'María', 'Olivares'),
-        ]
+        self.stdout.write("Creando admin...")
+        admin_user = User.objects.create_superuser(
+            email='admin@example.com',
+            password='12345678'
+        )
+        adminbp.objects.create(
+            user=admin_user,
+            nombre='Administrador Principal',
+            email=admin_user.email,
+            contrasena='12345678'
+        )
 
-        for email, pwd, tipo, first_name, last_name in admins:
-            user = CustomUser.objects.create_user(email=email, password=pwd)
-            user.tipo_usuario = tipo
-            user.first_name = first_name
-            user.last_name = last_name
-            user.is_staff = True
-            user.is_superuser = True
-            user.is_superadmin = True
-            user.save()
-            adminbp.objects.create(
-                user=user,
-                nombre=f'{first_name} {last_name}',
-                email=email,
-                contrasena=pwd,
-                created_at=datetime.now()
-            )
+        self.stdout.write("Creando representante especial y su campaña...")
+        # Crear usuario representante especial
+        rep_user = User.objects.create_user(
+            email='camilaajojeda@gmail.com',
+            password='12345678',
+            tipo_usuario='representante',
+            is_staff=True,
+        )
+        representante = representante_org.objects.create(
+            user=rep_user,
+            rut_representante='12345678-9',
+            rol='Líder',
+            nombre='Camila',
+            apellido='Ajo',
+            verificado=True
+        )
 
-        # Representantes
-        representantes = [
-            ('camilaajojeda@gmail.com', 'bloodpoint123', 'Camila', 'Jopia', '17388920-5', 'Voluntaria Cruz Roja', True, 'credencial1.pdf'),
-            ('paulina678@gmail.com', 'bloodpoint123', 'Paulina', 'Ríos', '18845236-1', 'Representante institucional', False, 'credencial2.pdf'),
-            ('cristian333@gmail.com', 'bloodpoint123', 'Cristian', 'Morales', '16578431-9', 'Encargado logístico', True, 'credencial3.pdf'),
-        ]
+        # Crear centro de donación ligado al representante
+        centro = centro_donacion.objects.create(
+            nombre_centro='Centro Donación Santiago',
+            direccion_centro='Av. Libertador 123',
+            comuna='Santiago',
+            telefono='123456789',
+            fecha_creacion=datetime.now().date(),
+            id_representante=representante,
+            horario_apertura=datetime.strptime('08:00', '%H:%M').time(),
+            horario_cierre=datetime.strptime('18:00', '%H:%M').time()
+        )
 
-        rep_users = {}
-        for email, pwd, first_name, last_name, rut, rol, verificado, credencial in representantes:
-            user = CustomUser.objects.create_user(email=email, password=pwd)
-            user.tipo_usuario = 'representante'
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
-            rep = representante_org.objects.create(
-                user=user,
-                rut_representante=rut,
-                rol=rol,
-                nombre=first_name,
-                apellido=last_name,
-                credencial=credencial,
-                verificado=verificado,
-                created_at=datetime.now()
-            )
-            rep_users[email] = rep
+        lat, lon = random_lat_lon()
 
-        # Donantes
-        nombres = ['Juan', 'Andrea', 'Roberto', 'Camila', 'Lucía', 'Felipe', 'María', 'Carlos', 'Sofía', 'Javier',
-                   'Valentina', 'Pedro', 'Daniela', 'Tomás', 'Fernanda', 'Ignacio', 'Antonia', 'Diego', 'Martina',
-                   'Benjamín', 'Josefa', 'Sebastián', 'Florencia', 'Vicente', 'Javiera', 'Agustín', 'Constanza',
-                   'Matías', 'Trinidad', 'Andrés', 'Francisca', 'Leonardo', 'Catalina', 'Cristóbal', 'Paula']
-        apellidos = ['Araya', 'Castro', 'Mena', 'Herrera', 'Reyes', 'Gómez', 'Vera', 'López', 'Soto', 'Martínez',
-                     'Ramírez', 'Rojas', 'Morales', 'Navarro', 'Gutiérrez', 'Salazar', 'Fuentes', 'Pizarro', 'Campos',
-                     'Escobar', 'Alvarez', 'Peña', 'Carrasco', 'Silva', 'Muñoz', 'Torres', 'Orellana', 'Vargas',
-                     'Ortega', 'Núñez', 'Zúñiga', 'Henríquez', 'Barrera', 'Sepúlveda', 'Palma']
-        tipo_sangres = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
-        comunas = ['Providencia', 'Ñuñoa', 'Las Condes', 'Macul', 'San Miguel', 'La Florida', 'Maipú', 'Recoleta']
-        dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
-        ocupaciones = ['estudiante', 'trabajador', 'jubilado', 'otro']
-        donantes = []
+        # Crear campaña ligada al centro y representante especial
+        camp = campana.objects.create(
+            nombre_campana='Campaña Camila Especial',
+            fecha_campana=datetime.now().date(),
+            id_centro=centro,
+            apertura=datetime.strptime('08:00', '%H:%M').time(),
+            cierre=datetime.strptime('18:00', '%H:%M').time(),
+            meta='100',
+            latitud=int(lat * 1e6),  # Según modelo, es IntegerField, por eso escalamos
+            longitud=int(lon * 1e6),
+            id_representante=representante,
+            fecha_termino=(datetime.now() + timedelta(days=30)).date(),
+            validada=True,
+            estado='desarrollandose'
+        )
 
-        for i in range(35):
-            email = f"{nombres[i].lower()}{i+1}@gmail.com"
-            user = CustomUser.objects.create_user(
-                email=email,
-                password='bloodpoint123',
+        self.stdout.write("Creando 20 donantes...")
+
+        donantes_list = []
+        for i in range(20):
+            user = User.objects.create_user(
+                email=f'donante{i}@example.com',
+                password='12345678',
                 tipo_usuario='donante',
-                rut=f'1{i+1}234567-{(i % 9) + 1}',
-                first_name=nombres[i],
-                last_name=apellidos[i]
+                rut=f'1111111{i}-1',
             )
             d = donante.objects.create(
                 user=user,
                 rut=user.rut,
-                nombre_completo=f"{user.first_name} {user.last_name}",
-                sexo='F' if i % 2 == 0 else 'M',
-                ocupacion=random.choice(ocupaciones),
-                direccion=f'Calle Ficticia {i+1}',
-                comuna=random.choice(comunas),
-                fono=f'+5691234{str(i+1).zfill(4)}',
-                fecha_nacimiento=date(1990, 1, 1) + timedelta(days=100 * (i + 1)),
+                nombre_completo=f'Donante {i}',
+                sexo=random.choice(['M', 'F']),
+                ocupacion=random.choice(OCUPACIONES),
+                direccion=f'Calle {i} #123',
+                comuna='Santiago',
+                fono=f'91234567{i}',
+                fecha_nacimiento=(datetime.now() - timedelta(days=365*random.randint(18,65))).date(),
                 nacionalidad='Chilena',
-                tipo_sangre=random.choice(tipo_sangres),
-                dispo_dia_donacion=random.choice(dias),
-                nuevo_donante=(i % 2 == 0),
+                tipo_sangre=random.choice(TIPO_SANGRE),
+                dispo_dia_donacion='Fines de semana',
+                nuevo_donante=random.choice([True, False]),
                 noti_emergencia=True,
-                created_at=datetime.now()
             )
-            donantes.append(d)
+            donantes_list.append(d)
 
-        # Centro de Donación
-        centro = centro_donacion.objects.create(
-            nombre='Centro Donación Santiago',
-            direccion='Av. Principal 123',
-            comuna='Santiago',
-            region='Región Metropolitana',
-            telefono='+56212345678',
-            email='centro@sangre.cl',
-            latitud=-33.4489,
-            longitud=-70.6693,
-            created_at=datetime.now()
-        )
+        self.stdout.write("Creando 4 representantes adicionales...")
 
-        # Campañas
-        coordenadas_rm = [
-            (-33.4569, -70.6483), (-33.4378, -70.6505), (-33.4143, -70.6044),
-            (-33.5001, -70.6155), (-33.4711, -70.7233), (-33.4530, -70.6781)
-        ]
-        campañas = []
-
-        for i in range(5):
-            lat, lon = coordenadas_rm[i % len(coordenadas_rm)]
-            email = list(rep_users.keys())[i % len(rep_users)]
-            rep = rep_users[email]
-            camp = campana.objects.create(
-                nombre=f'Campaña N°{i+1}',
-                descripcion='Campaña de recolección de sangre',
-                tipo='campaña',
-                fecha_inicio=datetime.now() - timedelta(days=random.randint(1, 30)),
-                fecha_fin=datetime.now() + timedelta(days=random.randint(5, 20)),
-                centro_donacion=centro,
-                representante=rep,
-                latitud=lat,
-                longitud=lon,
-                created_at=datetime.now()
+        for i in range(4):
+            user = User.objects.create_user(
+                email=f'representante{i}@example.com',
+                password='12345678',
+                tipo_usuario='representante',
+                is_staff=True,
             )
-            campañas.append(camp)
+            representante_org.objects.create(
+                user=user,
+                rut_representante=f'2222222{i}-2',
+                rol='Coordinador',
+                nombre=f'RepNombre{i}',
+                apellido=f'RepApellido{i}',
+                verificado=bool(random.getrandbits(1)),
+            )
 
+        self.stdout.write("Creando campañas y donaciones para los donantes...")
 
-        for i, d in enumerate(donantes):
-            for j in range(1 if i > 30 else 0, 2 if i > 30 else 1):  # para balancear
-                if i < 30:
-                    camp = campañas[0]  # campaña de Camila
-                else:
-                    camp = random.choice(campañas[1:])
+        # Crear más centros y campañas
+        for j in range(3):  # 3 centros extra
+            rep_random = representante_org.objects.order_by('?').first()
+            centro_extra = centro_donacion.objects.create(
+                nombre_centro=f'Centro Donacion Extra {j}',
+                direccion_centro=f'Avenida Extra {j} 456',
+                comuna='Santiago',
+                telefono=f'98765432{j}',
+                fecha_creacion=datetime.now().date(),
+                id_representante=rep_random,
+                horario_apertura=datetime.strptime('08:00', '%H:%M').time(),
+                horario_cierre=datetime.strptime('17:00', '%H:%M').time()
+            )
+            lat, lon = random_lat_lon()
+            camp_extra = campana.objects.create(
+                nombre_campana=f'Campaña Extra {j}',
+                fecha_campana=datetime.now().date(),
+                id_centro=centro_extra,
+                apertura=datetime.strptime('09:00', '%H:%M').time(),
+                cierre=datetime.strptime('16:00', '%H:%M').time(),
+                meta=str(random.randint(50, 150)),
+                latitud=int(lat * 1e6),
+                longitud=int(lon * 1e6),
+                id_representante=rep_random,
+                fecha_termino=(datetime.now() + timedelta(days=20)).date(),
+                validada=True,
+                estado='desarrollandose'
+            )
+
+            # Crear donaciones para estas campañas (entre 10 y 20 por campaña)
+            donantes_para_esta_campana = random.sample(donantes_list, k=15)
+            for donante_obj in donantes_para_esta_campana:
                 donacion.objects.create(
-                    donante=d,
-                    campana=camp,
-                    fecha_donacion=datetime.now() - timedelta(days=random.randint(0, 15)),
-                    validada=bool(random.getrandbits(1)),
-                    created_at=datetime.now()
+                    id_donante=donante_obj,
+                    fecha_donacion=datetime.now().date() - timedelta(days=random.randint(0,30)),
+                    cantidad_donacion=random.choice([1, 2]),
+                    centro_id=centro_extra,
+                    tipo_donacion='campana',
+                    validada=True,
+                    es_intencion=False,
+                    campana_relacionada=camp_extra
                 )
 
-        self.stdout.write(self.style.SUCCESS('¡Datos insertados exitosamente!'))
+        # Crear 30 donaciones para la campaña especial de Camila con los mismos donantes
+        for i in range(30):
+            don_obj = random.choice(donantes_list)
+            donacion.objects.create(
+                id_donante=don_obj,
+                fecha_donacion=datetime.now().date() - timedelta(days=random.randint(0,30)),
+                cantidad_donacion=random.choice([1, 2]),
+                centro_id=centro,
+                tipo_donacion='campana',
+                validada=True,
+                es_intencion=False,
+                campana_relacionada=camp
+            )
+
+        self.stdout.write(self.style.SUCCESS("Datos creados exitosamente."))
