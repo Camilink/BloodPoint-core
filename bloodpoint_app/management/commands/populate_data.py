@@ -1,153 +1,140 @@
 from django.core.management.base import BaseCommand
-import random
-from datetime import datetime, timedelta
-from faker import Faker
-
+from datetime import datetime, timedelta, date
 from bloodpoint_app.models import CustomUser, adminbp, donante, representante_org, centro_donacion, donacion, campana, solicitud_campana_repo
 
 class Command(BaseCommand):
-    help = 'Llena la base de datos con datos de prueba usando Faker'
+    help = 'Llena la base de datos con datos de prueba específicos (basados en la query)'
 
     def handle(self, *args, **options):
-        fake = Faker('es_CL')
+        # Limpieza opcional: eliminar registros previos si quieres (descomenta si quieres)
+        adminbp.objects.all().delete()
+        representante_org.objects.all().delete()
+        donante.objects.all().delete()
+        CustomUser.objects.filter(tipo_usuario__in=['admin', 'representante', 'donante']).delete()
+        campana.objects.all().delete()
+        solicitud_campana_repo.objects.all().delete()
+        centro_donacion.objects.all().delete()
+        donacion.objects.all().delete()
 
-        TIPO_SANGRE_CHOICES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
-        TIPO_DONACION_CHOICES = ['campana', 'solicitud']
-        ESTADO_CAMPANA_CHOICES = ['pendiente', 'desarrollandose', 'cancelado', 'completo']
-        OCUPACION_CHOICES = ['trabajador', 'estudiante', 'jubilado', 'familia', 'otro']
-        REGION_CHOICES = [
-            'Región Metropolitana', 'Región de Arica y Parinacota', 'Región de Tarapacá',
-            'Región de Antofagasta', 'Región del Bío-Bío', 'Región del Libertador Gral. Bernardo O’Higgins',
-            'Región del Maule', 'Región del Ñuble', 'Región Valparaíso'
+        # --- ADMINISTRADORES ---
+        admins = [
+            ('admin@gmail.com', 'bloodpoint123', 'admin', 'Juan', 'Pérez'),
+            ('admin2@gmail.com', 'bloodpoint123', 'admin', 'Carla', 'Soto'),
+            ('admin3@gmail.com', 'bloodpoint123', 'admin', 'María', 'Olivares'),
         ]
-        DISPO_DIA_CHOICES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
-        # Donantes
-        donantes = []
-        for _ in range(20):
-            email = fake.unique.email()
-            password = 'password123'
-            rut = fake.unique.bothify(text='########-#')
-            user = CustomUser.objects.create_user(email=email, password=password, rut=rut, tipo_usuario='donante')
-            d = donante.objects.create(
-                user=user,
-                rut=rut,
-                nombre_completo=fake.name(),
-                sexo=random.choice(['M', 'F']),
-                ocupacion=random.choice(OCUPACION_CHOICES),
-                direccion=fake.address().replace('\n', ', '),
-                comuna=fake.city(),
-                fono=fake.phone_number(),
-                fecha_nacimiento=fake.date_of_birth(minimum_age=18, maximum_age=65),
-                nacionalidad='Chilena',
-                tipo_sangre=random.choice(TIPO_SANGRE_CHOICES),
-                dispo_dia_donacion=random.choice(DISPO_DIA_CHOICES),
-                nuevo_donante=random.choice([True, False]),
-                noti_emergencia=random.choice([True, False])
-            )
-            donantes.append(d)
-
-        # Representantes
-        representantes = []
-        for _ in range(5):
-            email = fake.unique.email()
-            password = 'password123'
-            user = CustomUser.objects.create_user(email=email, password=password, tipo_usuario='representante')
-            r = representante_org.objects.create(
-                user=user,
-                rut_representante=fake.unique.bothify(text='########-#'),
-                rol=fake.job(),
-                nombre=fake.first_name(),
-                apellido=fake.last_name(),
-                verificado=random.choice([True, False])
-            )
-            representantes.append(r)
-
-        # Centros de donación
-        centros = []
-        for _ in range(5):
-            c = centro_donacion.objects.create(
-                nombre_centro=fake.company(),
-                direccion_centro=fake.address().replace('\n', ', '),
-                comuna=fake.city(),
-                telefono=fake.phone_number(),
-                fecha_creacion=fake.date_between(start_date='-2y', end_date='today'),
-                id_representante=random.choice(representantes),
-                horario_apertura=datetime.strptime('08:00', '%H:%M').time(),
-                horario_cierre=datetime.strptime('17:00', '%H:%M').time()
-            )
-            centros.append(c)
-
-        # Campañas
-        campanas = []
-        for _ in range(6):
-            fecha_campana = fake.date_between(start_date='-1y', end_date='today')
-            fecha_termino = fecha_campana + timedelta(days=7)
-
-            latitud_chilena = round(fake.pyfloat(min_value=-37.0, max_value=-33.0), 6)
-            longitud_chilena = round(fake.pyfloat(min_value=-73.0, max_value=-70.0), 6)
-
-            c = campana.objects.create(
-                nombre_campana=fake.company(),
-                fecha_campana=fecha_campana,
-                id_centro=random.choice(centros),
-                apertura=datetime.strptime('09:00', '%H:%M').time(),
-                cierre=datetime.strptime('16:00', '%H:%M').time(),
-                meta=str(random.randint(50, 200)),
-                latitud=latitud_chilena,
-                longitud=longitud_chilena,
-                id_representante=random.choice(representantes),
-                fecha_termino=fecha_termino,
-                validada=random.choice([True, False]),
-                estado=random.choice(ESTADO_CAMPANA_CHOICES)
-            )
-            campanas.append(c)
-
-        # Solicitudes
-        solicitudes = []
-        for _ in range(5):
-            fecha_solicitud = fake.date_between(start_date='-1y', end_date='today')
-            fecha_termino = fecha_solicitud + timedelta(days=14)
-            s = solicitud_campana_repo.objects.create(
-                tipo_sangre_sol=random.choice(TIPO_SANGRE_CHOICES),
-                fecha_solicitud=fecha_solicitud,
-                cantidad_personas=random.randint(10, 100),
-                descripcion_solicitud=fake.text(max_nb_chars=200),
-                comuna_solicitud=fake.city(),
-                ciudad_solicitud=fake.city(),
-                region_solicitud=random.choice(REGION_CHOICES),
-                id_donante=random.choice(donantes),
-                centro_donacion=random.choice(centros),
-                fecha_termino=fecha_termino,
-                desactivado_por=random.choice(representantes)
-            )
-            solicitudes.append(s)
-
-        # Donaciones
-        for _ in range(110):
-            fecha_donacion = fake.date_between(start_date='-1y', end_date='today')
-            donacion.objects.create(
-                id_donante=random.choice(donantes),
-                fecha_donacion=fecha_donacion,
-                cantidad_donacion=random.randint(450, 500),
-                centro_id=random.choice(centros),
-                tipo_donacion=random.choice(TIPO_DONACION_CHOICES),
-                validada=random.choice([True, False]),
-                es_intencion=random.choice([True, False]),
-                campana_relacionada=random.choice(campanas),
-                solicitud_relacionada=random.choice(solicitudes)
-            )
-
-        # Admins
-        for _ in range(1):
-            email = fake.unique.email()
-            password = 'password123'
-            user = CustomUser.objects.create_user(email=email, password=password, tipo_usuario='admin')
-            adminbp.objects.create(
-                user=user,
-                nombre=fake.first_name(),
+        for email, pwd, tipo, first_name, last_name in admins:
+            user, created = CustomUser.objects.get_or_create(
                 email=email,
-                contrasena=user.password
+                defaults={
+                    'tipo_usuario': tipo,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'is_staff': True,
+                    'is_superuser': True,
+                    'is_superadmin': True,
+                    'is_active': True,
+                    'date_joined': datetime.now(),
+                }
             )
+            if created:
+                user.set_password(pwd)
+                user.save()
+
+            if not adminbp.objects.filter(user=user).exists():
+                adminbp.objects.create(
+                    user=user,
+                    nombre=f'{first_name} {last_name}',
+                    email=email,
+                    contrasena=pwd,
+                    created_at=datetime.now()
+                )
+
+        # --- REPRESENTANTES ---
+        representantes = [
+            ('camilaajojeda@gmail.com', 'bloodpoint123', 'representante', 'Camila', 'Jopia', '17388920-5', 'Voluntaria Cruz Roja', True, 'credencial1.pdf'),
+            ('paulina678@gmail.com', 'bloodpoint123', 'representante', 'Paulina', 'Ríos', '18845236-1', 'Representante institucional', False, 'credencial2.pdf'),
+            ('cristian333@gmail.com', 'bloodpoint123', 'representante', 'Cristian', 'Morales', '16578431-9', 'Encargado logístico', True, 'credencial3.pdf'),
+            ('lorena222@gmail.com', 'bloodpoint123', 'representante', 'Lorena', 'Silva', '15793211-3', 'Representante institucional', True, 'credencial4.pdf'),
+            ('matias999@gmail.com', 'bloodpoint123', 'representante', 'Matías', 'Figueroa', '17845622-5', 'Encargado logístico', False, 'credencial5.pdf'),
+        ]
+
+        for email, pwd, tipo, first_name, last_name, rut_representante, rol, verificado, credencial in representantes:
+            user, created = CustomUser.objects.get_or_create(
+                email=email,
+                defaults={
+                    'tipo_usuario': tipo,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'is_active': True,
+                    'is_superadmin': False,
+                    'is_staff': False,
+                    'is_superuser': False,
+                    'date_joined': datetime.now(),
+                }
+            )
+            if created:
+                user.set_password(pwd)
+                user.save()
+
+            if not representante_org.objects.filter(user=user).exists():
+                representante_org.objects.create(
+                    user=user,
+                    rut_representante=rut_representante,
+                    rol=rol,
+                    nombre=first_name,
+                    apellido=last_name,
+                    credencial=credencial,
+                    verificado=verificado,
+                    created_at=datetime.now()
+                )
+
+        # --- DONANTES ---
+        nombres = ['Juan', 'Andrea', 'Roberto', 'Camila', 'Lucía', 'Felipe', 'María', 'Carlos', 'Sofía', 'Javier', 'Valentina', 'Pedro', 'Daniela', 'Tomás', 'Fernanda', 'Ignacio', 'Antonia', 'Diego', 'Martina', 'Benjamín', 'Josefa', 'Sebastián', 'Florencia', 'Vicente', 'Javiera', 'Agustín', 'Constanza', 'Matías', 'Trinidad', 'Andrés', 'Francisca', 'Leonardo', 'Catalina', 'Cristóbal', 'Paula']
+        apellidos = ['Araya', 'Castro', 'Mena', 'Herrera', 'Reyes', 'Gómez', 'Vera', 'López', 'Soto', 'Martínez', 'Ramírez', 'Rojas', 'Morales', 'Navarro', 'Gutiérrez', 'Salazar', 'Fuentes', 'Pizarro', 'Campos', 'Escobar', 'Alvarez', 'Peña', 'Carrasco', 'Silva', 'Muñoz', 'Torres', 'Orellana', 'Vargas', 'Ortega', 'Núñez', 'Zúñiga', 'Henríquez', 'Barrera', 'Sepúlveda', 'Palma']
+        tipo_sangres = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
+        comunas = ['Providencia', 'Ñuñoa', 'Las Condes', 'Macul', 'San Miguel', 'La Florida', 'Puente Alto', 'Maipú', 'Recoleta', 'Santiago Centro']
+        dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
+
+        for i in range(35):
+            rut_gen = f'1{i+1}234567-{(i % 9) + 1}'
+            correo = f"{nombres[i].lower()}{i+1}@gmail.com"
+
+            user, created = CustomUser.objects.get_or_create(
+                email=correo,
+                defaults={
+                    'tipo_usuario': 'donante',
+                    'rut': rut_gen,
+                    'first_name': nombres[i],
+                    'last_name': apellidos[i],
+                    'is_active': True,
+                    'is_superadmin': False,
+                    'is_staff': False,
+                    'is_superuser': False,
+                    'date_joined': datetime.now(),
+                }
+            )
+            if created:
+                user.set_password('bloodpoint123')
+                user.save()
+
+            if not donante.objects.filter(user=user).exists():
+                donante.objects.create(
+                    user=user,
+                    rut=rut_gen,
+                    nombre_completo=f"{nombres[i]} {apellidos[i]}",
+                    sexo='F' if (i % 2 == 0) else 'M',
+                    ocupacion='Profesional Salud',
+                    direccion=f'Calle Ficticia {i+1}',
+                    comuna=comunas[(i % len(comunas))],
+                    fono=f'+5691234{str(i+1).zfill(4)}',
+                    fecha_nacimiento=date(1990, 1, 1) + timedelta(days=100*(i+1)),
+                    nacionalidad='Chilena',
+                    tipo_sangre=tipo_sangres[(i % len(tipo_sangres))],
+                    dispo_dia_donacion=dias[(i % len(dias))],
+                    nuevo_donante=(i % 2 == 0),
+                    noti_emergencia=True,
+                    created_at=datetime.now()
+                )
 
         self.stdout.write(self.style.SUCCESS('¡Datos insertados en la base de datos con éxito!'))
