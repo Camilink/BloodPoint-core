@@ -17,6 +17,8 @@ urlpatterns = [
     path('administrador/detalles/<int:id>/', views.detalles_admin, name='detalles_admin'),
     path('administrador/editar/<int:id>/', views.editar_admin, name='editar_admin'),
     path('administrador/eliminar/<int:id>/', views.eliminar_admin, name='eliminar_admin'),
+    path('administrador/configuracion/', views.configuracion_admin, name='configuracion_admin'),
+    path('administrador/configuracion/editar/', views.editar_configuracion, name='editar_configuracion'),
     path("dashboard/admin/", views.admin_home, name="admin_home"),
 
     path('representante/', views.representante_index, name='representante_index'),
