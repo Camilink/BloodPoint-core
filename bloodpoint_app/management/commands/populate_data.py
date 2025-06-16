@@ -122,7 +122,7 @@ class Command(BaseCommand):
 
         # Campañas
         campanas = []
-        for _ in range(6):
+        for _ in range(15):
             fecha_campana = fake.date_between(start_date='-1y', end_date='today')
             fecha_termino = fecha_campana + timedelta(days=7)
 
@@ -166,7 +166,7 @@ class Command(BaseCommand):
             solicitudes.append(s)
 
         # Donaciones
-        for _ in range(50):
+        for _ in range(100):
             fecha_donacion = fake.date_between(start_date='-1y', end_date='today')
             donacion.objects.create(
                 id_donante=random.choice(donantes),
