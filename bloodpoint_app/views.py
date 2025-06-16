@@ -208,6 +208,22 @@ def eliminar_representante(request, id):
     repesentante.delete()
     return redirect('representante_index')
 
+def configuracion_representante(request):
+    representante = get_object_or_404(representante_org, user=request.user)
+    return render(request, 'representante/configuracion.html', {'representante': representante})
+
+def editar_configuracion_representante(request):
+    representante = get_object_or_404(representante_org, user=request.user)
+    if request.method == 'POST':
+        form = RepresentanteOrgForm(request.POST, instance=representante)
+        if form.is_valid():
+            form.save()
+            return redirect('configuracion_representante')
+    else:
+        form = RepresentanteOrgForm(instance=representante)
+    return render(request, 'administrador/editar_configuracion.html', {'form': form, 'representante': representante})
+
+
 def lista_verificar(request):
     representantes = representante_org.objects.filter(verificado=False)
     return render(request, 'representante/lista_verificar.html', {'representantes': representantes})
