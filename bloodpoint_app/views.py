@@ -162,11 +162,11 @@ def eliminar_admin(request, id):
     return redirect('admin_index')
 
 def configuracion_admin(request):
-    admin = get_object_or_404(adminbp, id_admin=request.user.id)
+    admin = get_object_or_404(adminbp, user=request.user)
     return render(request, 'administrador/configuracion.html', {'admin': admin})
 
 def editar_configuracion(request):
-    admin = get_object_or_404(adminbp, id_admin=request.user.id)
+    admin = get_object_or_404(adminbp, user=request.user)
     if request.method == 'POST':
         form = AdminBPForm(request.POST, instance=admin)
         if form.is_valid():
