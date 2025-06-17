@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from cloudinary.models import CloudinaryField
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, rut=None, **extra_fields):
@@ -106,7 +107,7 @@ class representante_org(models.Model):
     rol = models.CharField(max_length=100)
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
-    credencial = models.ImageField(upload_to='credenciales', blank=True)
+    credencial = CloudinaryField('image', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     verificado = models.BooleanField(default=False)
     

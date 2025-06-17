@@ -24,6 +24,7 @@ click-didyoumean==0.3.1
 click-option-group==0.5.7
 click-plugins==1.1.1
 click-repl==0.3.0
+cloudinary==1.44.0
 colorama==0.4.6
 cron-descriptor==1.4.5
 croniter==6.0.0
@@ -32,6 +33,7 @@ Deprecated==1.2.18
 deprecation==2.1.0
 dj-database-url==2.3.0
 Django==5.2
+django-cloudinary-storage==0.3.0
 django-cors-headers==4.7.0
 django-extensions==4.1
 djangorestframework==3.16.0
