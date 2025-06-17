@@ -1163,24 +1163,24 @@ def ask_bot(request):
                 data = json.loads(request.body)
                 question = data.get("prompt")
             except json.JSONDecodeError:
-                return HttpResponse({"error": "Invalid JSON in request body"}, status=400)
+                return Response({"error": "Invalid JSON in request body"}, status=400)
         else:
-            return HttpResponse({"error": "Método no permitido"}, status=405)
+            return Response({"error": "Método no permitido"}, status=405)
 
         if not question:
-            return HttpResponse({"error": "Falta el parámetro 'prompt'"}, status=400)
+            return Response({"error": "Falta el parámetro 'prompt'"}, status=400)
 
         # Validación con modelo
         resultado_validacion = validar_con_modelo(question)
 
         if resultado_validacion == "no":
-            return HttpResponse({
+            return Response({
                 "validacion": "no",
                 "response": "Por favor, realiza una pregunta relacionada con la donación de sangre."
             })
 
         elif resultado_validacion == "idk":
-            return HttpResponse({
+            return Response({
                 "validacion": "idk",
                 "response": "No estoy seguro si tu pregunta está relacionada. ¿Podrías reformularla?"
             })
@@ -1229,7 +1229,7 @@ def ask_bot(request):
 
     except Exception as e:
         print("Error in ask_bot:", str(e))  # Debug print
-        return HttpResponse({"error": str(e)}, status=500)
+        return Response({"error": str(e)}, status=500)
     
 def validar_con_modelo(prompt: str) -> str:
     headers = {
