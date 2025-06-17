@@ -46,21 +46,21 @@ class Command(BaseCommand):
 
         # Representantes
         representantes_data = [
-            ('camilaajojeda@gmail.com', 'bloodpoint123', 'Camila', 'Jopia', '17388920-5', 'Voluntaria Cruz Roja', True, 'credencial1.pdf'),
-            ('paulina678@gmail.com', 'bloodpoint123', 'Paulina', 'Ríos', '18845236-1', 'Representante DMKS', False, 'credencial2.pdf'),
-            ('cristian333@gmail.com', 'bloodpoint123', 'Cristian', 'Morales', '16578431-9', 'Director Técnico Lab', True, 'credencial3.pdf'),
-            ('ana.solis@gmail.com', 'bloodpoint123', 'Ana', 'Solís', '16899877-3', 'Tecnólogo', True, 'credencial4.pdf'),
-            ('mario.acuna@gmail.com', 'bloodpoint123', 'Mario', 'Acuña', '17234655-2', 'Coordinador campaña Cruz Roja', False, 'credencial5.pdf'),
-            ('valeria.perez@gmail.com', 'bloodpoint123', 'Valeria', 'Pérez', '18233456-4', 'Gestora Territorial', True, 'credencial6.pdf'),
-            ('fernando.lagos@gmail.com', 'bloodpoint123', 'Fernando', 'Lagos', '16789423-7', 'Encargado de Voluntariado', False, 'credencial7.pdf'),
-            ('marta.espinoza@gmail.com', 'bloodpoint123', 'Marta', 'Espinoza', '19564328-2', 'Líder Social', True, 'credencial8.pdf'),
-            ('raul.navarro@gmail.com', 'bloodpoint123', 'Raúl', 'Navarro', '15439287-5', 'Técnico en Salud', False, 'credencial9.pdf'),
-            ('ines.moraga@gmail.com', 'bloodpoint123', 'Inés', 'Moraga', '18876123-1', 'Organizadora Comunitaria', True, 'credencial10.pdf'),
-            ('gonzalo.munoz@gmail.com', 'bloodpoint123', 'Gonzalo', 'Muñoz', '16234577-0', 'Analista de Proyectos', True, 'credencial11.pdf'),
-            ('roberta.acevedo@gmail.com', 'bloodpoint123', 'Roberta', 'Acevedo', '17654398-6', 'Asistente Social', False, 'credencial12.pdf'),
-            ('luis.sandoval@gmail.com', 'bloodpoint123', 'Luis', 'Sandoval', '18543289-4', 'Enlace Institucional', True, 'credencial13.pdf'),
-            ('claudia.vargas@gmail.com', 'bloodpoint123', 'Claudia', 'Vargas', '19098456-2', 'Asesora de Gestión', False, 'credencial14.pdf'),
-            ('ricardo.toledo@gmail.com', 'bloodpoint123', 'Ricardo', 'Toledo', '17432765-3', 'Enfermero Coordinador', True, 'credencial15.pdf'),
+            ('camilaajojeda@gmail.com', 'bloodpoint123', 'Camila', 'Jopia', '17388920-5', 'Voluntaria Cruz Roja', True ),
+            ('paulina678@gmail.com', 'bloodpoint123', 'Paulina', 'Ríos', '18845236-1', 'Representante DMKS', False),
+            ('cristian333@gmail.com', 'bloodpoint123', 'Cristian', 'Morales', '16578431-9', 'Director Técnico Lab', True),
+            ('ana.solis@gmail.com', 'bloodpoint123', 'Ana', 'Solís', '16899877-3', 'Tecnólogo', True),
+            ('mario.acuna@gmail.com', 'bloodpoint123', 'Mario', 'Acuña', '17234655-2', 'Coordinador campaña Cruz Roja', False),
+            ('valeria.perez@gmail.com', 'bloodpoint123', 'Valeria', 'Pérez', '18233456-4', 'Gestora Territorial', True),
+            ('fernando.lagos@gmail.com', 'bloodpoint123', 'Fernando', 'Lagos', '16789423-7', 'Encargado de Voluntariado', False),
+            ('marta.espinoza@gmail.com', 'bloodpoint123', 'Marta', 'Espinoza', '19564328-2', 'Líder Social', True),
+            ('raul.navarro@gmail.com', 'bloodpoint123', 'Raúl', 'Navarro', '15439287-5', 'Técnico en Salud', False),
+            ('ines.moraga@gmail.com', 'bloodpoint123', 'Inés', 'Moraga', '18876123-1', 'Organizadora Comunitaria', True),
+            ('gonzalo.munoz@gmail.com', 'bloodpoint123', 'Gonzalo', 'Muñoz', '16234577-0', 'Analista de Proyectos', True),
+            ('roberta.acevedo@gmail.com', 'bloodpoint123', 'Roberta', 'Acevedo', '17654398-6', 'Asistente Social', False),
+            ('luis.sandoval@gmail.com', 'bloodpoint123', 'Luis', 'Sandoval', '18543289-4', 'Enlace Institucional', True),
+            ('claudia.vargas@gmail.com', 'bloodpoint123', 'Claudia', 'Vargas', '19098456-2', 'Asesora de Gestión', False),
+            ('ricardo.toledo@gmail.com', 'bloodpoint123', 'Ricardo', 'Toledo', '17432765-3', 'Enfermero Coordinador', True),
         ]
 
         representantes = []
