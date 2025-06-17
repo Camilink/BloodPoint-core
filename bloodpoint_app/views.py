@@ -69,7 +69,7 @@ logger = logging.getLogger(__name__)
 @login_required
 def listar_preguntas(request):
     representante = representante_org.objects.get(user=request.user)
-    preguntas = preguntas_usuario.objects.filter(respondida=False, id_campana__id_representante=representante)
+    preguntas = preguntas_usuario.objects.filter(respondida=False)
     return render(request, 'listar_preguntas.html', {'preguntas': preguntas})
 
 @login_required
