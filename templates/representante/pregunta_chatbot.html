@@ -17,7 +17,7 @@
 			<form method="POST">
 				{% csrf_token %}
 				<label for="respuesta">Tu respuesta:</label>
-				<textarea name="respuesta" rows="4" cols="50"></textarea><br><br>
+				<textarea name="respuesta" rows="4" cols="50" maxlength="255"></textarea><br><br>
 				<button type="submit">Enviar respuesta</button>
 			</form>
 		</div>
