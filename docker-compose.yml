@@ -51,9 +51,7 @@ services:
       # OPENROUTER APIKEY
       OPENROUTER_API_KEY: "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"
       #CLOUDINARY 
-      CLOUDINARY_CLOUD_NAME: "hkuwtcjlb"
-      CLOUDINARY_API_KEY: "439685353271397"
-      CLOUDINARY_API_SECRET: "CLjf7Tb2tidktfHrXvt_l-t1JHk"
+      CLOUDINARY_URL: "cloudinary://439685353271397:CLjf7Tb2tidktfHrXvt_l-t1JHk@hkuwtcjlb"
 
 volumes:
   postgres_data:
