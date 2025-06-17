@@ -18,7 +18,6 @@ class RepresentanteOrgForm(forms.ModelForm):
         required=False 
     )
 
-    credencial = CloudinaryFileField(required=False)
     class Meta:
         model = representante_org
         fields = ['nombre', 'apellido', 'rut_representante', 'rol', 'credencial']
@@ -27,7 +26,7 @@ class RepresentanteOrgForm(forms.ModelForm):
             'apellido': forms.TextInput(attrs={'class': 'form-control'}),
             'rut_representante': forms.TextInput(attrs={'class': 'form-control'}),
             'rol': forms.TextInput(attrs={'class': 'form-control'}),
-            'credencial': forms.FileInput(attrs={'class': 'form-control'}),
+            'credencial': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
