@@ -1,0 +1,26 @@
+.pregunta-card {
+    border: 1px solid #dee2e6;
+    border-left: 5px solid #b30000; /* borde burdeo al costado */
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+}
+
+.pregunta-card:hover {
+    transform: scale(1.01);
+}
+
+.pregunta-card strong {
+    color: #b30000; /* texto fuerte en burdeo */
+}
+
+.pregunta-card p {
+    margin: 4px 0;
+}
+
+.pregunta-card .btn {
+    margin-top: 10px;
+}
