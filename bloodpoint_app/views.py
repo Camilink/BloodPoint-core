@@ -22,6 +22,7 @@ from bloodpoint_app.utils.exportar_top3_campanas_por_donaciones import exportar_
 from bloodpoint_app.utils.respuesta_donante import enviar_respuesta_a_donante
 from bloodpoint_app.forms import AdminBPForm
 from bloodpoint_app.forms import RepresentanteOrgForm
+from django.views.generic import ListView
 
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -260,7 +261,11 @@ def editar_configuracion_representante(request):
 
 def lista_verificar(request):
     representantes = representante_org.objects.filter(verificado=False)
-    return render(request, 'representante/lista_verificar.html', {'representantes': representantes})
+    paginator = Paginator(representantes, 5) 
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'representante/lista_verificar.html', {'page_obj': page_obj})
 
 def detalles_verificar(request, id):
     representante = get_object_or_404(representante_org, id_representante=id)

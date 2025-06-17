@@ -9,7 +9,7 @@
 			Lista Representantes sin Verificar
 		</h2>
 		<div class="row">
-			{% for representante in representantes %}
+			{% for representante in page_obj %}
 				<div class="col-12">
 					<div class='list-item'>
 						<h3>{{ representante.full_name }} </h3>
@@ -19,6 +19,25 @@
 					</div>
 				</div>
 			{% endfor %}
+			<div class="col-12 text-center">
+				<div class="pagination">
+					<span class="step-links">
+						{% if page_obj.has_previous %}
+							<a href="?page=1">&laquo; Primero</a>
+							<a href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+						{% endif %}
+
+						<span class="current">
+							Pagina {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+						</span>
+
+						{% if page_obj.has_next %}
+							<a href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+							<a href="?page={{ page_obj.paginator.num_pages }}">Anterior &raquo;</a>
+						{% endif %}
+					</span>
+				</div>
+			</div>
 		</div>
 	</div>
 </body>
