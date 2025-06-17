@@ -20,15 +20,15 @@ class RepresentanteOrgForm(forms.ModelForm):
 
     class Meta:
         model = representante_org
-        image = CloudinaryFileField(required=False)
-        fields = ['nombre', 'apellido', 'rut_representante', 'rol', 'image']
+        credencial = CloudinaryFileField(required=False)
+        fields = ['nombre', 'apellido', 'rut_representante', 'rol', 'credencial']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'apellido': forms.TextInput(attrs={'class': 'form-control'}),
             'rut_representante': forms.TextInput(attrs={'class': 'form-control'}),
             'user': forms.Select(attrs={'class': 'form-control'}),
             'rol': forms.TextInput(attrs={'class': 'form-control'}),
-            'image': forms.FileInput(attrs={'class': 'form-control'}),
+            'credencial': forms.FileInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):

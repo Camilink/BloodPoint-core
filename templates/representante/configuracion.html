@@ -36,7 +36,9 @@
 				{% endif %}
 				<label>Credencial: </label>
 				{% if representante.credencial %}
-					<img src="{{ representante.credencial.url }}" alt="Credencial Representante" style="max-width: 750; max-height: 400px; margin-top: 1rem">
+					<!-- <img src="{{ representante.credencial.url }}" alt="Credencial Representante" style="max-width: 750; max-height: 400px; margin-top: 1rem"> -->
+					{% load cloudinary %}
+					{% cloudinary representante.credencial %}
 				{% else %}
 					<input type="text" value="Sin credencial" disabled>
 				{% endif %}

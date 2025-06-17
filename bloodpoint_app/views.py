@@ -253,7 +253,7 @@ def configuracion_representante(request):
 def editar_configuracion_representante(request):
     representante = get_object_or_404(representante_org, user=request.user)
     if request.method == 'POST':
-        form = RepresentanteOrgForm(request.POST, instance=representante)
+        form = RepresentanteOrgForm(request.POST, request.FILES, instance=representante)
         if form.is_valid():
             form.save()
             return redirect('configuracion_representante')
