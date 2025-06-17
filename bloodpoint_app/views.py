@@ -1,12 +1,11 @@
 import logging
 import os
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 import jwt
 import requests
 import time
 import json
-from datetime import datetime
 
 
 from django.contrib import messages
