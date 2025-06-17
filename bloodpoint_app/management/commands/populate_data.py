@@ -64,7 +64,7 @@ class Command(BaseCommand):
         ]
 
         representantes = []
-        for email, pwd, first_name, last_name, rut, rol, verificado, credencial in representantes_data:
+        for email, pwd, first_name, last_name, rut, rol, verificado in representantes_data:
             user = CustomUser.objects.create_user(email=email, password=pwd)
             user.tipo_usuario = 'representante'
             user.first_name = first_name
@@ -76,7 +76,6 @@ class Command(BaseCommand):
                 rol=rol,
                 nombre=first_name,
                 apellido=last_name,
-                credencial=credencial,
                 verificado=verificado,
                 created_at=datetime.now()
             )
