@@ -8,7 +8,7 @@ import requests
 import time
 import json
 
-
+from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.backends import ModelBackend
@@ -213,7 +213,10 @@ def editar_configuracion(request):
 
 def representante_index(request):
     representantes = representante_org.objects.filter(verificado=True)
-    return render(request, 'representante/index.html', {'representantes': representantes})
+    paginator = Paginator(representantes, 5) 
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'representante/index.html', {'page_obj': page_obj})
 
 def detalles_representante(request, id):
     representante = get_object_or_404(representante_org, id_representante=id)
@@ -276,7 +279,10 @@ def campana_index(request):
     
     representante = representante_org.objects.get(user=request.user)
     campanas = campana.objects.filter(id_representante=representante.id_representante)
-    return render(request, 'campanas/index.html', {'campanas': campanas})
+    paginator = Paginator(campanas, 5) 
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'campanas/index.html', {'page_obj': page_obj})
 
 def detalles_campana(request, id):
     campana_ojb = get_object_or_404(campana, id_campana=id)
