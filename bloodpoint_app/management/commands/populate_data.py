@@ -113,13 +113,14 @@ class Command(BaseCommand):
         tipo_sangres = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
 
         for i in range(100):
+            rut = ruts_reales[i]
             nombre = random.choice(nombres)
             apellido = random.choice(apellidos)
             email = fake.unique.email()
             user = CustomUser.objects.create_user(email=email, password='bloodpoint123', rut=rut, tipo_usuario='donante')
             d = donante.objects.create(
                 user=user,
-                rut = ruts_reales[i],
+                rut=rut,
                 nombre_completo=f"{nombre} {apellido}",
                 sexo=random.choice(['M', 'F']),
                 ocupacion=random.choice(ocupaciones),
