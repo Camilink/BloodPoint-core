@@ -16,7 +16,7 @@
             <p><strong>Donante:</strong> {{ pregunta.user.donante.nombre_completo }}</p>
             <p><strong>Fecha:</strong> {{ pregunta.fecha_pregunta }}</p>
             <p><strong>Pregunta:</strong> {{ pregunta.pregunta }}</p>
-            <a href="{% url 'responder_pregunta' pregunta.id %}" class="btn btn-primary">Responder</a>
+            <a href="{% url 'responder_pregunta' pregunta.id %}" class="btn btn-primary red">Responder</a><br>
         </div>
         {% empty %}
         <p>No hay preguntas pendientes.</p>
