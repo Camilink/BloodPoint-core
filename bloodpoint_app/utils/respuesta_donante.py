@@ -22,7 +22,11 @@ def enviar_respuesta_a_donante(id_respuesta):
             f"enviada el {respuesta.fecha_respuesta.strftime('%d-%m-%Y %H:%M')}:\n"
             f"\"{respuesta.respuesta}\"\n\n"
             f"Gracias por contactarte con nosotros.\n\n"
-            f"Equipo BloodPoint"
+            f"Equipo BloodPoint\n\n"
+            f"---\n"
+            f"Aviso importante:\n"
+            f"Las respuestas entregadas por nuestros representantes tienen carácter informativo y no sustituyen la opinión de un profesional de la salud. "
+            f"Recomendamos siempre consultar con personal médico autorizado ante cualquier duda relacionada con tu salud."
         )
 
         email = EmailMessage(
