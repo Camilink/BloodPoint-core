@@ -243,7 +243,7 @@ def editar_representante(request, id):
 
 def eliminar_representante(request, id):
     representante = get_object_or_404(representante_org, id_representante=id)
-    repesentante.delete()
+    representante.delete()
     return redirect('representante_index')
 
 def configuracion_representante(request):

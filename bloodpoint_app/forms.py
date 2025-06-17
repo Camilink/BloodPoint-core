@@ -18,15 +18,14 @@ class RepresentanteOrgForm(forms.ModelForm):
         required=False 
     )
 
+    credencial = CloudinaryFileField(required=False)
     class Meta:
         model = representante_org
-        credencial = CloudinaryFileField(required=False)
         fields = ['nombre', 'apellido', 'rut_representante', 'rol', 'credencial']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'apellido': forms.TextInput(attrs={'class': 'form-control'}),
             'rut_representante': forms.TextInput(attrs={'class': 'form-control'}),
-            'user': forms.Select(attrs={'class': 'form-control'}),
             'rol': forms.TextInput(attrs={'class': 'form-control'}),
             'credencial': forms.FileInput(attrs={'class': 'form-control'}),
         }
