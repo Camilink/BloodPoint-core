@@ -70,7 +70,7 @@ logger = logging.getLogger(__name__)
 def listar_preguntas(request):
     representante = representante_org.objects.get(user=request.user)
     preguntas = preguntas_usuario.objects.filter(respondida=False)
-    return render(request, 'listar_preguntas.html', {'preguntas': preguntas})
+    return render(request, 'representante/listar_preguntas.html', {'preguntas': preguntas})
 
 @login_required
 def responder_pregunta(request, pregunta_id):
@@ -93,7 +93,8 @@ def responder_pregunta(request, pregunta_id):
         enviar_respuesta_a_donante(respuesta.id)
         return redirect('listar_preguntas')
 
-    return render(request, 'pregunta_chatbot.html', {'pregunta': pregunta})
+    return render(request, 'representante/pregunta_chatbot.html', {'pregunta': pregunta})
+
 
 ##generador csv
 def exportar_resumen_una_campana_csv(request, campana_id):
