@@ -1,7 +1,8 @@
 import logging
 import os
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime
+from django.utils import timezone 
 import jwt
 import requests
 import time
