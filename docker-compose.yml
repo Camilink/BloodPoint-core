@@ -48,6 +48,8 @@ services:
       # URLs de base de datos alternativas
       DATABASE_URL: "postgresql://admin:admin@db:5432/bloodpointbd"
       DEFAULT_DATABASE_URL: "postgresql://admin:admin@db:5432/bloodpointbd"
+      # OPENROUTER APIKEY
+      OPENROUTER_API_KEY: "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"
 
 volumes:
   postgres_data:
