@@ -236,8 +236,11 @@ LOGGING = {
     },
 }
 
-CLOUDINARY_STORAGE = {
-    'CLOUDINARY_URL': os.getenv('CLOUDINARY_URL'),
-}
+import cloudinary
+
+cloudinary.config(
+    cloudinary_url=os.getenv("CLOUDINARY_URL")
+)
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
