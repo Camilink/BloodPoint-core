@@ -252,15 +252,35 @@ def configuracion_representante(request):
 
 def editar_configuracion_representante(request):
     representante = get_object_or_404(representante_org, user=request.user)
+    
     if request.method == 'POST':
         form = RepresentanteOrgForm(request.POST, request.FILES, instance=representante)
         if form.is_valid():
-            form.save()
+            # Debug: Ver qué estamos recibiendo
+            print("Archivos recibidos:", request.FILES)
+            print("Datos del formulario:", request.POST)
+            
+            # Guardar instancia
+            instance = form.save(commit=False)
+            
+            if 'credencial' in request.FILES:
+                print("Nueva imagen recibida:", request.FILES['credencial'])
+                # Forzar la actualización del campo
+                instance.credencial = request.FILES['credencial']
+            
+            instance.save()
+            print("Imagen guardada. URL:", instance.credencial.url if instance.credencial else "No hay imagen")
+            
             return redirect('configuracion_representante')
+        else:
+            print("Errores en el formulario:", form.errors)
     else:
         form = RepresentanteOrgForm(instance=representante)
-    return render(request, 'administrador/editar_configuracion.html', {'form': form, 'representante': representante})
-
+    
+    return render(request, 'administrador/editar_configuracion.html', {
+        'form': form,
+        'representante': representante
+    })
 
 def lista_verificar(request):
     representantes = representante_org.objects.filter(verificado=False)
