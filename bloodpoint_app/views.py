@@ -28,6 +28,8 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 from .models import (
     CustomUser,
@@ -967,16 +969,29 @@ def crear_campana(request):
 
     data = request.data.copy()
 
-    # Validación básica
-    required_fields = ['fecha_campana', 'fecha_termino', 'id_centro', 'apertura', 'cierre', 'meta']
+    # id_centro es ahora opcional
+    required_fields = ['fecha_campana', 'fecha_termino', 'apertura', 'cierre', 'meta', 'nombre_campana']
     for field in required_fields:
-        if field not in data:
+        if not data.get(field):
             return Response({"status": "error", "message": f"Campo requerido: {field}"}, status=400)
 
+    centro = None
+    id_centro = data.get('id_centro')
+    if id_centro:
+        try:
+            centro = centro_donacion.objects.get(id_centro=id_centro)
+        except centro_donacion.DoesNotExist:
+            return Response({"status": "error", "message": "Centro no encontrado"}, status=404)
+
+    # Convertir coordenadas a enteros (requerido por el modelo)
     try:
-        centro = centro_donacion.objects.get(id_centro=data['id_centro'])
-    except centro_donacion.DoesNotExist:
-        return Response({"status": "error", "message": "Centro no encontrado"}, status=404)
+        latitud = int(data.get('latitud', 0)) if data.get('latitud') else 0
+        longitud = int(data.get('longitud', 0)) if data.get('longitud') else 0
+    except (ValueError, TypeError):
+        return Response({
+            "status": "error",
+            "message": "Latitud y longitud deben ser números enteros."
+        }, status=400)
 
     camp = campana.objects.create(
         nombre_campana=data['nombre_campana'],
@@ -986,8 +1001,8 @@ def crear_campana(request):
         apertura=data['apertura'],
         cierre=data['cierre'],
         meta=data['meta'],
-        latitud=data.get('latitud', ''),
-        longitud=data.get('longitud', ''),
+        latitud=latitud,
+        longitud=longitud,
         id_representante=representante,
         validada=True
     )
@@ -1148,7 +1163,7 @@ def estado_donaciones_campana(request, campana_id):
 @api_view(['POST'])
 def escanear_qr_donacion(request):
     rut = request.data.get("rut")
-    centro_id = request.data.get("centro_id")
+    centro_id = request.data.get("centro_id")  # Puede venir None
     tipo_donacion = request.data.get("tipo_donacion")  # punto | campana | solicitud
     campana_id = request.data.get("campana_id")
     solicitud_id = request.data.get("solicitud_id")
@@ -1156,8 +1171,8 @@ def escanear_qr_donacion(request):
     if not request.user.is_authenticated:
         return Response({"status": "error", "message": "No autenticado"}, status=403)
 
-    if not rut or not centro_id or not tipo_donacion:
-        return Response({"status": "error", "message": "Campos obligatorios: rut, centro_id, tipo_donacion"}, status=400)
+    if not rut or not tipo_donacion:
+        return Response({"status": "error", "message": "Campos obligatorios: rut, tipo_donacion"}, status=400)
 
     try:
         representante = representante_org.objects.get(user=request.user)
@@ -1169,10 +1184,13 @@ def escanear_qr_donacion(request):
     except donante.DoesNotExist:
         return Response({"status": "error", "message": "Donante no encontrado"}, status=404)
 
-    try:
-        centro = centro_donacion.objects.get(id_centro=centro_id)
-    except centro_donacion.DoesNotExist:
-        return Response({"status": "error", "message": "Centro no encontrado"}, status=404)
+    # Lógica para buscar centro SOLO si corresponde
+    centro = None
+    if centro_id:
+        try:
+            centro = centro_donacion.objects.get(id_centro=centro_id)
+        except centro_donacion.DoesNotExist:
+            return Response({"status": "error", "message": "Centro no encontrado"}, status=404)
 
     campana_obj = None
     solicitud_obj = None
@@ -1184,6 +1202,10 @@ def escanear_qr_donacion(request):
             campana_obj = campana.objects.get(id_campana=campana_id)
         except campana.DoesNotExist:
             return Response({"status": "error", "message": "Campaña no encontrada"}, status=404)
+        # Usar centro de la campaña si no se especificó centro
+        if not centro and campana_obj.id_centro:
+            centro = campana_obj.id_centro
+
     elif tipo_donacion == 'solicitud':
         if not solicitud_id:
             return Response({"status": "error", "message": "solicitud_id es requerido para tipo solicitud"}, status=400)
@@ -1191,11 +1213,18 @@ def escanear_qr_donacion(request):
             solicitud_obj = solicitud_campana_repo.objects.get(id_solicitud=solicitud_id)
         except solicitud_campana_repo.DoesNotExist:
             return Response({"status": "error", "message": "Solicitud no encontrada"}, status=404)
+        # Usar centro de la solicitud si lo tuviera
+        if not centro and hasattr(solicitud_obj, "centro_donacion") and solicitud_obj.centro_donacion:
+            centro = solicitud_obj.centro_donacion
+
+    # Validación: Si sigue siendo None el centro y la donación es de tipo 'punto', debe ser requerido.
+    if tipo_donacion == 'punto' and not centro:
+        return Response({"status": "error", "message": "centro_id es requerido para tipo punto"}, status=400)
 
     # Crear la donación
     nueva = donacion.objects.create(
         id_donante=donante_obj,
-        centro_id=centro,
+        centro_id=centro,  # Puede ser None
         fecha_donacion=date.today(),
         cantidad_donacion=1,
         tipo_donacion=tipo_donacion,
@@ -1211,7 +1240,7 @@ def escanear_qr_donacion(request):
         "fecha": nueva.fecha_donacion.isoformat(),
         "tipo": tipo_donacion
     }, status=201)
-    
+
 @api_view(['GET'])
 def campanas_activas(request):
     hoy = date.today()
@@ -1219,6 +1248,32 @@ def campanas_activas(request):
     serializer = CampanaSerializer(campanas, many=True)
     return Response({
         "status": "success",
+        "data": serializer.data
+    }, status=200)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def campanas_activas_representante(request):
+    """
+    Retorna solo las campañas activas del representante autenticado.
+    Activas = fecha actual entre fecha_campana y fecha_termino, y validada=True
+    """
+    try:
+        representante = representante_org.objects.get(user=request.user)
+    except representante_org.DoesNotExist:
+        return Response({"status": "error", "message": "Solo representantes pueden ver sus campañas"}, status=403)
+    
+    hoy = date.today()
+    campanas = campana.objects.filter(
+        id_representante=representante,
+        validada=True,
+        fecha_campana__lte=hoy,
+        fecha_termino__gte=hoy
+    ).order_by("fecha_campana")
+    serializer = CampanaSerializer(campanas, many=True)
+    return Response({
+        "status": "success",
+        "count": campanas.count(),
         "data": serializer.data
     }, status=200)
 

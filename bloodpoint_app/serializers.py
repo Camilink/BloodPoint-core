@@ -93,7 +93,11 @@ class DonantePerfilSerializer(serializers.ModelSerializer):
         return instance
 
 class DonacionSerializer(serializers.ModelSerializer):
-    centro = serializers.CharField(source='centro_id.nombre_centro', read_only=True)
+    centro = serializers.SerializerMethodField()
+    
+    def get_centro(self, obj):
+        return obj.centro_id.nombre_centro if obj.centro_id else None
+        
     class Meta:
         model = donacion
         fields = [
@@ -118,7 +122,11 @@ class SolicitudCampanaSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class CampanaSerializer(serializers.ModelSerializer):
-    centro = serializers.CharField(source='id_centro.nombre_centro', read_only=True)
+    centro = serializers.SerializerMethodField()
+    
+    def get_centro(self, obj):
+        return obj.id_centro.nombre_centro if obj.id_centro else None
+        
     class Meta:
         model = campana
         fields = [
