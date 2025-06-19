@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-08&ko%+7k8l=v1-@1y@1g-(7ht_uc816k#_&nt@uncpc^ki$jp
 DEBUG = True
 
 ALLOWED_HOSTS = ['bloodpoint-core-qa.herokuapp.com','bloodpoint-core-qa-35c4ecec4a30.herokuapp.com',
-    'localhost','127.0.0.1', 'bloodpoint-core.onrender.com','.onrender.com',]
+    'localhost','127.0.0.1', 'bloodpoint-core.onrender.com','.onrender.com','localhost:8000']
 
 
 # Application definition
@@ -203,6 +203,7 @@ AUTHENTICATION_BACKENDS = [
 
 CSRF_TRUSTED_ORIGINS = [
     'https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com',
+    'http://localhost:8000'
 ]
 
 SESSION_COOKIE_SECURE = True   # Send session cookie only over HTTPS
