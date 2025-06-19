@@ -174,6 +174,7 @@ class campana(models.Model):
         ('cancelado', 'Cancelado'),
         ('completo', 'Completo')
     ], default='pendiente')
+    es_emergencia = models.BooleanField(default=False)
 class adminbp(models.Model):
     id_admin = models.AutoField(primary_key=True)
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True)
@@ -198,6 +199,49 @@ class solicitud_campana_repo(models.Model):
     desactivado_por = models.ForeignKey(representante_org, on_delete=models.SET_NULL, null=True, blank=True)
     campana_asociada = models.OneToOneField('campana', on_delete=models.SET_NULL, null=True, blank=True)
 
+class AchievementDefinition(models.Model):
+    key = models.CharField(max_length=100, unique=True, primary_key=True)
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    category = models.CharField(max_length=50, choices=[
+        ('basic', 'Básico'),
+        ('level', 'Nivel'),
+        ('social', 'Social'),
+        ('rare', 'Raro/Especial')
+    ])
+    symbol = models.CharField(max_length=10, blank=True, null=True)
+    required_value = models.IntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.key})"
+
+class UserAchievement(models.Model):
+    donante = models.ForeignKey(donante, on_delete=models.CASCADE)
+    achievement = models.ForeignKey(AchievementDefinition, on_delete=models.CASCADE)
+    achieved_at = models.DateTimeField(auto_now_add=True)
+    notified = models.BooleanField(default=False)
+    
+    class Meta:
+        unique_together = ('donante', 'achievement')
+
+    def __str__(self):
+        return f"{self.donante.nombre_completo} - {self.achievement.name}"
+
+class UserStats(models.Model):
+    donante = models.OneToOneField(donante, on_delete=models.CASCADE)
+    total_donations = models.IntegerField(default=0)
+    emergency_donations = models.IntegerField(default=0)
+    different_centers = models.IntegerField(default=0)
+    app_shares = models.IntegerField(default=0)
+    history_views = models.IntegerField(default=0)
+    registration_date = models.DateTimeField(auto_now_add=True)
+    years_active = models.IntegerField(default=0)
+    
+    def __str__(self):
+        return f"Stats for {self.donante.nombre_completo}"
+
+# Keep the old model for backwards compatibility
 class logro(models.Model):
     id_logro = models.AutoField(primary_key=True)
     descripcion_logro = models.CharField()

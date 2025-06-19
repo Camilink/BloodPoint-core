@@ -1,8 +1,10 @@
 from rest_framework import serializers
-from .models import donante, representante_org, centro_donacion,donacion,solicitud_campana_repo, adminbp, CustomUser, campana
+from .models import (
+    donante, representante_org, centro_donacion, donacion, solicitud_campana_repo, 
+    adminbp, CustomUser, campana, AchievementDefinition, UserAchievement, UserStats
+)
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
-from .models import CustomUser
 
 
 class AdminBPSerializer(serializers.ModelSerializer):
@@ -134,5 +136,26 @@ class CampanaSerializer(serializers.ModelSerializer):
             'id_solicitud',
             'validada',
             'estado',
-            'id_representante'
+            'id_representante',
+            'es_emergencia'
+        ]
+
+class AchievementDefinitionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AchievementDefinition
+        fields = ['key', 'name', 'description', 'category', 'symbol', 'required_value']
+
+class UserAchievementSerializer(serializers.ModelSerializer):
+    achievement = AchievementDefinitionSerializer(read_only=True)
+    
+    class Meta:
+        model = UserAchievement
+        fields = ['id', 'achievement', 'achieved_at', 'notified']
+
+class UserStatsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserStats
+        fields = [
+            'total_donations', 'emergency_donations', 'different_centers', 
+            'app_shares', 'history_views', 'years_active'
         ]
