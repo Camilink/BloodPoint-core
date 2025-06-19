@@ -39,7 +39,10 @@ from .models import (
     campana,
     adminbp,
     preguntas_usuario,
-    respuestas_representante
+    respuestas_representante,
+    AchievementDefinition,
+    UserAchievement,
+    UserStats
 )
 
 from .serializers import (
@@ -51,10 +54,14 @@ from .serializers import (
     CentroDonacionSerializer,
     donanteSerializer,
     CampanaSerializer,
+    AchievementDefinitionSerializer,
+    UserAchievementSerializer,
+    UserStatsSerializer
 )
 
 from bloodpoint_app.models import CustomUser as BP_CustomUser, donante as BP_donante
 from bloodpoint_app import views
+from .services import AchievementService
 import logging
 
 
@@ -585,6 +592,7 @@ def ingresar(request):
     if rut:
         # Login para donantes
         user = authenticate(request, rut=rut, password=password)
+        print(user, request, password)
     elif email:
         # Login para representantes
         try:
@@ -657,6 +665,20 @@ def register(request):
     }
 
     donante_obj = donante.objects.create(**donante_data)
+
+    # Check for achievements after user registration
+    try:
+        new_achievements = AchievementService.check_and_award_achievements(donante_obj)
+        if new_achievements:
+            achievement_serializer = AchievementDefinitionSerializer(new_achievements, many=True)
+            return Response({
+                "status": "created",
+                "user_id": user.id,
+                "donante_id": donante_obj.id_donante,
+                "new_achievements": achievement_serializer.data
+            }, status=201)
+    except Exception as e:
+        logger.warning(f"Achievement check failed for new user {donante_obj.id_donante}: {e}")
 
     return Response({
         "status": "created",
@@ -840,13 +862,24 @@ def registrar_donacion(request):
 )
 
 
-    return Response({
+    # Check for achievements after donation registration
+    response_data = {
         "status": "success",
         "message": "Donación registrada exitosamente.",
         "donacion_id": nueva_donacion.id_donacion,
         "fecha_donacion": nueva_donacion.fecha_donacion.isoformat(),
         "centro": centro.nombre_centro
-    }, status=201)
+    }
+    
+    try:
+        new_achievements = AchievementService.check_and_award_achievements(donante_obj)
+        if new_achievements:
+            achievement_serializer = AchievementDefinitionSerializer(new_achievements, many=True)
+            response_data["new_achievements"] = achievement_serializer.data
+    except Exception as e:
+        logger.warning(f"Achievement check failed for donation {nueva_donacion.id_donacion}: {e}")
+
+    return Response(response_data, status=201)
 
 @api_view(['GET'])
 def historial_donaciones(request):
@@ -865,6 +898,12 @@ def historial_donaciones(request):
         }, status=status.HTTP_404_NOT_FOUND)
 
     donaciones = donacion.objects.filter(id_donante=donante_obj).order_by('-fecha_donacion')
+
+    # Record history view for achievements (do this in a try-catch to not break the main flow)
+    try:
+        AchievementService.record_history_view(donante_obj)
+    except Exception as e:
+        logger.warning(f"Failed to record history view for donante {donante_obj.id_donante}: {e}")
 
     serializer = DonacionSerializer(donaciones, many=True)
     return Response({
@@ -1074,7 +1113,18 @@ def registrar_intencion_donacion(request):
         es_intencion=True
     )
 
-    return Response({"status": "success", "message": "Intención registrada"}, status=201)
+    # Check for achievements after intention registration
+    response_data = {"status": "success", "message": "Intención registrada"}
+    
+    try:
+        new_achievements = AchievementService.check_and_award_achievements(donante_obj)
+        if new_achievements:
+            achievement_serializer = AchievementDefinitionSerializer(new_achievements, many=True)
+            response_data["new_achievements"] = achievement_serializer.data
+    except Exception as e:
+        logger.warning(f"Achievement check failed for intention by donante {donante_obj.id_donante}: {e}")
+
+    return Response(response_data, status=201)
 
 @api_view(['GET'])
 def estado_donaciones_campana(request, campana_id):
@@ -1388,3 +1438,124 @@ def generate_guest_token(request, chart_id):
             "error": str(e),
             "details": "Token generation failed"
         }, status=500)
+
+# ACHIEVEMENT ENDPOINTS
+
+@api_view(['GET'])
+def user_achievements(request):
+    """Return all achievement definitions with user completion status."""
+    if not hasattr(request.user, 'donante'):
+        return Response({'error': 'Only donors can have achievements'}, status=400)
+    try:
+        donante_obj = request.user.donante
+
+        # Fetch user achievements via service
+        user_achievements = AchievementService.get_user_achievements(donante_obj)
+        completed_keys = {ua.achievement.key for ua in user_achievements}
+
+        # Fetch all definitions
+        all_defs = AchievementDefinition.objects.all()
+
+        # Build response
+        result = []
+        for definition in all_defs:
+            result.append({
+                'name': definition.name,
+                'key': definition.key,
+                'symbol': definition.symbol,
+                'description': definition.description,
+                'category': definition.category,
+                'user_completed': definition.key in completed_keys
+            })
+
+        return Response(result)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+def user_stats(request):
+    """Get user statistics"""
+    if not hasattr(request.user, 'donante'):
+        return Response({'error': 'Only donors have stats'}, status=400)
+    
+    try:
+        donante_obj = request.user.donante
+        stats = AchievementService.get_or_create_user_stats(donante_obj)
+        AchievementService.update_user_stats(donante_obj)
+        stats.refresh_from_db()
+        serializer = UserStatsSerializer(stats)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+def record_app_share(request):
+    """Record that the user shared the app"""
+    if not hasattr(request.user, 'donante'):
+        return Response({'error': 'Only donors can share the app'}, status=400)
+    
+    try:
+        donante_obj = request.user.donante
+        new_achievements = AchievementService.record_app_share(donante_obj)
+        
+        if new_achievements:
+            achievement_serializer = AchievementDefinitionSerializer(new_achievements, many=True)
+            return Response({
+                'message': 'App share recorded',
+                'new_achievements': achievement_serializer.data
+            })
+        else:
+            return Response({'message': 'App share recorded'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])  
+def record_history_view(request):
+    """Record that the user viewed their donation history"""
+    if not hasattr(request.user, 'donante'):
+        return Response({'error': 'Only donors can view history'}, status=400)
+    
+    try:
+        donante_obj = request.user.donante
+        new_achievements = AchievementService.record_history_view(donante_obj)
+        
+        if new_achievements:
+            achievement_serializer = AchievementDefinitionSerializer(new_achievements, many=True)
+            return Response({
+                'message': 'History view recorded',
+                'new_achievements': achievement_serializer.data
+            })
+        else:
+            return Response({'message': 'History view recorded'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+def unnotified_achievements(request):
+    """Get achievements that haven't been notified yet"""
+    if not hasattr(request.user, 'donante'):
+        return Response({'error': 'Only donors can have achievements'}, status=400)
+    
+    try:
+        donante_obj = request.user.donante
+        achievements = AchievementService.get_unnotified_achievements(donante_obj)
+        serializer = UserAchievementSerializer(achievements, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+def mark_achievements_notified(request):
+    """Mark achievements as notified"""
+    if not hasattr(request.user, 'donante'):
+        return Response({'error': 'Only donors can have achievements'}, status=400)
+    
+    try:
+        achievement_ids = request.data.get('achievement_ids', [])
+        if not achievement_ids:
+            return Response({'error': 'achievement_ids required'}, status=400)
+        
+        AchievementService.mark_achievements_as_notified(achievement_ids)
+        return Response({'message': 'Achievements marked as notified'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
