@@ -30,7 +30,14 @@ urlpatterns = [
     path('campanas/crear/', views.crear_campana, name='crear_campana'),
     path('campanas/activas/', views.campanas_activas, name='campanas_activas'),
     path('ask/', views.ask_bot, name='preguntar-llm'),
-
+    
+    # Achievement endpoints
+    path('achievements/', views.user_achievements, name='user-achievements'),
+    path('achievements/stats/', views.user_stats, name='user-stats'),
+    path('achievements/share/', views.record_app_share, name='record-app-share'),
+    path('achievements/history-view/', views.record_history_view, name='record-history-view'),
+    path('achievements/unnotified/', views.unnotified_achievements, name='unnotified-achievements'),
+    path('achievements/mark-notified/', views.mark_achievements_notified, name='mark-achievements-notified'),
 
     #super set
     path('api/superset-token/<str:chart_id>/', views.generate_guest_token, name='chart-token'),
