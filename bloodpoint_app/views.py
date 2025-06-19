@@ -985,8 +985,8 @@ def crear_campana(request):
 
     # Convertir coordenadas a enteros (requerido por el modelo)
     try:
-        latitud = int(data.get('latitud', 0)) if data.get('latitud') else 0
-        longitud = int(data.get('longitud', 0)) if data.get('longitud') else 0
+        latitud = float(data.get('latitud', 0)) if data.get('latitud') else 0
+        longitud = float(data.get('longitud', 0)) if data.get('longitud') else 0
     except (ValueError, TypeError):
         return Response({
             "status": "error",
