@@ -209,7 +209,7 @@ class AchievementDefinition(models.Model):
         ('social', 'Social'),
         ('rare', 'Raro/Especial')
     ])
-    symbol = models.CharField(max_length=10, blank=True, null=True)
+    symbol = models.CharField(max_length=50, blank=True, null=True)
     required_value = models.IntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
