@@ -3,6 +3,12 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from cloudinary.models import CloudinaryField
+import secrets
+
+# Cloudinary SDK
+import cloudinary
+import cloudinary.uploader
+from cloudinary.utils import cloudinary_url
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, rut=None, **extra_fields):
@@ -100,6 +106,37 @@ class donante(models.Model):
     def __str__(self):
         return self.nombre_completo
 
+class Credencial(models.Model):
+    id = models.AutoField(primary_key=True)
+    id_representante = models.ForeignKey('bloodpoint_app.representante_org', on_delete=models.CASCADE, null=True, blank=True)
+    cloudinary_key = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def gen_key(self):
+        self.cloudinary_key = secrets.token_hex(16)
+        self.save(update_fields=['cloudinary_key'])
+        return self.cloudinary_key
+
+    def upload_file(self, file):
+        if self.cloudinary_key:
+            try:
+                cloudinary.uploader.destroy(f"credenciales/{self.cloudinary_key}")
+                print(f"Deleted old Cloudinary asset: credenciales/{self.cloudinary_key}")
+            except Exception as e:
+                print(f"Could not delete old Cloudinary asset: {e}")
+
+        return cloudinary.uploader.upload(file, folder='credenciales', public_id=self.gen_key())
+
+    def url(self):
+        url, _ = cloudinary_url(
+            f"credenciales/{self.cloudinary_key}",  # include folder
+            secure=True,                            # force https
+            fetch_format="auto",
+            quality="auto"
+        )
+        return url
+
+
 class representante_org(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, blank=True) 
     id_representante = models.AutoField(primary_key=True)
@@ -107,7 +144,6 @@ class representante_org(models.Model):
     rol = models.CharField(max_length=100)
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
-    credencial = CloudinaryField('image', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     verificado = models.BooleanField(default=False)
     
@@ -122,6 +158,10 @@ class representante_org(models.Model):
 
     def verificado_text(self):
         return 'Representante verificado' if self.verificado else 'Representante sin verificar'
+
+    def credencial_url(self):
+        cred = (Credencial.objects.filter(id_representante=self).order_by('-created_at').first())
+        return cred.url() if cred else None
 
 class centro_donacion(models.Model):
     id_centro = models.AutoField(primary_key=True)
@@ -299,3 +339,4 @@ class DeviceToken(models.Model):
         """Deactivate this device token"""
         self.is_active = False
         self.save(update_fields=['is_active', 'updated_at'])
+

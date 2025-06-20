@@ -45,7 +45,8 @@ from .models import (
     AchievementDefinition,
     UserAchievement,
     UserStats,
-    DeviceToken
+    DeviceToken,
+    Credencial
 )
 
 from .serializers import (
@@ -266,31 +267,25 @@ def editar_configuracion_representante(request):
     if request.method == 'POST':
         form = RepresentanteOrgForm(request.POST, request.FILES, instance=representante)
         if form.is_valid():
-            # Debug: Ver qué estamos recibiendo
-            print("Archivos recibidos:", request.FILES)
-            print("Datos del formulario:", request.POST)
-            
-            # Guardar instancia
-            instance = form.save(commit=False)
-            
-            if 'credencial' in request.FILES:
-                print("Nueva imagen recibida:", request.FILES['credencial'])
-                # Forzar la actualización del campo
-                instance.credencial = request.FILES['credencial']
-            
-            instance.save()
-            print("Imagen guardada. URL:", instance.credencial.url if instance.credencial else "No hay imagen")
-            
+            form.save()
+            file = form.cleaned_data.get('credencial')
+            if file:
+                # Elimina credenciales antiguas
+                Credencial.objects.filter(id_representante=representante).delete()
+                cred = Credencial(id_representante=representante)
+                cred.save()
+                upload_result = cred.upload_file(file)
             return redirect('configuracion_representante')
         else:
             print("Errores en el formulario:", form.errors)
     else:
         form = RepresentanteOrgForm(instance=representante)
     
-    return render(request, 'administrador/editar_configuracion.html', {
-        'form': form,
-        'representante': representante
-    })
+        return render(request, 'administrador/editar_configuracion.html', {
+            'form': form,
+            'representante': representante
+        })
+
 
 def lista_verificar(request):
     representantes = representante_org.objects.filter(verificado=False)
@@ -403,11 +398,14 @@ def signup_representante(request):
                     nombre=nombre,
                     apellido=apellido
                 )
-                
-                if credencial:
-                    representante.credencial = credencial
-                    
                 representante.save()
+                file = form.cleaned_data.get('credencial')
+                if file:
+                    # Elimina credenciales antiguas
+                    Credencial.objects.filter(id_representante=representante).delete()
+                    cred = Credencial(id_representante=representante)
+                    cred.save()
+                    upload_result = cred.upload_file(file)
                 
                 # Redirigir al login
                 return redirect('login')
@@ -931,28 +929,30 @@ def crear_solicitud_campana(request):
     if serializer.is_valid():
         solicitud = serializer.save()
 
-        # Obtener el centro de donación para generar el nombre
+        # Obtener el centro seleccionado para usar sus datos
         centro = solicitud.centro_donacion
+        
+         # ✅ AGREGAR ESTA LÍNEA: Generar nombre de campaña automáticamente
         nombre_campana_generado = f"{centro.nombre_centro} - Solicitud {solicitud.fecha_solicitud.strftime('%d/%m/%Y')} - {solicitud.cantidad_personas} personas"
+
 
         # Crear campaña directamente al crear la solicitud
         nueva_campana = campana.objects.create(
-            nombre_campana=nombre_campana_generado,  # <-- Usar la variable definida
+            nombre_campana=nombre_campana_generado,
             fecha_campana=solicitud.fecha_solicitud,
             fecha_termino=solicitud.fecha_termino,
-            id_centro=solicitud.centro_donacion,
-            apertura=request.data.get("apertura"),
-            cierre=request.data.get("cierre"),
+            id_centro=centro,
+            apertura=centro.horario_apertura,  # ✅ Del centro seleccionado
+            cierre=centro.horario_cierre,      # ✅ Del centro seleccionado
             meta=str(solicitud.cantidad_personas),
-            latitud=request.data.get("latitud", ""),
-            longitud=request.data.get("longitud", ""),
+            latitud=0,   # ✅ Valor por defecto o coordenadas del centro si las tienes
+            longitud=0,  # ✅ Valor por defecto o coordenadas del centro si las tienes
             id_solicitud=solicitud,
-            validada=True  # o False si quieres que los reps validen después
+            validada=False  # ❌ Las campañas de solicitud deben ser validadas por representantes
         )
 
-        solicitud.estado = 'aprobado'  # O mantener en 'pendiente'
         solicitud.campana_asociada = nueva_campana
-        solicitud.save()
+        solicitud.save()  # Mantener estado inicial (sin aprobar automáticamente)
 
         return Response({
             "status": "success",
@@ -1249,11 +1249,33 @@ def escanear_qr_donacion(request):
 @api_view(['GET'])
 def campanas_activas(request):
     hoy = date.today()
-    campanas = campana.objects.filter(validada=True, fecha_campana__lte=hoy, fecha_termino__gte=hoy)
-    serializer = CampanaSerializer(campanas, many=True)
+    campanas = campana.objects.filter(
+        validada=True, 
+        fecha_campana__lte=hoy, 
+        fecha_termino__gte=hoy
+    ).select_related('id_solicitud')  # Optimizar consulta para incluir solicitudes
+    
+    # Serializar manualmente para incluir datos de solicitud
+    data = []
+    for camp in campanas:
+        camp_data = CampanaSerializer(camp).data
+        
+        # Agregar datos de solicitud si existe (para mostrar tipo de sangre)
+        if camp.id_solicitud:
+            camp_data['tipo_sangre_sol'] = camp.id_solicitud.tipo_sangre_sol
+            camp_data['cantidad_personas'] = camp.id_solicitud.cantidad_personas
+            camp_data['descripcion_solicitud'] = camp.id_solicitud.descripcion_solicitud
+        else:
+            # Para campañas normales (no solicitudes)
+            camp_data['tipo_sangre_sol'] = None
+            camp_data['cantidad_personas'] = None
+            camp_data['descripcion_solicitud'] = None
+        
+        data.append(camp_data)
+    
     return Response({
         "status": "success",
-        "data": serializer.data
+        "data": data
     }, status=200)
 
 @api_view(['GET'])

@@ -7,12 +7,12 @@
         <h2>Editar Perfil Representante</h2>
         <div class="row" style="margin-bottom: 1.5rem">
             <div class="col-12" style="display: flex;">
-				<a class="btn btn-primary red" href="{% url 'configuracion_representante' %}"></a>
+				<a class="btn btn-primary red" href="{% url 'configuracion_representante' %}">
 					<span>Volver</span>
 				</a>
             </div>
         </div>
-        <form method="POST" enctype="multipart/form-data">
+        <form id='representante_form' method="POST">
             {% csrf_token %}
             {{ form.as_p }}
             <button class="btn btn-primary red" style="max-width: 35vw;" type="submit">Guardar cambios</button>

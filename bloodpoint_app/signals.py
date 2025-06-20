@@ -52,3 +52,4 @@ try:
 except ImportError:
     # Celery not available, which is fine
     pass
+
