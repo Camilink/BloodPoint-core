@@ -129,6 +129,9 @@ class representante_org(models.Model):
     def verificado_text(self):
         return 'Representante verificado' if self.verificado else 'Representante sin verificar'
 
+    def credencial_url(self):
+        return self.credencial.url()
+
 class centro_donacion(models.Model):
     id_centro = models.AutoField(primary_key=True)
     nombre_centro = models.CharField()
