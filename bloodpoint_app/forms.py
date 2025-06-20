@@ -19,8 +19,7 @@ class RepresentanteOrgForm(forms.ModelForm):
     )
     credencial = forms.FileField(
         widget=forms.ClearableFileInput(attrs={'class':'form-control'}),
-        required=False,
-        help_text="Sube tu credencial aquí"
+        required=False
     )
 
     class Meta:
