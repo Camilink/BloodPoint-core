@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-08&ko%+7k8l=v1-@1y@1g-(7ht_uc816k#_&nt@uncpc^ki$jp
 DEBUG = True
 
 ALLOWED_HOSTS = ['bloodpoint-core-qa.herokuapp.com','bloodpoint-core-qa-35c4ecec4a30.herokuapp.com',
-    'localhost','127.0.0.1', 'bloodpoint-core.onrender.com','.onrender.com',]
+    'localhost','127.0.0.1', 'bloodpoint-core.onrender.com','.onrender.com','localhost:8000']
 
 
 # Application definition
@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'django_extensions',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 REST_FRAMEWORK = {
@@ -201,6 +203,7 @@ AUTHENTICATION_BACKENDS = [
 
 CSRF_TRUSTED_ORIGINS = [
     'https://bloodpoint-core-qa-35c4ecec4a30.herokuapp.com',
+    'http://localhost:8000'
 ]
 
 SESSION_COOKIE_SECURE = True   # Send session cookie only over HTTPS
@@ -230,6 +233,23 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO',
+        'level': 'DEBUG',
     },
 }
+
+import cloudinary
+
+cloudinary.config(
+    cloudinary_url=os.getenv("CLOUDINARY_URL")
+)
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# Firebase Configuration
+# FIREBASE_SERVICE_ACCOUNT_KEY = os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY')
+# For cloud deployments, you might want to use the service account key file path
+FIREBASE_SERVICE_ACCOUNT_KEY = os.path.join(BASE_DIR, 'firebase-service-account-key.json')
+
+# Optional: Use Celery for asynchronous notifications
+USE_CELERY = os.getenv('USE_CELERY', 'False').lower() == 'true'
+

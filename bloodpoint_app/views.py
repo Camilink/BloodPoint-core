@@ -1,9 +1,14 @@
 import logging
+import os
 import uuid
 from datetime import date, datetime
+from django.utils import timezone 
 import jwt
+import requests
 import time
+import json
 
+from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.backends import ModelBackend
@@ -13,13 +18,18 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from bloodpoint_app.utils.export_helpers import generar_csv_resumen_campana
 from bloodpoint_app.utils.excel_templates import generar_excel_campana
+from bloodpoint_app.utils.exportar_top3_campanas_por_donaciones import exportar_top3_campanas_por_donaciones
+from bloodpoint_app.utils.respuesta_donante import enviar_respuesta_a_donante
 from bloodpoint_app.forms import AdminBPForm
 from bloodpoint_app.forms import RepresentanteOrgForm
+from django.views.generic import ListView
 
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 from .models import (
     CustomUser,
@@ -29,7 +39,14 @@ from .models import (
     donacion,
     solicitud_campana_repo,
     campana,
-    adminbp
+    adminbp,
+    preguntas_usuario,
+    respuestas_representante,
+    AchievementDefinition,
+    UserAchievement,
+    UserStats,
+    DeviceToken,
+    Credencial
 )
 
 from .serializers import (
@@ -41,10 +58,14 @@ from .serializers import (
     CentroDonacionSerializer,
     donanteSerializer,
     CampanaSerializer,
+    AchievementDefinitionSerializer,
+    UserAchievementSerializer,
+    UserStatsSerializer
 )
 
 from bloodpoint_app.models import CustomUser as BP_CustomUser, donante as BP_donante
 from bloodpoint_app import views
+from .services import AchievementService
 import logging
 
 
@@ -55,6 +76,37 @@ logger = logging.getLogger(__name__)
 #    return HttpResponse("Welcome to Bloodpoint API")
 
 # NAVEGADOR 
+
+
+@login_required
+def listar_preguntas(request):
+    representante = representante_org.objects.get(user=request.user)
+    preguntas = preguntas_usuario.objects.filter(respondida=False)
+    return render(request, 'representante/listar_preguntas.html', {'preguntas': preguntas})
+
+@login_required
+def responder_pregunta(request, pregunta_id):
+    pregunta = get_object_or_404(preguntas_usuario, id=pregunta_id)
+    representante = representante_org.objects.get(user=request.user)
+
+    if request.method == 'POST':
+        respuesta_texto = request.POST.get('respuesta')
+
+        respuesta = respuestas_representante.objects.create(
+            respuesta=respuesta_texto,
+            fecha_respuesta=timezone.now(),
+            id_pregunta=pregunta,
+            id_representante=representante
+        )
+
+        pregunta.respondida = True
+        pregunta.save()
+
+        enviar_respuesta_a_donante(respuesta.id)
+        return redirect('listar_preguntas')
+
+    return render(request, 'representante/pregunta_chatbot.html', {'pregunta': pregunta})
+
 
 ##generador csv
 def exportar_resumen_una_campana_csv(request, campana_id):
@@ -67,16 +119,23 @@ def exportar_resumen_una_campana_csv(request, campana_id):
     )
     return response
 
-
 def descargar_excel_campana(request, campana_id):
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = f'attachment; filename=resumen_campana_{campana_id}.xlsx'
-
+    response['Content-Disposition'] = f'attachment; filename=resumen_campana_N°{campana_id}.xlsx'
     generar_excel_campana(campana_id, response)
     return response
 
+def descargar_top3_campanas(request):
+    excel_file = exportar_top3_campanas_por_donaciones()
+    response = HttpResponse(
+        excel_file,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"top3_campanas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+    return response
 
 def campanas(request):
     return render(request, 'campannas.html')
@@ -93,7 +152,7 @@ def admin_home(request):
     return render(request, 'admin_home.html')
 
 def admin_index(request):
-    admins = adminbp.objects.all()
+    admins = adminbp.objects.exclude(user_id=request.user.id)
     return render(request, 'administrador/index.html', {'admins': admins})
 
 def detalles_admin(request, id):
@@ -148,9 +207,27 @@ def eliminar_admin(request, id):
     admin.delete()
     return redirect('admin_index')
 
+def configuracion_admin(request):
+    admin = get_object_or_404(adminbp, user=request.user)
+    return render(request, 'administrador/configuracion.html', {'admin': admin})
+
+def editar_configuracion(request):
+    admin = get_object_or_404(adminbp, user=request.user)
+    if request.method == 'POST':
+        form = AdminBPForm(request.POST, instance=admin)
+        if form.is_valid():
+            form.save()
+            return redirect('configuracion_admin')
+    else:
+        form = AdminBPForm(instance=admin)
+    return render(request, 'administrador/editar_configuracion.html', {'form': form, 'admin': admin})
+
 def representante_index(request):
-    representantes = representante_org.objects.all()
-    return render(request, 'representante/index.html', {'representantes': representantes})
+    representantes = representante_org.objects.filter(verificado=True)
+    paginator = Paginator(representantes, 5) 
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'representante/index.html', {'page_obj': page_obj})
 
 def detalles_representante(request, id):
     representante = get_object_or_404(representante_org, id_representante=id)
@@ -162,10 +239,10 @@ def verificar_representante(request, id):
     representante = get_object_or_404(representante_org, id_representante=id)
     representante.verificado = True
     representante.save()
-    return redirect('detalles_representante', id=id)
+    return redirect('lista_verificar')
 
 def editar_representante(request, id):
-    representante = get_object_or_404(repesentante_org, id_representante=id)
+    representante = get_object_or_404(representante_org, id_representante=id)
     if request.method == 'POST':
         form = RepresentanteOrgForm(request.POST, instance=representante)
         if form.is_valid():
@@ -177,14 +254,60 @@ def editar_representante(request, id):
 
 def eliminar_representante(request, id):
     representante = get_object_or_404(representante_org, id_representante=id)
-    repesentante.delete()
+    representante.delete()
     return redirect('representante_index')
+
+def configuracion_representante(request):
+    representante = get_object_or_404(representante_org, user=request.user)
+    return render(request, 'representante/configuracion.html', {'representante': representante})
+
+def editar_configuracion_representante(request):
+    representante = get_object_or_404(representante_org, user=request.user)
+    
+    if request.method == 'POST':
+        form = RepresentanteOrgForm(request.POST, request.FILES, instance=representante)
+        if form.is_valid():
+            form.save()
+            file = form.cleaned_data.get('credencial')
+            if file:
+                # Elimina credenciales antiguas
+                Credencial.objects.filter(id_representante=representante).delete()
+                cred = Credencial(id_representante=representante)
+                cred.save()
+                upload_result = cred.upload_file(file)
+            return redirect('configuracion_representante')
+        else:
+            print("Errores en el formulario:", form.errors)
+    else:
+        form = RepresentanteOrgForm(instance=representante)
+    
+        return render(request, 'administrador/editar_configuracion.html', {
+            'form': form,
+            'representante': representante
+        })
+
+
+def lista_verificar(request):
+    representantes = representante_org.objects.filter(verificado=False)
+    paginator = Paginator(representantes, 5) 
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'representante/lista_verificar.html', {'page_obj': page_obj})
+
+def detalles_verificar(request, id):
+    representante = get_object_or_404(representante_org, id_representante=id)
+
+    return render(request, 'representante/detalles_verificar.html', {'representante': representante})
 
 def campana_index(request):
     
     representante = representante_org.objects.get(user=request.user)
     campanas = campana.objects.filter(id_representante=representante.id_representante)
-    return render(request, 'campanas/index.html', {'campanas': campanas})
+    paginator = Paginator(campanas, 5) 
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'campanas/index.html', {'page_obj': page_obj})
 
 def detalles_campana(request, id):
     campana_ojb = get_object_or_404(campana, id_campana=id)
@@ -275,11 +398,14 @@ def signup_representante(request):
                     nombre=nombre,
                     apellido=apellido
                 )
-                
-                if credencial:
-                    representante.credencial = credencial
-                    
                 representante.save()
+                file = request.FILES.get('credencial')
+                if file:
+                    # Elimina credenciales antiguas
+                    Credencial.objects.filter(id_representante=representante).delete()
+                    cred = Credencial(id_representante=representante)
+                    cred.save()
+                    upload_result = cred.upload_file(file)
                 
                 # Redirigir al login
                 return redirect('login')
@@ -467,6 +593,7 @@ def ingresar(request):
     if rut:
         # Login para donantes
         user = authenticate(request, rut=rut, password=password)
+        print(user, request, password)
     elif email:
         # Login para representantes
         try:
@@ -539,6 +666,20 @@ def register(request):
     }
 
     donante_obj = donante.objects.create(**donante_data)
+
+    # Check for achievements after user registration
+    try:
+        new_achievements = AchievementService.check_and_award_achievements(donante_obj)
+        if new_achievements:
+            achievement_serializer = AchievementDefinitionSerializer(new_achievements, many=True)
+            return Response({
+                "status": "created",
+                "user_id": user.id,
+                "donante_id": donante_obj.id_donante,
+                "new_achievements": achievement_serializer.data
+            }, status=201)
+    except Exception as e:
+        logger.warning(f"Achievement check failed for new user {donante_obj.id_donante}: {e}")
 
     return Response({
         "status": "created",
@@ -722,13 +863,24 @@ def registrar_donacion(request):
 )
 
 
-    return Response({
+    # Check for achievements after donation registration
+    response_data = {
         "status": "success",
         "message": "Donación registrada exitosamente.",
         "donacion_id": nueva_donacion.id_donacion,
         "fecha_donacion": nueva_donacion.fecha_donacion.isoformat(),
         "centro": centro.nombre_centro
-    }, status=201)
+    }
+    
+    try:
+        new_achievements = AchievementService.check_and_award_achievements(donante_obj)
+        if new_achievements:
+            achievement_serializer = AchievementDefinitionSerializer(new_achievements, many=True)
+            response_data["new_achievements"] = achievement_serializer.data
+    except Exception as e:
+        logger.warning(f"Achievement check failed for donation {nueva_donacion.id_donacion}: {e}")
+
+    return Response(response_data, status=201)
 
 @api_view(['GET'])
 def historial_donaciones(request):
@@ -747,6 +899,12 @@ def historial_donaciones(request):
         }, status=status.HTTP_404_NOT_FOUND)
 
     donaciones = donacion.objects.filter(id_donante=donante_obj).order_by('-fecha_donacion')
+
+    # Record history view for achievements (do this in a try-catch to not break the main flow)
+    try:
+        AchievementService.record_history_view(donante_obj)
+    except Exception as e:
+        logger.warning(f"Failed to record history view for donante {donante_obj.id_donante}: {e}")
 
     serializer = DonacionSerializer(donaciones, many=True)
     return Response({
@@ -771,24 +929,30 @@ def crear_solicitud_campana(request):
     if serializer.is_valid():
         solicitud = serializer.save()
 
+        # Obtener el centro seleccionado para usar sus datos
+        centro = solicitud.centro_donacion
+        
+         # ✅ AGREGAR ESTA LÍNEA: Generar nombre de campaña automáticamente
+        nombre_campana_generado = f"{centro.nombre_centro} - Solicitud {solicitud.fecha_solicitud.strftime('%d/%m/%Y')} - {solicitud.cantidad_personas} personas"
+
+
         # Crear campaña directamente al crear la solicitud
         nueva_campana = campana.objects.create(
-            nombre_campana=solicitud.nombre_campana,
+            nombre_campana=nombre_campana_generado,
             fecha_campana=solicitud.fecha_solicitud,
             fecha_termino=solicitud.fecha_termino,
-            id_centro=solicitud.centro_donacion,
-            apertura=request.data.get("apertura"),
-            cierre=request.data.get("cierre"),
+            id_centro=centro,
+            apertura=centro.horario_apertura,  # ✅ Del centro seleccionado
+            cierre=centro.horario_cierre,      # ✅ Del centro seleccionado
             meta=str(solicitud.cantidad_personas),
-            latitud=request.data.get("latitud", ""),
-            longitud=request.data.get("longitud", ""),
+            latitud=0,   # ✅ Valor por defecto o coordenadas del centro si las tienes
+            longitud=0,  # ✅ Valor por defecto o coordenadas del centro si las tienes
             id_solicitud=solicitud,
-            validada=True  # o False si quieres que los reps validen después
+            validada=False  # ❌ Las campañas de solicitud deben ser validadas por representantes
         )
 
-        solicitud.estado = 'aprobado'  # O mantener en 'pendiente'
         solicitud.campana_asociada = nueva_campana
-        solicitud.save()
+        solicitud.save()  # Mantener estado inicial (sin aprobar automáticamente)
 
         return Response({
             "status": "success",
@@ -810,16 +974,29 @@ def crear_campana(request):
 
     data = request.data.copy()
 
-    # Validación básica
-    required_fields = ['fecha_campana', 'fecha_termino', 'id_centro', 'apertura', 'cierre', 'meta']
+    # id_centro es ahora opcional
+    required_fields = ['fecha_campana', 'fecha_termino', 'apertura', 'cierre', 'meta', 'nombre_campana']
     for field in required_fields:
-        if field not in data:
+        if not data.get(field):
             return Response({"status": "error", "message": f"Campo requerido: {field}"}, status=400)
 
+    centro = None
+    id_centro = data.get('id_centro')
+    if id_centro:
+        try:
+            centro = centro_donacion.objects.get(id_centro=id_centro)
+        except centro_donacion.DoesNotExist:
+            return Response({"status": "error", "message": "Centro no encontrado"}, status=404)
+
+    # Convertir coordenadas a enteros (requerido por el modelo)
     try:
-        centro = centro_donacion.objects.get(id_centro=data['id_centro'])
-    except centro_donacion.DoesNotExist:
-        return Response({"status": "error", "message": "Centro no encontrado"}, status=404)
+        latitud = float(data.get('latitud', 0)) if data.get('latitud') else 0
+        longitud = float(data.get('longitud', 0)) if data.get('longitud') else 0
+    except (ValueError, TypeError):
+        return Response({
+            "status": "error",
+            "message": "Latitud y longitud deben ser números enteros."
+        }, status=400)
 
     camp = campana.objects.create(
         nombre_campana=data['nombre_campana'],
@@ -829,8 +1006,8 @@ def crear_campana(request):
         apertura=data['apertura'],
         cierre=data['cierre'],
         meta=data['meta'],
-        latitud=data.get('latitud', ''),
-        longitud=data.get('longitud', ''),
+        latitud=latitud,
+        longitud=longitud,
         id_representante=representante,
         validada=True
     )
@@ -956,7 +1133,18 @@ def registrar_intencion_donacion(request):
         es_intencion=True
     )
 
-    return Response({"status": "success", "message": "Intención registrada"}, status=201)
+    # Check for achievements after intention registration
+    response_data = {"status": "success", "message": "Intención registrada"}
+    
+    try:
+        new_achievements = AchievementService.check_and_award_achievements(donante_obj)
+        if new_achievements:
+            achievement_serializer = AchievementDefinitionSerializer(new_achievements, many=True)
+            response_data["new_achievements"] = achievement_serializer.data
+    except Exception as e:
+        logger.warning(f"Achievement check failed for intention by donante {donante_obj.id_donante}: {e}")
+
+    return Response(response_data, status=201)
 
 @api_view(['GET'])
 def estado_donaciones_campana(request, campana_id):
@@ -980,7 +1168,7 @@ def estado_donaciones_campana(request, campana_id):
 @api_view(['POST'])
 def escanear_qr_donacion(request):
     rut = request.data.get("rut")
-    centro_id = request.data.get("centro_id")
+    centro_id = request.data.get("centro_id")  # Puede venir None
     tipo_donacion = request.data.get("tipo_donacion")  # punto | campana | solicitud
     campana_id = request.data.get("campana_id")
     solicitud_id = request.data.get("solicitud_id")
@@ -988,8 +1176,8 @@ def escanear_qr_donacion(request):
     if not request.user.is_authenticated:
         return Response({"status": "error", "message": "No autenticado"}, status=403)
 
-    if not rut or not centro_id or not tipo_donacion:
-        return Response({"status": "error", "message": "Campos obligatorios: rut, centro_id, tipo_donacion"}, status=400)
+    if not rut or not tipo_donacion:
+        return Response({"status": "error", "message": "Campos obligatorios: rut, tipo_donacion"}, status=400)
 
     try:
         representante = representante_org.objects.get(user=request.user)
@@ -1001,10 +1189,13 @@ def escanear_qr_donacion(request):
     except donante.DoesNotExist:
         return Response({"status": "error", "message": "Donante no encontrado"}, status=404)
 
-    try:
-        centro = centro_donacion.objects.get(id_centro=centro_id)
-    except centro_donacion.DoesNotExist:
-        return Response({"status": "error", "message": "Centro no encontrado"}, status=404)
+    # Lógica para buscar centro SOLO si corresponde
+    centro = None
+    if centro_id:
+        try:
+            centro = centro_donacion.objects.get(id_centro=centro_id)
+        except centro_donacion.DoesNotExist:
+            return Response({"status": "error", "message": "Centro no encontrado"}, status=404)
 
     campana_obj = None
     solicitud_obj = None
@@ -1016,6 +1207,10 @@ def escanear_qr_donacion(request):
             campana_obj = campana.objects.get(id_campana=campana_id)
         except campana.DoesNotExist:
             return Response({"status": "error", "message": "Campaña no encontrada"}, status=404)
+        # Usar centro de la campaña si no se especificó centro
+        if not centro and campana_obj.id_centro:
+            centro = campana_obj.id_centro
+
     elif tipo_donacion == 'solicitud':
         if not solicitud_id:
             return Response({"status": "error", "message": "solicitud_id es requerido para tipo solicitud"}, status=400)
@@ -1023,11 +1218,18 @@ def escanear_qr_donacion(request):
             solicitud_obj = solicitud_campana_repo.objects.get(id_solicitud=solicitud_id)
         except solicitud_campana_repo.DoesNotExist:
             return Response({"status": "error", "message": "Solicitud no encontrada"}, status=404)
+        # Usar centro de la solicitud si lo tuviera
+        if not centro and hasattr(solicitud_obj, "centro_donacion") and solicitud_obj.centro_donacion:
+            centro = solicitud_obj.centro_donacion
+
+    # Validación: Si sigue siendo None el centro y la donación es de tipo 'punto', debe ser requerido.
+    if tipo_donacion == 'punto' and not centro:
+        return Response({"status": "error", "message": "centro_id es requerido para tipo punto"}, status=400)
 
     # Crear la donación
     nueva = donacion.objects.create(
         id_donante=donante_obj,
-        centro_id=centro,
+        centro_id=centro,  # Puede ser None
         fecha_donacion=date.today(),
         cantidad_donacion=1,
         tipo_donacion=tipo_donacion,
@@ -1043,16 +1245,216 @@ def escanear_qr_donacion(request):
         "fecha": nueva.fecha_donacion.isoformat(),
         "tipo": tipo_donacion
     }, status=201)
-    
+
 @api_view(['GET'])
 def campanas_activas(request):
     hoy = date.today()
-    campanas = campana.objects.filter(validada=True, fecha_campana__lte=hoy, fecha_termino__gte=hoy)
+    campanas = campana.objects.filter(
+        validada=True, 
+        fecha_campana__lte=hoy, 
+        fecha_termino__gte=hoy
+    ).select_related('id_solicitud')  # Optimizar consulta para incluir solicitudes
+    
+    # Serializar manualmente para incluir datos de solicitud
+    data = []
+    for camp in campanas:
+        camp_data = CampanaSerializer(camp).data
+        
+        # Agregar datos de solicitud si existe (para mostrar tipo de sangre)
+        if camp.id_solicitud:
+            camp_data['tipo_sangre_sol'] = camp.id_solicitud.tipo_sangre_sol
+            camp_data['cantidad_personas'] = camp.id_solicitud.cantidad_personas
+            camp_data['descripcion_solicitud'] = camp.id_solicitud.descripcion_solicitud
+        else:
+            # Para campañas normales (no solicitudes)
+            camp_data['tipo_sangre_sol'] = None
+            camp_data['cantidad_personas'] = None
+            camp_data['descripcion_solicitud'] = None
+        
+        data.append(camp_data)
+    
+    return Response({
+        "status": "success",
+        "data": data
+    }, status=200)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def campanas_activas_representante(request):
+    """
+    Retorna solo las campañas activas del representante autenticado.
+    Activas = fecha actual entre fecha_campana y fecha_termino, y validada=True
+    """
+    try:
+        representante = representante_org.objects.get(user=request.user)
+    except representante_org.DoesNotExist:
+        return Response({"status": "error", "message": "Solo representantes pueden ver sus campañas"}, status=403)
+    
+    hoy = date.today()
+    campanas = campana.objects.filter(
+        id_representante=representante,
+        validada=True,
+        fecha_campana__lte=hoy,
+        fecha_termino__gte=hoy
+    ).order_by("fecha_campana")
     serializer = CampanaSerializer(campanas, many=True)
     return Response({
         "status": "success",
+        "count": campanas.count(),
         "data": serializer.data
     }, status=200)
+
+@api_view(['POST'])
+def ask_bot(request):
+    try:
+        # Get question from either GET parameters or POST body
+        if request.method == "GET":
+            question = request.GET.get("prompt")
+        elif request.method == "POST":
+            try:
+                data = json.loads(request.body)
+                question = data.get("prompt")
+            except json.JSONDecodeError:
+                return Response({"error": "Invalid JSON in request body"}, status=400)
+        else:
+            return Response({"error": "Método no permitido"}, status=405)
+
+        if not question:
+            return Response({"error": "Falta el parámetro 'prompt'"}, status=400)
+
+        # Validación con modelo
+        resultado_validacion = validar_con_modelo(question)
+
+        if resultado_validacion == "no":
+            return Response({
+                "validacion": "no",
+                "response": "Por favor, realiza una pregunta relacionada con la donación de sangre."
+            })
+
+        elif resultado_validacion == "idk":
+            return Response({
+                "validacion": "idk",
+                "response": "No estoy seguro si tu pregunta está relacionada. ¿Podrías reformularla?"
+            })
+
+        # Si pasó la validación
+        headers = {
+            "Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}",
+            "Content-Type": "application/json",
+            "X-Title": "Chatbot Donación de Sangre",
+            "OpenAI-Organization": "org-123456789"  # Adding organization header
+        }
+
+        # Obtener el archivo BPCB.json
+        with open('bloodpoint_app/BPCB.json', 'r') as file:
+            bpcb_data = json.load(file)
+
+        # Crear el prompt completo
+        full_question = create_full_question(question, bpcb_data)
+
+        body = {
+            "model": "deepseek/deepseek-chat-v3-0324:free",
+            "messages": [
+                {"role": "system", "content": "Eres un asistente especializado en donación de sangre."},
+                {"role": "user", "content": full_question["prompt"]}
+            ]
+        }
+
+        print("Sending request to OpenRouter with headers:", headers)  # Debug print
+        openrouter_response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers=headers,
+            json=body
+        )
+
+        result = openrouter_response.json()
+        print("OpenRouter Response:", result)  # Debug print
+
+        # Extraer el texto limpio de la respuesta del modelo
+        answer = result.get("choices", [{}])[0].get("message", {}).get("content", "Sin respuesta generada.").strip()
+
+        # Devolver respuesta con formato estructurado
+        return Response({
+            "validacion": resultado_validacion,
+            "response": answer,
+        })
+
+    except Exception as e:
+        print("Error in ask_bot:", str(e))  # Debug print
+        return Response({"error": str(e)}, status=500)
+    
+def validar_con_modelo(prompt: str) -> str:
+    headers = {
+        "Authorization": f"Bearer {os.environ['OPENROUTER_API_KEY']}",
+        "Content-Type": "application/json",
+        "X-Title": "Chatbot Donación de Sangre",
+        "OpenAI-Organization": "org-123456789"  # Adding organization header
+    }
+
+    body = {
+        "model": "deepseek/deepseek-chat-v3-0324:free",  # o cualquier otro modelo gratuito
+        "messages": [
+            {"role": "system", "content": "Responde únicamente con una de estas opciones: 'yes', 'no' o 'idk'. ¿La siguiente pregunta está relacionada con la donación de sangre?"},
+            {"role": "user", "content": prompt}
+        ]
+    }
+
+    try:
+        print("Validator sending request with headers:", headers)  # Debug print
+        response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=body)
+        result = response.json()
+        print("Validator Response:", result)  # Debug print
+        message = result.get("choices", [{}])[0].get("message", {}).get("content", "").lower().strip()
+
+        if "yes" in message:
+            return "yes"
+        elif "idk" in message:
+            return "idk"
+        elif "no" in message:
+            return "no"
+        else:
+            return prompt
+
+    except Exception as e:
+        print("Error en validador:", e)
+        return "idk"
+
+def create_full_question(question, bpcb_data):
+    """
+    Creates a full question prompt using the BPCB.json data
+    """
+    # Get the first document's data
+    doc_data = bpcb_data[0]
+    
+    # Create the base prompt
+    prompt = f"""Eres un asistente especializado en como .
+
+Contexto: {doc_data['descripcion']}
+
+Base de conocimiento sobre donación de sangre:
+"""
+    
+    # Add all FAQ entries as context
+    for faq in doc_data['faq']:
+        prompt += f"\nPregunta: {faq['pregunta']}\nRespuesta: {faq['respuesta']}\n"
+    
+    # Add the current question
+    prompt += f"\nPregunta actual: {question}\n"
+    
+    # Add instructions
+    prompt += """
+Por favor, responde la pregunta actual basándote en la información proporcionada.
+Si la pregunta no está directamente relacionada con el contexto de donación de sangre,
+indica que tu conocimiento está limitado a este tema específico.
+
+ex: pregunta : ¿Qué regula la Norma 0146?
+    respuesta: Regula el procedimiento de atención a donantes de sangre en lugares fijos (centros de sangre) o móviles (colectas móviles).
+"""
+    
+    return {
+        "question": question,
+        "prompt": prompt
+    }
 
 
 #=========================================================== APACHE SUPERSET ==============================================================
@@ -1118,3 +1520,249 @@ def generate_guest_token(request, chart_id):
             "error": str(e),
             "details": "Token generation failed"
         }, status=500)
+
+# ACHIEVEMENT ENDPOINTS
+
+@api_view(['GET'])
+def user_achievements(request):
+    """Return all achievement definitions with user completion status."""
+    if not hasattr(request.user, 'donante'):
+        return Response({'error': 'Only donors can have achievements'}, status=400)
+    try:
+        donante_obj = request.user.donante
+
+        # Fetch user achievements via service
+        user_achievements = AchievementService.get_user_achievements(donante_obj)
+        completed_keys = {ua.achievement.key for ua in user_achievements}
+
+        # Fetch all definitions
+        all_defs = AchievementDefinition.objects.all()
+
+        # Build response
+        result = []
+        for definition in all_defs:
+            result.append({
+                'name': definition.name,
+                'key': definition.key,
+                'symbol': definition.symbol,
+                'description': definition.description,
+                'category': definition.category,
+                'user_completed': definition.key in completed_keys
+            })
+
+        return Response(result)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+def user_stats(request):
+    """Get user statistics"""
+    if not hasattr(request.user, 'donante'):
+        return Response({'error': 'Only donors have stats'}, status=400)
+    
+    try:
+        donante_obj = request.user.donante
+        stats = AchievementService.get_or_create_user_stats(donante_obj)
+        AchievementService.update_user_stats(donante_obj)
+        stats.refresh_from_db()
+        serializer = UserStatsSerializer(stats)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+def record_app_share(request):
+    """Record that the user shared the app"""
+    if not hasattr(request.user, 'donante'):
+        return Response({'error': 'Only donors can share the app'}, status=400)
+    
+    try:
+        donante_obj = request.user.donante
+        new_achievements = AchievementService.record_app_share(donante_obj)
+        
+        if new_achievements:
+            achievement_serializer = AchievementDefinitionSerializer(new_achievements, many=True)
+            return Response({
+                'message': 'App share recorded',
+                'new_achievements': achievement_serializer.data
+            })
+        else:
+            return Response({'message': 'App share recorded'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])  
+def record_history_view(request):
+    """Record that the user viewed their donation history"""
+    if not hasattr(request.user, 'donante'):
+        return Response({'error': 'Only donors can view history'}, status=400)
+    
+    try:
+        donante_obj = request.user.donante
+        new_achievements = AchievementService.record_history_view(donante_obj)
+        
+        if new_achievements:
+            achievement_serializer = AchievementDefinitionSerializer(new_achievements, many=True)
+            return Response({
+                'message': 'History view recorded',
+                'new_achievements': achievement_serializer.data
+            })
+        else:
+            return Response({'message': 'History view recorded'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+def unnotified_achievements(request):
+    """Get achievements that haven't been notified yet"""
+    if not hasattr(request.user, 'donante'):
+        return Response({'error': 'Only donors can have achievements'}, status=400)
+    
+    try:
+        donante_obj = request.user.donante
+        achievements = AchievementService.get_unnotified_achievements(donante_obj)
+        serializer = UserAchievementSerializer(achievements, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+def mark_achievements_notified(request):
+    """Mark achievements as notified"""
+    if not hasattr(request.user, 'donante'):
+        return Response({'error': 'Only donors can have achievements'}, status=400)
+    
+    try:
+        achievement_ids = request.data.get('achievement_ids', [])
+        if not achievement_ids:
+            return Response({'error': 'achievement_ids required'}, status=400)
+        
+        AchievementService.mark_achievements_as_notified(achievement_ids)
+        return Response({'message': 'Achievements marked as notified'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
+# Device Token API Views
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def register_device_token(request):
+    """Register or update a device FCM token for the authenticated user"""
+    try:
+        token = request.data.get('token')
+        device_type = request.data.get('device_type', 'android')
+        device_id = request.data.get('device_id')
+        
+        if not token:
+            return Response({'error': 'Token is required'}, status=400)
+        
+        # Create or update device token
+        device_token, created = DeviceToken.objects.update_or_create(
+            user=request.user,
+            token=token,
+            defaults={
+                'device_type': device_type,
+                'device_id': device_id,
+                'is_active': True
+            }
+        )
+        
+        action = 'created' if created else 'updated'
+        return Response({
+            'message': f'Device token {action} successfully',
+            'token_id': device_token.id
+        })
+        
+    except IntegrityError:
+        # Token already exists for a different user
+        return Response({'error': 'Token already registered for another user'}, status=400)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def unregister_device_token(request):
+    """Unregister a device FCM token"""
+    try:
+        token = request.data.get('token')
+        
+        if not token:
+            return Response({'error': 'Token is required'}, status=400)
+        
+        # Deactivate the token
+        device_tokens = DeviceToken.objects.filter(
+            user=request.user, 
+            token=token, 
+            is_active=True
+        )
+        
+        if not device_tokens.exists():
+            return Response({'error': 'Token not found or already inactive'}, status=404)
+        
+        device_tokens.update(is_active=False)
+        
+        return Response({'message': 'Device token unregistered successfully'})
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_device_tokens(request):
+    """Get all active device tokens for the authenticated user"""
+    try:
+        tokens = DeviceToken.objects.filter(
+            user=request.user, 
+            is_active=True
+        ).values('id', 'device_type', 'device_id', 'created_at', 'last_used')
+        
+        return Response({
+            'device_tokens': list(tokens),
+            'total_active_tokens': len(tokens)
+        })
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def test_notification(request):
+    """Send a test notification to the user's devices (for testing purposes)"""
+    try:
+        from .services import FCMNotificationService
+        
+        title = request.data.get('title', 'Test Notification')
+        body = request.data.get('body', 'This is a test notification from BloodPoint')
+        
+        response = FCMNotificationService.send_custom_notification(
+            user=request.user,
+            title=title,
+            body=body,
+            data={'type': 'test'}
+        )
+        
+        if response:
+            return Response({
+                'message': 'Test notification sent successfully',
+                'success_count': response.success_count,
+                'failure_count': response.failure_count
+            })
+        elif response is None:
+            # Check if it's a Firebase configuration issue
+            try:
+                FCMNotificationService.initialize_firebase()
+            except ValueError as e:
+                return Response({
+                    'error': 'Firebase not configured',
+                    'message': 'Firebase service account key is not set. Please configure FIREBASE_SERVICE_ACCOUNT_KEY environment variable.',
+                    'details': str(e)
+                }, status=503)
+            return Response({'message': 'No active device tokens found'}, status=404)
+        else:
+            return Response({'message': 'No active device tokens found'}, status=404)
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)

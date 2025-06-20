@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}BloodPoint - Configuracion{% endblock %}
+{% block content %}
+
+<body class='home'>
+	{% include "componentes/navbar.html" %}
+	<div class="main-content">
+		<h2>
+			Configuracion Perfil Representante
+		</h2>
+		<div class="row" style="margin-bottom: 1.5rem">
+			<div class="col-12" style="display: flex;">
+				<a class="btn btn-primary red" href="{% url 'home' %}">
+					<span>Volver</span>
+				</a>
+				<a class="btn btn-primary red" style="margin-left: 2rem" href="{% url 'editar_configuracion_representante' %}">
+					<span>Editar</span>
+				</a>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-12">
+				<label>Nombre: </label>
+				<input type="text" value="{{ representante.nombre }}" disabled>
+				<label>Apellido: </label>
+				<input type="text" value="{{ representante.apellido }}" disabled>
+				<label>Email: </label>
+				<input type="text" value="{{ representante.email }}" disabled>
+				<label>RUT: </label>
+				<input type="text" value="{{ representante.rut_representante }}" disabled>
+				<label>Rol: </label>
+				<input type="text" value="{{ representante.rol }}" disabled>
+				<label>Verificado: </label>
+				{% if representante.verificado %}
+					<input type="text" value="Si" disabled>
+				{% endif %}
+				<label>Credencial: </label>
+				{% if representante.credencial_url %}
+					<img src="{{ representante.credencial_url }}" alt="Credencial Representante" style="max-width: 750; max-height: 400px; margin-top: 1rem">
+				{% else %}
+					<input type="text" value="Sin credencial" disabled>
+				{% endif %}
+				<label>Creado el: {{representante.created_at}}</label>
+			</div>
+		</div>
+	</div>
+</body>
+{% endblock %}

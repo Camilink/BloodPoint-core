@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}BloodPoint - FAQ{% endblock %}
+{% block content %}
+
+<body class='home'>
+	{% include "componentes/navbar.html" %}
+	<div class="main-content">
+		<h2>
+			Responder FAQ
+		</h2>
+		<h4>En esta sección podrás ver preguntas frecuentes y responderlas.</h4><br>
+		<h4>¡Estarás ayudando a un potencial donante!</h4>
+		<h2>Responder Pregunta</h2>
+		<div class="form-container">
+			<p><strong>Pregunta:</strong> {{ pregunta.pregunta }}</p>
+			<p><strong>Fecha:</strong> {{ pregunta.fecha_pregunta }}</p>
+			<form method="POST">
+				{% csrf_token %}
+				<label for="respuesta">Tu respuesta:</label>
+				<textarea name="respuesta" rows="4" cols="50" maxlength="255"></textarea><br><br>
+				<button type="submit">Enviar respuesta</button>
+			</form>
+		</div>
+	<div>
+<body>
+{% endblock %}

@@ -58,7 +58,7 @@ body.home {
 }
 
 .list-item {
-	width: 50%;
+	width: 60%;
 	background: #fff;
 	border: 1px solid #7d0000;
 	padding: 20px;
@@ -74,6 +74,7 @@ body.home {
 	background-color: #7d0000;
 	border-color: #620202;
 	color: white;
+	max-height: 2.5rem;
 }
 
 .btn.btn-primary.red.create {
@@ -88,7 +89,53 @@ body.home {
 	color: white;
 }
 
+.btn.btn-primary.red:focus,
+.btn.btn-primary.red:active,
+.btn.btn-primary.red:hover:active{
+	background-color: #3c0000;
+	border-color: #3c0202;
+  	color: white !important;
+  	box-shadow: 0 0 0 0.2rem rgba(149, 26, 26, 0.703); 
+}
+
 .graph-container {
 	display: flex;
 	justify-content: center;
+}
+
+input {
+	font-size: 1.15rem;
+	border: solid 1px #7d3434;
+	color: black;
+	background-color: white;
+	border-radius: 5px;
+	margin-bottom: 0.5rem;
+	max-width: 35vw;
+	height: calc(1.5em + .75rem + 2px);
+}
+
+label {
+	color: black;
+	margin-top: 0rem;
+}
+
+input.form-control {
+	font-size: 1.15rem;
+	border: solid 1px #7d3434;
+	color: black;
+	background-color: white;
+	border-radius: 5px;
+	margin-bottom: 0.5rem;
+	max-width: 35vw;
+}
+
+input:disabled {
+	color: #7f7d7d;
+	background-color: #00000008;
+}
+
+.pagination {
+	a {
+		color: #7d0000;
+	}
 }

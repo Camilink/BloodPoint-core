@@ -18,7 +18,7 @@
 		<h3>Dashboard de Administración</h3>
 		<h4>En este dashboard podrás ver las estadísticas de todas las donaciones realizadas con Bloodpoint.</h4>
 		<div class="row" style="margin-bottom: 2rem;">
-			<div class="col-3 graph-container">				
+			<div class="col-3 graph-container">
 				<div>
 					<iframe width="200" height="200" seamless frameBorder="0" scrolling="no"
 						src="https://bloodpoint-core.onrender.com/superset/explore/p/9Nw7B36qWkK/?standalone=1&height=400">
@@ -51,10 +51,15 @@
 			<div class="col-12 graph-container">
 				<div>
 					<h4>TOP campañas a nivel nacional</h4>
-					<iframe width="950" height="500" seamless frameBorder="0" scrolling="no"
+					<iframe width="950" height="300" seamless frameBorder="0" scrolling="no"
 						src="https://bloodpoint-core.onrender.com/superset/explore/p/K0LGyaOGBNQ/?standalone=1&height=400">
 					</iframe>
 				</div>
+			</div>
+			<div class="col-12" style="display: flex; justify-content: center; align-items: center; margin-top: 1rem; margin-bottom: 1rem;">
+				<a href="{% url 'exportar_top3_campanas' %}" class="btn btn-primary red" target="_blank">
+					Descargar Top 3 Campañas en Excel
+				</a>
 			</div>
 			<div class="col-12 graph-container">
 				<div>

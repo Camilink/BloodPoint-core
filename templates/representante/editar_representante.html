@@ -5,12 +5,18 @@
 	{% include "componentes/navbar.html" %}
 	<div class="main-content">
         <h2>Editar Representante</h2>
+        <div class="row" style="margin-bottom: 1.5rem">
+            <div class="col-12" style="display: flex;">
+				<a class="btn btn-primary red" href="{% url 'detalles_representante' id=representante.id_representante %}">
+					<span>Volver</span>
+				</a>
+            </div>
+        </div>
         <form method="POST">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit">Guardar cambios</button>
+            <button class="btn btn-primary red" style="max-width: 35vw;" type="submit">Guardar cambios</button>
         </form>
-        <a href="{% url 'detalles_representante' id=representante.id_representante %}"> Cancelar </a>
     </div>
 </body>
 

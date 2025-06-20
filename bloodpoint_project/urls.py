@@ -29,7 +29,22 @@ urlpatterns = [
     path('donaciones/qr/', views.escanear_qr_donacion, name='qr-donacion'),
     path('campanas/crear/', views.crear_campana, name='crear_campana'),
     path('campanas/activas/', views.campanas_activas, name='campanas_activas'),
-
+    path('api/campanas_activas_representante/', views.campanas_activas_representante, name='campanas_activas_representante'),
+    path('ask/', views.ask_bot, name='preguntar-llm'),
+    
+    # Achievement endpoints
+    path('achievements/', views.user_achievements, name='user-achievements'),
+    path('achievements/stats/', views.user_stats, name='user-stats'),
+    path('achievements/share/', views.record_app_share, name='record-app-share'),
+    path('achievements/history-view/', views.record_history_view, name='record-history-view'),
+    path('achievements/unnotified/', views.unnotified_achievements, name='unnotified-achievements'),
+    path('achievements/mark-notified/', views.mark_achievements_notified, name='mark-achievements-notified'),
+    
+    # Device Token endpoints  
+    path('device-tokens/register/', views.register_device_token, name='register-device-token'),
+    path('device-tokens/unregister/', views.unregister_device_token, name='unregister-device-token'),
+    path('device-tokens/', views.user_device_tokens, name='user-device-tokens'),
+    path('notifications/test/', views.test_notification, name='test-notification'),
 
     #super set
     path('api/superset-token/<str:chart_id>/', views.generate_guest_token, name='chart-token'),

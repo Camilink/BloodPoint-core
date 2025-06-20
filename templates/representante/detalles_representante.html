@@ -8,7 +8,7 @@
 		<h2>
 			Panel Usuarios Representantes
 		</h2>
-		<div class="row">
+		<div class="row" style="margin-bottom: 1.5rem">
 			<div class="col-12" style="display: flex;">
 				<a class="btn btn-primary red" href="{% url 'representante_index' %}">
 					<span>Volver al listado</span>
@@ -17,22 +17,30 @@
 					<span>Editar</span>
 				</a>
 			</div>
+		</div>
+		<div class="row">
 			<div class="col-12">
-				<h4>Nombre: </h4>
+				<label>Nombre: </label>
 				<input type="text" value="{{ representante.nombre }}" disabled>
-				<h4>Nombre: </h4>
+				<label>Apellido: </label>
 				<input type="text" value="{{ representante.apellido }}" disabled>
-				<h4>Email: </h4>
+				<label>Email: </label>
 				<input type="text" value="{{ representante.email }}" disabled>
-				<h4>{{representente.verificado}}</h4>
-				<h4>--{{representente.verificado_text}}--</h4>
-				{% if not representante.verificado %}
-					<a href="{% url 'verificar_representante' id=representante.id_representante %}" style="margin-left: 1.25rem">
-						Verificar
-						<i style="color: #7d0000;" class="fas fa-check fa-3" style="margin-left: 0.5rem" aria-hidden="true"></i>
-					</a>
+				<label>RUT: </label>
+				<input type="text" value="{{ representante.rut_representante }}" disabled>
+				<label>Rol: </label>
+				<input type="text" value="{{ representante.rol }}" disabled>
+				<label>Verificado: </label>
+				{% if representante.verificado %}
+					<input type="text" value="Si" disabled>
 				{% endif %}
-				<h4>Creado el: {{representante.created_at}}</h4>
+				<label>Credencial: </label>
+				{% if representante.credencial_url %}
+					<img src="{{ representante.credencial_url }}" alt="Credencial Representante" style="max-width: 750; max-height: 400px; margin-top: 1rem">
+				{% else %}
+					<input type="text" value="Sin credencial" disabled>
+				{% endif %}
+				<label>Creado el: {{representante.created_at}}</label>
 			</div>
 		</div>
 	</div>

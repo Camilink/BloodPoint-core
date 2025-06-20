@@ -8,7 +8,7 @@
         <form method="POST">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit">Guardar</button>
+            <button class="btn btn-primary red" style="max-width: 35vw;" type="submit">Guardar cambios</button>
         </form>
         <a href="{% url 'admin_index' %}">Volver al listado</a>
     </div>
