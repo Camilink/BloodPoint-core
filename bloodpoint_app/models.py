@@ -108,7 +108,7 @@ class donante(models.Model):
 
 class Credencial(models.Model):
     id = models.AutoField(primary_key=True)
-    id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE, null=True, blank=True)
+    id_representante = models.ForeignKey('bloodpoint_app.representante_org', on_delete=models.CASCADE, null=True, blank=True)
     cloudinary_key = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
