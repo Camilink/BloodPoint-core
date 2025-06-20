@@ -106,6 +106,25 @@ class donante(models.Model):
     def __str__(self):
         return self.nombre_completo
 
+class Credencial(models.Model):
+    id = models.AutoField(primary_key=True)
+    id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE, null=True, blank=True)
+    cloudinary_key = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def gen_key(self):
+        self.cloudinary_key = secrets.token_hex(16)
+        self.save(update_fields=['cloudinary_key'])
+        return self.cloudinary_key
+
+    def upload_file(self, file):
+        return cloudinary.uploader.upload(file, folder='credenciales', public_id=self.gen_key())
+
+    def url(self):
+        url, _ = cloudinary_url(self.cloudinary_key, fetch_format="auto", quality="auto")
+        return url
+
+
 class representante_org(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, blank=True) 
     id_representante = models.AutoField(primary_key=True)
@@ -309,20 +328,3 @@ class DeviceToken(models.Model):
         self.is_active = False
         self.save(update_fields=['is_active', 'updated_at'])
 
-class Credencial(models.Model):
-    id = models.AutoField(primary_key=True)
-    id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE, null=True, blank=True)
-    cloudinary_key = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def gen_key(self):
-        self.cloudinary_key = secrets.token_hex(16)
-        self.save(update_fields=['cloudinary_key'])
-        return self.cloudinary_key
-
-    def upload_file(self, file):
-        return cloudinary.uploader.upload(file, folder='credenciales', public_id=self.gen_key())
-
-    def url(self):
-        url, _ = cloudinary_url(self.cloudinary_key, fetch_format="auto", quality="auto")
-        return url
