@@ -118,10 +118,22 @@ class Credencial(models.Model):
         return self.cloudinary_key
 
     def upload_file(self, file):
+        if self.cloudinary_key:
+            try:
+                cloudinary.uploader.destroy(f"credenciales/{self.cloudinary_key}")
+                print(f"Deleted old Cloudinary asset: credenciales/{self.cloudinary_key}")
+            except Exception as e:
+                print(f"Could not delete old Cloudinary asset: {e}")
+
         return cloudinary.uploader.upload(file, folder='credenciales', public_id=self.gen_key())
 
     def url(self):
-        url, _ = cloudinary_url(self.cloudinary_key, fetch_format="auto", quality="auto")
+        url, _ = cloudinary_url(
+            f"credenciales/{self.cloudinary_key}",  # include folder
+            secure=True,                            # force https
+            fetch_format="auto",
+            quality="auto"
+        )
         return url
 
 
