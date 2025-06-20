@@ -45,7 +45,8 @@ from .models import (
     AchievementDefinition,
     UserAchievement,
     UserStats,
-    DeviceToken
+    DeviceToken,
+    Credencial
 )
 
 from .serializers import (
