@@ -262,3 +262,40 @@ class respuestas_representante(models.Model):
     fecha_respuesta = models.DateTimeField(auto_now_add=True)
     id_pregunta = models.ForeignKey(preguntas_usuario, on_delete=models.CASCADE)
     id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE)
+
+
+class DeviceToken(models.Model):
+    """Model to store Firebase Cloud Messaging tokens for users"""
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='device_tokens')
+    token = models.TextField('FCM Token', unique=True)
+    device_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('android', 'Android'),
+            ('ios', 'iOS'),
+            ('web', 'Web')
+        ],
+        default='android'
+    )
+    device_id = models.CharField(max_length=255, blank=True, null=True, help_text='Unique device identifier')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_used = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'device_tokens'
+        verbose_name = 'Device Token'
+        verbose_name_plural = 'Device Tokens'
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['token']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.email} - {self.device_type} - {'Active' if self.is_active else 'Inactive'}"
+    
+    def deactivate(self):
+        """Deactivate this device token"""
+        self.is_active = False
+        self.save(update_fields=['is_active', 'updated_at'])

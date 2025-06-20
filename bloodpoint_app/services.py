@@ -1,10 +1,16 @@
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db.models import Count, Q
+from django.conf import settings
+import firebase_admin
+from firebase_admin import credentials, messaging
+import logging
 from .models import (
     donante, AchievementDefinition, UserAchievement, UserStats, 
     donacion, centro_donacion, campana
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AchievementService:
@@ -375,3 +381,169 @@ class AchievementService:
     def mark_achievements_as_notified(achievement_ids):
         """Mark achievements as notified"""
         UserAchievement.objects.filter(id__in=achievement_ids).update(notified=True)
+
+
+class FCMNotificationService:
+    """Service for sending Firebase Cloud Messaging notifications"""
+    
+    _firebase_initialized = False
+    
+    @classmethod
+    def initialize_firebase(cls):
+        """Initialize Firebase Admin SDK if not already initialized"""
+        if not cls._firebase_initialized and not firebase_admin._apps:
+            try:
+                # Check if Firebase service account key is configured
+                firebase_key = getattr(settings, 'FIREBASE_SERVICE_ACCOUNT_KEY', None)
+                
+                if firebase_key and firebase_key != 'None' and firebase_key.strip():
+                    # Try to parse as JSON dict first, then as file path
+                    try:
+                        import json
+                        # If it's a JSON string, parse it
+                        if firebase_key.startswith('{'):
+                            cred_dict = json.loads(firebase_key)
+                            cred = credentials.Certificate(cred_dict)
+                        else:
+                            # Treat as file path
+                            cred = credentials.Certificate(firebase_key)
+                        firebase_admin.initialize_app(cred)
+                        cls._firebase_initialized = True
+                        logger.info("Firebase Admin SDK initialized successfully with service account")
+                    except (json.JSONDecodeError, FileNotFoundError, ValueError) as e:
+                        logger.error(f"Invalid Firebase service account configuration: {e}")
+                        raise ValueError(f"Firebase service account key is invalid: {e}")
+                else:
+                    # No service account key configured
+                    logger.warning("FIREBASE_SERVICE_ACCOUNT_KEY not configured. Firebase notifications disabled.")
+                    raise ValueError("Firebase service account key not configured")
+                    
+            except Exception as e:
+                logger.error(f"Failed to initialize Firebase Admin SDK: {e}")
+                raise
+    
+    @classmethod
+    def send_achievement_notification(cls, user_achievement):
+        """Send notification for a new achievement"""
+        try:
+            cls.initialize_firebase()
+            
+            # Import here to avoid circular imports
+            from .models import DeviceToken
+            
+            # Get user device tokens
+            device_tokens = DeviceToken.objects.filter(
+                user=user_achievement.user,
+                is_active=True
+            ).values_list('token', flat=True)
+            
+            if not device_tokens:
+                logger.warning(f"No device tokens found for user {user_achievement.user.id}")
+                return
+            
+            # Create notification message
+            achievement = user_achievement.achievement
+            message = messaging.MulticastMessage(
+                notification=messaging.Notification(
+                    title='¡Nuevo Logro Desbloqueado!',
+                    body=f'Has conseguido: {achievement.name}',
+                    image=None  # You can add an achievement image URL here if available
+                ),
+                data={
+                    'type': 'achievement',
+                    'achievement_id': str(achievement.id),
+                    'achievement_key': achievement.key,
+                    'achievement_name': achievement.name,
+                    'achievement_description': achievement.description,
+                    'achievement_category': achievement.category,
+                    'achievement_symbol': achievement.symbol,
+                    'user_achievement_id': str(user_achievement.id)
+                },
+                tokens=list(device_tokens)
+            )
+            
+            # Send the message
+            response = messaging.send_multicast(message)
+            
+            # Log results
+            logger.info(f"Achievement notification sent to {len(device_tokens)} devices. "
+                       f"Success: {response.success_count}, Failures: {response.failure_count}")
+            
+            # Handle failed tokens (remove invalid ones)
+            if response.failure_count > 0:
+                cls._handle_failed_tokens(device_tokens, response.responses, user_achievement.user)
+            
+            return response
+            
+        except ValueError as e:
+            # Firebase not configured - log but don't raise error
+            logger.warning(f"Firebase not configured, skipping achievement notification: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to send achievement notification: {e}")
+            return None
+    
+    @classmethod
+    def _handle_failed_tokens(cls, tokens, responses, user):
+        """Remove invalid device tokens"""
+        from .models import DeviceToken
+        
+        invalid_tokens = []
+        for i, response in enumerate(responses):
+            if not response.success:
+                error = response.exception
+                # Check if token is invalid or unregistered
+                if (hasattr(error, 'code') and 
+                    error.code in ['invalid-registration-token', 'registration-token-not-registered']):
+                    invalid_tokens.append(tokens[i])
+        
+        if invalid_tokens:
+            DeviceToken.objects.filter(
+                user=user,
+                token__in=invalid_tokens
+            ).update(is_active=False)
+            logger.info(f"Deactivated {len(invalid_tokens)} invalid device tokens for user {user.id}")
+    
+    @classmethod
+    def send_custom_notification(cls, user, title, body, data=None):
+        """Send a custom notification to a user"""
+        try:
+            cls.initialize_firebase()
+            
+            # Import here to avoid circular imports
+            from .models import DeviceToken
+            
+            device_tokens = DeviceToken.objects.filter(
+                user=user,
+                is_active=True
+            ).values_list('token', flat=True)
+            
+            if not device_tokens:
+                logger.warning(f"No device tokens found for user {user.id}")
+                return None
+            
+            message = messaging.MulticastMessage(
+                notification=messaging.Notification(
+                    title=title,
+                    body=body
+                ),
+                data=data or {},
+                tokens=list(device_tokens)
+            )
+            
+            response = messaging.send_multicast(message)
+            logger.info(f"Custom notification sent to {len(device_tokens)} devices. "
+                       f"Success: {response.success_count}, Failures: {response.failure_count}")
+            
+            if response.failure_count > 0:
+                cls._handle_failed_tokens(device_tokens, response.responses, user)
+            
+            return response
+            
+        except ValueError as e:
+            # Firebase not configured - log but don't raise error
+            logger.warning(f"Firebase not configured, skipping custom notification: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to send custom notification: {e}")
+            return None

@@ -245,3 +245,11 @@ cloudinary.config(
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
+# Firebase Configuration
+# FIREBASE_SERVICE_ACCOUNT_KEY = os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY')
+# For cloud deployments, you might want to use the service account key file path
+FIREBASE_SERVICE_ACCOUNT_KEY = os.path.join(BASE_DIR, 'firebase-service-account-key.json')
+
+# Optional: Use Celery for asynchronous notifications
+USE_CELERY = os.getenv('USE_CELERY', 'False').lower() == 'true'
+

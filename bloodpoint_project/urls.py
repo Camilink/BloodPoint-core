@@ -39,6 +39,12 @@ urlpatterns = [
     path('achievements/history-view/', views.record_history_view, name='record-history-view'),
     path('achievements/unnotified/', views.unnotified_achievements, name='unnotified-achievements'),
     path('achievements/mark-notified/', views.mark_achievements_notified, name='mark-achievements-notified'),
+    
+    # Device Token endpoints  
+    path('device-tokens/register/', views.register_device_token, name='register-device-token'),
+    path('device-tokens/unregister/', views.unregister_device_token, name='unregister-device-token'),
+    path('device-tokens/', views.user_device_tokens, name='user-device-tokens'),
+    path('notifications/test/', views.test_notification, name='test-notification'),
 
     #super set
     path('api/superset-token/<str:chart_id>/', views.generate_guest_token, name='chart-token'),
