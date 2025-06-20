@@ -134,3 +134,8 @@ input:disabled {
 	background-color: #00000008;
 }
 
+.pagination {
+	a {
+		color: #7d0000;
+	}
+}
