@@ -3,6 +3,12 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from cloudinary.models import CloudinaryField
+import secrets
+
+# Cloudinary SDK
+import cloudinary
+import cloudinary.uploader
+from cloudinary.utils import cloudinary_url
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, rut=None, **extra_fields):
@@ -307,4 +313,13 @@ class Credencial(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def gen_key(self):
-        
+        self.cloudinary_key = secrets.token_hex(16)
+        self.save(update_fields=['cloudinary_key'])
+        return self.cloudinary_key
+
+    def upload_file(self, file):
+        return cloudinary.uploader.upload(file, folder='credenciales', public_id=self.gen_key())
+
+    def url(self):
+        url, _ = cloudinary_url(self.cloudinary_key, fetch_format="auto", quality="auto")
+        return url
