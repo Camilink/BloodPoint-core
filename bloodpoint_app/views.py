@@ -273,7 +273,7 @@ def editar_configuracion_representante(request):
                 # Elimina credenciales antiguas
                 Credencial.objects.filter(id_representante=representante).delete()
                 cred = Credencial(id_representante=representante)
-                upload_result = cred.ulpload_file(file)
+                upload_result = cred.upload_file(file)
             return redirect('configuracion_representante')
         else:
             print("Errores en el formulario:", form.errors)
