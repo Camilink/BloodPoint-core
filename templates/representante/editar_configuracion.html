@@ -12,12 +12,20 @@
 				</a>
             </div>
         </div>
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST">
             {% csrf_token %}
             {{ form.as_p }}
             <button class="btn btn-primary red" style="max-width: 35vw;" type="submit">Guardar cambios</button>
         </form>
     </div>
 </body>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form');
+    if (form) {
+      form.setAttribute('enctype', 'multipart/form-data');
+    }
+  });
+</script>
 
 {% endblock %}
