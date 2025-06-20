@@ -44,7 +44,8 @@ from .models import (
     respuestas_representante,
     AchievementDefinition,
     UserAchievement,
-    UserStats
+    UserStats,
+    DeviceToken
 )
 
 from .serializers import (
@@ -1612,5 +1613,130 @@ def mark_achievements_notified(request):
         
         AchievementService.mark_achievements_as_notified(achievement_ids)
         return Response({'message': 'Achievements marked as notified'})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
+# Device Token API Views
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def register_device_token(request):
+    """Register or update a device FCM token for the authenticated user"""
+    try:
+        token = request.data.get('token')
+        device_type = request.data.get('device_type', 'android')
+        device_id = request.data.get('device_id')
+        
+        if not token:
+            return Response({'error': 'Token is required'}, status=400)
+        
+        # Create or update device token
+        device_token, created = DeviceToken.objects.update_or_create(
+            user=request.user,
+            token=token,
+            defaults={
+                'device_type': device_type,
+                'device_id': device_id,
+                'is_active': True
+            }
+        )
+        
+        action = 'created' if created else 'updated'
+        return Response({
+            'message': f'Device token {action} successfully',
+            'token_id': device_token.id
+        })
+        
+    except IntegrityError:
+        # Token already exists for a different user
+        return Response({'error': 'Token already registered for another user'}, status=400)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def unregister_device_token(request):
+    """Unregister a device FCM token"""
+    try:
+        token = request.data.get('token')
+        
+        if not token:
+            return Response({'error': 'Token is required'}, status=400)
+        
+        # Deactivate the token
+        device_tokens = DeviceToken.objects.filter(
+            user=request.user, 
+            token=token, 
+            is_active=True
+        )
+        
+        if not device_tokens.exists():
+            return Response({'error': 'Token not found or already inactive'}, status=404)
+        
+        device_tokens.update(is_active=False)
+        
+        return Response({'message': 'Device token unregistered successfully'})
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_device_tokens(request):
+    """Get all active device tokens for the authenticated user"""
+    try:
+        tokens = DeviceToken.objects.filter(
+            user=request.user, 
+            is_active=True
+        ).values('id', 'device_type', 'device_id', 'created_at', 'last_used')
+        
+        return Response({
+            'device_tokens': list(tokens),
+            'total_active_tokens': len(tokens)
+        })
+        
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def test_notification(request):
+    """Send a test notification to the user's devices (for testing purposes)"""
+    try:
+        from .services import FCMNotificationService
+        
+        title = request.data.get('title', 'Test Notification')
+        body = request.data.get('body', 'This is a test notification from BloodPoint')
+        
+        response = FCMNotificationService.send_custom_notification(
+            user=request.user,
+            title=title,
+            body=body,
+            data={'type': 'test'}
+        )
+        
+        if response:
+            return Response({
+                'message': 'Test notification sent successfully',
+                'success_count': response.success_count,
+                'failure_count': response.failure_count
+            })
+        elif response is None:
+            # Check if it's a Firebase configuration issue
+            try:
+                FCMNotificationService.initialize_firebase()
+            except ValueError as e:
+                return Response({
+                    'error': 'Firebase not configured',
+                    'message': 'Firebase service account key is not set. Please configure FIREBASE_SERVICE_ACCOUNT_KEY environment variable.',
+                    'details': str(e)
+                }, status=503)
+            return Response({'message': 'No active device tokens found'}, status=404)
+        else:
+            return Response({'message': 'No active device tokens found'}, status=404)
+        
     except Exception as e:
         return Response({'error': str(e)}, status=500)

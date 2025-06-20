@@ -41,6 +41,7 @@ dnspython==2.7.0
 email_validator==2.2.0
 et_xmlfile==2.0.0
 Faker==37.3.0
+firebase-admin==6.5.0
 Flask==2.3.3
 Flask-AppBuilder==4.6.2
 Flask-Babel==2.0.0
