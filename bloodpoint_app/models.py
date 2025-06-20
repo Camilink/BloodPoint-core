@@ -113,7 +113,6 @@ class representante_org(models.Model):
     rol = models.CharField(max_length=100)
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
-    credencial = CloudinaryField('image', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     verificado = models.BooleanField(default=False)
     
@@ -130,7 +129,8 @@ class representante_org(models.Model):
         return 'Representante verificado' if self.verificado else 'Representante sin verificar'
 
     def credencial_url(self):
-        return self.credencial.url()
+        cred = (Credencial.objects.filter(id_representante=self).order_by('-created_at').first())
+        return cred.url() if cred else None
 
 class centro_donacion(models.Model):
     id_centro = models.AutoField(primary_key=True)
