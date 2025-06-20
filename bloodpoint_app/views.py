@@ -399,7 +399,7 @@ def signup_representante(request):
                     apellido=apellido
                 )
                 representante.save()
-                file = form.cleaned_data.get('credencial')
+                file = request.FILES.get('credencial')
                 if file:
                     # Elimina credenciales antiguas
                     Credencial.objects.filter(id_representante=representante).delete()
