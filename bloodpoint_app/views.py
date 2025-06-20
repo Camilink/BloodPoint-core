@@ -265,20 +265,20 @@ def editar_configuracion_representante(request):
     
     if request.method == 'POST':
         form = RepresentanteOrgForm(request.POST, request.FILES, instance=representante)
-        logger.debug(">>> request.FILES:", request.FILES)
+        logger.debug(">>> request.FILES:%s", request.FILES)
         if form.is_valid():
-            logger.debug(">>> cleaned_data keys:", form.cleaned_data.keys())
-            logger.debug(">>> cleaned_data['credencial']:", form.cleaned_data.get('credencial'))
+            logger.debug(">>> cleaned_data keys: %s", form.cleaned_data.keys())
+            logger.debug(">>> cleaned_data['credencial']: %s", form.cleaned_data.get('credencial'))
           
             form.save()
             file = form.cleaned_data.get('credencial')
-            logger.debug("file", file)
+            logger.debug("file%s", file)
             if file:
                 logger.debug('entro a if')
                 # Elimina credenciales antiguas
                 Credencial.objects.filter(id_representante=rep).delete()
                 cred = Credencial(id_representante=rep)
-                logger.debug("cred creada:", cred)
+                logger.debug("cred creada: %s", cred)
                 upload_result = cred.ulpload_file(file)
             return redirect('configuracion_representante')
         else:
