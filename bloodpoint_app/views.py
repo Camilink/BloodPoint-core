@@ -931,23 +931,26 @@ def crear_solicitud_campana(request):
     if serializer.is_valid():
         solicitud = serializer.save()
 
-        # Obtener el centro de donación para generar el nombre
+        # Obtener el centro seleccionado para usar sus datos
         centro = solicitud.centro_donacion
+        
+         # ✅ AGREGAR ESTA LÍNEA: Generar nombre de campaña automáticamente
         nombre_campana_generado = f"{centro.nombre_centro} - Solicitud {solicitud.fecha_solicitud.strftime('%d/%m/%Y')} - {solicitud.cantidad_personas} personas"
+
 
         # Crear campaña directamente al crear la solicitud
         nueva_campana = campana.objects.create(
-            nombre_campana=nombre_campana_generado,  # <-- Usar la variable definida
+            nombre_campana=nombre_campana_generado,
             fecha_campana=solicitud.fecha_solicitud,
             fecha_termino=solicitud.fecha_termino,
-            id_centro=solicitud.centro_donacion,
-            apertura=request.data.get("apertura"),
-            cierre=request.data.get("cierre"),
+            id_centro=centro,
+            apertura=centro.horario_apertura,  # ✅ Del centro seleccionado
+            cierre=centro.horario_cierre,      # ✅ Del centro seleccionado
             meta=str(solicitud.cantidad_personas),
-            latitud=request.data.get("latitud", ""),
-            longitud=request.data.get("longitud", ""),
+            latitud=0,   # ✅ Valor por defecto o coordenadas del centro si las tienes
+            longitud=0,  # ✅ Valor por defecto o coordenadas del centro si las tienes
             id_solicitud=solicitud,
-            validada=True  # o False si quieres que los reps validen después
+            validada=True
         )
 
         solicitud.estado = 'aprobado'  # O mantener en 'pendiente'
