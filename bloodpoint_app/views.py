@@ -930,9 +930,13 @@ def crear_solicitud_campana(request):
     if serializer.is_valid():
         solicitud = serializer.save()
 
+        # Obtener el centro de donación para generar el nombre
+        centro = solicitud.centro_donacion
+        nombre_campana_generado = f"{centro.nombre_centro} - Solicitud {solicitud.fecha_solicitud.strftime('%d/%m/%Y')} - {solicitud.cantidad_personas} personas"
+
         # Crear campaña directamente al crear la solicitud
         nueva_campana = campana.objects.create(
-            nombre_campana=solicitud.nombre_campana,
+            nombre_campana=nombre_campana_generado,  # <-- Usar la variable definida
             fecha_campana=solicitud.fecha_solicitud,
             fecha_termino=solicitud.fecha_termino,
             id_centro=solicitud.centro_donacion,
