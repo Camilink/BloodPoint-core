@@ -948,12 +948,11 @@ def crear_solicitud_campana(request):
             latitud=0,   # ✅ Valor por defecto o coordenadas del centro si las tienes
             longitud=0,  # ✅ Valor por defecto o coordenadas del centro si las tienes
             id_solicitud=solicitud,
-            validada=True
+            validada=False  # ❌ Las campañas de solicitud deben ser validadas por representantes
         )
 
-        solicitud.estado = 'aprobado'  # O mantener en 'pendiente'
         solicitud.campana_asociada = nueva_campana
-        solicitud.save()
+        solicitud.save()  # Mantener estado inicial (sin aprobar automáticamente)
 
         return Response({
             "status": "success",
@@ -1250,11 +1249,33 @@ def escanear_qr_donacion(request):
 @api_view(['GET'])
 def campanas_activas(request):
     hoy = date.today()
-    campanas = campana.objects.filter(validada=True, fecha_campana__lte=hoy, fecha_termino__gte=hoy)
-    serializer = CampanaSerializer(campanas, many=True)
+    campanas = campana.objects.filter(
+        validada=True, 
+        fecha_campana__lte=hoy, 
+        fecha_termino__gte=hoy
+    ).select_related('id_solicitud')  # Optimizar consulta para incluir solicitudes
+    
+    # Serializar manualmente para incluir datos de solicitud
+    data = []
+    for camp in campanas:
+        camp_data = CampanaSerializer(camp).data
+        
+        # Agregar datos de solicitud si existe (para mostrar tipo de sangre)
+        if camp.id_solicitud:
+            camp_data['tipo_sangre_sol'] = camp.id_solicitud.tipo_sangre_sol
+            camp_data['cantidad_personas'] = camp.id_solicitud.cantidad_personas
+            camp_data['descripcion_solicitud'] = camp.id_solicitud.descripcion_solicitud
+        else:
+            # Para campañas normales (no solicitudes)
+            camp_data['tipo_sangre_sol'] = None
+            camp_data['cantidad_personas'] = None
+            camp_data['descripcion_solicitud'] = None
+        
+        data.append(camp_data)
+    
     return Response({
         "status": "success",
-        "data": serializer.data
+        "data": data
     }, status=200)
 
 @api_view(['GET'])
