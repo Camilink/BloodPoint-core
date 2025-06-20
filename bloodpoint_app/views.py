@@ -398,11 +398,14 @@ def signup_representante(request):
                     nombre=nombre,
                     apellido=apellido
                 )
-                
-                if credencial:
-                    representante.credencial = credencial
-                    
                 representante.save()
+                file = form.cleaned_data.get('credencial')
+                if file:
+                    # Elimina credenciales antiguas
+                    Credencial.objects.filter(id_representante=representante).delete()
+                    cred = Credencial(id_representante=representante)
+                    cred.save()
+                    upload_result = cred.upload_file(file)
                 
                 # Redirigir al login
                 return redirect('login')

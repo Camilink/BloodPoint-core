@@ -24,7 +24,7 @@
 		<div class="card">
 			
 		</div>
-		<form class='signup' action="{% url 'signup_representante' %}" method="post" enctype="multipart/form-data" onsubmit="return validarFormulario()">
+		<form id='representante_form' class='signup' action="{% url 'signup_representante' %}" method="post" enctype="multipart/form-data" onsubmit="return validarFormulario()">
 			{% csrf_token %}
 
 			{% if error %}
