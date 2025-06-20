@@ -299,3 +299,12 @@ class DeviceToken(models.Model):
         """Deactivate this device token"""
         self.is_active = False
         self.save(update_fields=['is_active', 'updated_at'])
+
+class Credencial(models.Model):
+    id = models.AutoField(primary_key=True)
+    id_representante = models.ForeignKey(representante_org, on_delete=models.CASCADE, null=True, blank=True)
+    cloudinary_key = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def gen_key(self):
+        
